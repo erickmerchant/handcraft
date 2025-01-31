@@ -1,0 +1,15 @@
+export * from "../dom.js";
+export * from "../reactivity.js";
+export * from "../define.js";
+export * from "../each.js";
+import "../element/aria.js";
+import "../element/attr.js";
+import "../element/classes.js";
+import "../element/data.js";
+import "../element/nodes.js";
+import "../element/observe.js";
+import "../element/on.js";
+import "../element/prop.js";
+import "../element/shadow.js";
+import "../element/styles.js";
+import "../element/text.js";

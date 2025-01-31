@@ -1,0 +1,123 @@
+* {
+	box-sizing: border-box;
+	padding: 0;
+	margin: 0;
+	font: inherit;
+}
+
+html {
+	block-size: 100%;
+}
+
+body {
+	block-size: 100%;
+	font-family: system-ui, sans-serif;
+	font-size: 1.125em;
+}
+
+to-do-app {
+	display: grid;
+	max-inline-size: 40em;
+	padding-inline: 1em;
+	margin-inline: auto;
+	margin-block-start: 1em;
+	grid-auto-rows: max-content;
+	grid-template-columns: auto min-content min-content;
+	gap: 0.5em;
+	align-items: center;
+	white-space: nowrap;
+	accent-color: oklch(0.5 0.3 150);
+}
+
+[type="checkbox"] {
+	inline-size: 1em;
+	block-size: 1em;
+	cursor: pointer;
+}
+
+.title {
+	font-size: 1.5em;
+	font-weight: bold;
+}
+
+.input-text {
+	grid-column: 1 / -1;
+	appearance: none;
+	padding-block: 0.25em;
+	padding-inline: 0.5em;
+	border: 1px solid oklch(0.5 0 0);
+	border-radius: 0.25em;
+}
+
+.list {
+	grid-column: 1 / -1;
+	display: grid;
+	grid-template-rows: max-content;
+	grid-template-columns: max-content auto max-content;
+	gap: 0.5em;
+	list-style: none;
+}
+
+.item {
+	grid-column: 1 / -1;
+	display: grid;
+	background-color: oklch(1 0 0);
+	padding-block: 0.25em;
+	padding-inline: 0.25em;
+	border-radius: 0.25em;
+	grid-template-columns: subgrid;
+	align-items: center;
+	cursor: move;
+	animation-duration: 0.125s;
+	animation-fill-mode: both;
+
+	:where(:not(a, button, input)) {
+		cursor: inherit;
+	}
+}
+
+.dragging {
+	background-color: oklch(0.9 0 0) !important;
+	cursor: move !important;
+
+	> * {
+		visibility: hidden;
+	}
+}
+
+.done {
+	text-decoration: line-through;
+}
+
+.leaving {
+	animation-name: fade;
+}
+
+.entering {
+	animation-direction: reverse;
+	animation-name: fade;
+}
+
+.delete {
+	inline-size: 1em;
+	block-size: 1em;
+	appearance: none;
+	background-color: oklch(0 0 0 / 0);
+	border: 0;
+	cursor: pointer;
+
+	:where(svg) {
+		inline-size: 1em;
+		block-size: 1em;
+		fill: oklch(0.5 0.3 30);
+	}
+}
+
+@keyframes fade {
+	0% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+	}
+}
