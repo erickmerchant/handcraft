@@ -128,7 +128,7 @@ The callback will be called for each item in the _collection_ that passes the fi
 
 ### _prelude/min.js_
 
-For convenience, a module that exports all of lib and imports attr, nodes, on, prop, and text. The minimum you'd need to get started.
+For convenience, a module that exports all of dom and reactivity and imports attr, nodes, on, prop, and text. The minimum you'd need to get started.
 
 ### _prelude/all.js_
 
