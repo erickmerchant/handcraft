@@ -110,7 +110,7 @@ Read an attribute.
 
 Find children.
 
-### _element/each.js_
+### _each.js_
 
 Each is a way to create reactive lists.
 
