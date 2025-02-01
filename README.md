@@ -18,18 +18,18 @@ Pass it an object (arrays supported) and it returns the object wrapped in a prox
 
 Pass it a callback to do operations that should get rerun when _watched_ objects are changed. It's for things not covered by the _element_ API. Eg. setting localStorage or calling methods on DOM elements. Only properties that are later changed will trigger a rerun. Internally this same method is used anywhere a callback known as an _effect_ is allowed.
 
-``` js
-import {watch, effect} from "handcraft/reactivity.js"
+```js
+import {watch, effect} from "handcraft/reactivity.js";
 
-let state = watch({foo:0});
+let state = watch({foo: 0});
 
 effect(() => {
-	console.log(state.foo)
-})
+	console.log(state.foo);
+});
 
 setInterval(() => {
-	state.foo += 1
-}, 10_000)
+	state.foo += 1;
+}, 10_000);
 ```
 
 ### _dom.js_
@@ -44,7 +44,7 @@ These are proxies of objects that return functions referred to as _tags_ that wh
 
 Usually you won't use `Element` directly unless you want to write your own methods. It is exported so that methods can be added to it's prototype.
 
-``` js
+```js
 import {Element} from "handcraft/dom.js";
 
 Element.prototype.text = function (txt) {
@@ -58,22 +58,22 @@ Element.prototype.text = function (txt) {
 
 A method on `Element` instances that returns the underlying DOM element.
 
-``` js
-import {html} from "handcraft/dom.js"
+```js
+import {html} from "handcraft/dom.js";
 
-let {div} = html
+let {div} = html;
 
-document.body.append(div().text("hello world!").deref())
+document.body.append(div().text("hello world!").deref());
 ```
 
 #### $(node)
 
 Wraps a DOM node in the fluent interface.
 
-``` js
-import {$} from "handcraft/dom.js"
+```js
+import {$} from "handcraft/dom.js";
 
-assert($(document.body).deref() === document.body)
+assert($(document.body).deref() === document.body);
 ```
 
 ### _define.js_
@@ -88,11 +88,23 @@ Pass it the name of your custom element. It returns a definition that is also a 
 
 The callback is run in the custom element's `connectedCallback`.
 
+```js
+import {define} from "handcraft/define.js";
+
+document.body.append(
+	define("hello-world")
+		.connected((host) => {
+			host.text("hello world!");
+		})
+		.deref()
+);
+```
+
 #### definition.disconnected(callback)
 
 The callback is run in the custom element's `disconnectedCallback`.
 
-### _element/*.js_
+### _element/\*.js_
 
 Every module in the element directory adds a method to the `Element` prototype. Import the file to add the method. They don't export anything. For instance to use `styles(styles)` import `element/styles.js`.
 
@@ -170,8 +182,7 @@ For convenience, a module that exports all of dom and reactivity and imports att
 
 ### _prelude/all.js_
 
-Exports all other exports, and imports all element/*.js files. Probably only use this for demos.
-
+Exports all other exports, and imports all element/\*.js files. Probably only use this for demos.
 
 ---
 
