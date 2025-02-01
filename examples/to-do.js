@@ -1,4 +1,12 @@
-import {html, svg, $, watch, effect, define, each} from "../prelude/all.js";
+import {
+	html,
+	svg,
+	$,
+	watch,
+	effect,
+	define,
+	each,
+} from "handcraft/prelude/all.js";
 
 let {input, label, h1, li, button, ol} = html;
 let {title, path} = svg;

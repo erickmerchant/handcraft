@@ -16,7 +16,21 @@ Pass it an object (arrays supported) and it returns the object wrapped in a prox
 
 #### effect(callback)
 
-Pass it a callback to do operations that should get rerun when _watched_ objects are changed. It's for things not covered by the _element_ API. Eg. setting localStorage or calling methods on DOM elements. Only properties that are later changed will trigger a rerun. Internally this same method is used anywhere a callback called an _effect_ is allowed.
+Pass it a callback to do operations that should get rerun when _watched_ objects are changed. It's for things not covered by the _element_ API. Eg. setting localStorage or calling methods on DOM elements. Only properties that are later changed will trigger a rerun. Internally this same method is used anywhere a callback known as an _effect_ is allowed.
+
+``` js
+import {watch, effect} from "handcraft/reactivity.js"
+
+let state = watch({foo:0});
+
+effect(() => {
+	console.log(state.foo)
+})
+
+setInterval(() => {
+	state.foo += 1
+}, 10_000)
+```
 
 ### _dom.js_
 
@@ -24,19 +38,43 @@ Where everything for creating DOM elements resides.
 
 #### html, svg, math
 
-These are proxies of objects that return functions called _tags_ that when called return an instance of `Element`. There are three because HTML, SVG, and MathML all require different namespaces when creating an DOM element.
+These are proxies of objects that return functions referred to as _tags_ that when run return an instance of `Element`. There are three because HTML, SVG, and MathML all require different namespaces when creating an DOM element.
 
 #### Element
 
 Usually you won't use `Element` directly unless you want to write your own methods. It is exported so that methods can be added to it's prototype.
 
+``` js
+import {Element} from "handcraft/dom.js";
+
+Element.prototype.text = function (txt) {
+	this.element.textContent = txt;
+
+	return this;
+};
+```
+
 #### element.deref()
 
 A method on `Element` instances that returns the underlying DOM element.
 
+``` js
+import {html} from "handcraft/dom.js"
+
+let {div} = html
+
+document.body.append(div().text("hello world!").deref())
+```
+
 #### $(node)
 
 Wraps a DOM node in the fluent interface.
+
+``` js
+import {$} from "handcraft/dom.js"
+
+assert($(document.body).deref() === document.body)
+```
 
 ### _define.js_
 
@@ -48,11 +86,11 @@ Pass it the name of your custom element. It returns a definition that is also a 
 
 #### definition.connected(callback)
 
-The callback is called in the custom element's `connectedCallback`.
+The callback is run in the custom element's `connectedCallback`.
 
 #### definition.disconnected(callback)
 
-The callback is called in the custom element's `disconnectedCallback`.
+The callback is run in the custom element's `disconnectedCallback`.
 
 ### _element/*.js_
 
@@ -72,15 +110,15 @@ Set classes. Accepts a variable number of strings and objects. With objects the 
 
 #### element.styles(styles)
 
-Set styles. Accepts an object where the keys become the style properties. Values their values. Values can be _effects_. Returns the _element_ for chaining.
+Set styles. Accepts an object. Values can be _effects_. Returns the _element_ for chaining.
 
 #### element.aria(attrs)
 
-Set aria attributes. Accepts an object where the keys become the aria attribute names. Values their values. Values can be _effects_. Returns the _element_ for chaining.
+Set aria attributes. Accepts an object. Values can be _effects_. Returns the _element_ for chaining.
 
 #### element.data(data)
 
-Set data attributes. Accepts an object where the keys become the dataset keys. Values their values. Values can be _effects_. Returns the _element_ for chaining.
+Set data attributes. Accepts an object. Values can be _effects_. Returns the _element_ for chaining.
 
 #### element.on(name, callback, options = {})
 
@@ -120,11 +158,11 @@ Entry point for this API. Pass it a _watched_ array. Returns a _collection_ that
 
 #### collection.filter(callback)
 
-The callback will be called for each item in the _collection_. Return a boolean to move onto the map step.
+The callback will be run for each item in the _collection_. Return a boolean to move onto the map step.
 
 #### collection.map(callback)
 
-The callback will be called for each item in the _collection_ that passes the filter step. It should return an _element_. It is passed an object that contains `item`, the _collection_ item, and `index` its index. Do not use destructuring assignment with the `item` between _effects_, because they will not be rerun if the item is swapped out since the callback when called in `nodes` is only called once per index. This avoids destroying DOM elements only to rebuild them with new data.
+The callback will be run for each item in the _collection_ that passes the filter step. It should return an _element_. It is passed an object that contains `item`, the _collection_ item, and `index` its index. Do not use destructuring assignment with the `item` between _effects_, because they will not be rerun if the item is swapped out since the callback when run in `nodes` is only run once per index. This avoids destroying DOM elements only to rebuild them with new data.
 
 ### _prelude/min.js_
 
