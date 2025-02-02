@@ -120,6 +120,17 @@ Set an attribute. The second parameter can be an _effect_. Returns the _element_
 
 Set classes. Accepts a variable number of strings and objects. With objects the keys become the class strings if their values are true. Values can be _effects_. Returns the _element_ for chaining.
 
+```js
+import {html} from "handcraft/dom.js";
+
+let {input} = html;
+
+input()
+	.attr("type", "checkbox")
+	.prop("checked", () => state.checked)
+	.classes({error: () => !state.valid});
+```
+
 #### element.styles(styles)
 
 Set styles. Accepts an object. Values can be _effects_. Returns the _element_ for chaining.
