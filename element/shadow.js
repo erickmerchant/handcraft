@@ -1,6 +1,6 @@
 import {Element, $} from "../dom.js";
 
-Element.prototype.shadow = function (mode = "open") {
+Element.prototype.shadow = function (options = {mode: "open"}) {
 	let el = this.element.deref();
 
 	if (el) {
@@ -8,7 +8,7 @@ Element.prototype.shadow = function (mode = "open") {
 			return $(el.shadowRoot);
 		}
 
-		el.attachShadow({mode});
+		el.attachShadow(options);
 
 		return $(el.shadowRoot);
 	}

@@ -1,4 +1,4 @@
-# handcraft
+# Handcraft
 
 A tiny front-end framework using a fluent interface for constructing UI. It also has shallow reactivity. Less than 2kB minified and compressed. Use or download it from a CDN like [jsDelivr](https://cdn.jsdelivr.net/gh/erickmerchant/handcraft/prelude/all.js) and add it to your import map.
 
@@ -144,7 +144,7 @@ Set the children of an _element_. Each child can be a string, a DOM element, an 
 
 When you need to set one text node, use `text` instead of `nodes`. The parameter can be a string or an _effect_. Returns the _element_ for chaining.
 
-#### element.shadow(mode = "open")
+#### element.shadow(options = {mode: "open"})
 
 Attaches and returns a shadow, or returns an existing one. The returned shadow DOM instance is wrapped in the `Element` API.
 
