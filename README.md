@@ -279,10 +279,10 @@ import "handcraft/element/nodes.js";
 import "handcraft/element/text.js";
 
 let {button, ul, li} = html;
-let list = watch([Math.floot(Math.random() * 100)]);
+let list = watch([uuid()]);
 
 button().on("click", () => {
-	list.push(Math.floot(Math.random() * 100));
+	list.push(uuid());
 });
 
 ul().nodes(
