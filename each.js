@@ -3,7 +3,7 @@ import {watch} from "./reactivity.js";
 export function each(list) {
 	let mapper;
 	let filterer = () => true;
-	let views = [];
+	let entries = [];
 
 	return {
 		map(cb) {
@@ -21,33 +21,33 @@ export function each(list) {
 		*[Symbol.iterator]() {
 			let i = 0;
 
-			for (let [index, item] of list.entries()) {
-				if (!filterer({item, index})) {
+			for (let [index, value] of list.entries()) {
+				if (!filterer({value, index})) {
 					continue;
 				}
 
-				let view = views[i];
+				let entry = entries[i];
 
-				if (!view) {
-					view = watch({});
+				if (!entry) {
+					entry = watch({});
 
-					views.push(view);
+					entries.push(entry);
 				}
 
-				if (item !== view.item) {
-					view.item = item;
+				if (value !== entry.value) {
+					entry.value = value;
 				}
 
-				view.index = index;
+				entry.index = index;
 
 				yield () => {
-					return mapper(view);
+					return mapper(entry);
 				};
 
 				i++;
 			}
 
-			views.splice(i, Infinity);
+			entries.splice(i, Infinity);
 		},
 	};
 }

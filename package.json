@@ -1,23 +1,23 @@
 {
-  "name": "handcraft",
-  "version": "0.1.0",
-  "description": "A tiny front-end framework using a fluent interface for constructing UI. It also has shallow reactivity. Less than 2kB minified and compressed. Use or download it from a CDN like [jsDelivr](https://cdn.jsdelivr.net/gh/erickmerchant/handcraft/prelude/all.js) and add it to your import map.",
-  "homepage": "https://github.com/erickmerchant/handcraft#readme",
-  "bugs": {
-    "url": "https://github.com/erickmerchant/handcraft/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/erickmerchant/handcraft.git"
-  },
-  "license": "ISC",
-  "author": "Erick Merchant",
-  "type": "module",
-  "main": "prelude/all.js",
-  "directories": {
-    "example": "examples"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  }
+	"name": "handcraft",
+	"version": "0.2.0",
+	"description": "A tiny front-end framework using a fluent interface for constructing UI. It also has shallow reactivity. Less than 2kB minified and compressed. Use or download it from a CDN like [jsDelivr](https://cdn.jsdelivr.net/gh/erickmerchant/handcraft/prelude/all.js) and add it to your import map.",
+	"homepage": "https://github.com/erickmerchant/handcraft#readme",
+	"bugs": {
+		"url": "https://github.com/erickmerchant/handcraft/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/erickmerchant/handcraft.git"
+	},
+	"license": "ISC",
+	"author": "Erick Merchant",
+	"type": "module",
+	"main": "prelude/all.js",
+	"directories": {
+		"example": "examples"
+	},
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	}
 }

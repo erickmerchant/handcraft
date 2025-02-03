@@ -80,31 +80,31 @@ define("to-do-app").connected((host) => {
 		});
 	let itemsList = each(state.list)
 		.filter(
-			(view) => state.showDone || !view.item.isDone || view.item.isLeaving
+			(entry) => state.showDone || !entry.value.isDone || entry.value.isLeaving
 		)
-		.map((view) => {
+		.map((entry) => {
 			let toggleDoneCheckbox = input()
 				.attr("type", "checkbox")
-				.attr("id", () => `item-${view.index}`)
-				.prop("checked", () => view.item.isDone)
+				.attr("id", () => `item-${entry.index}`)
+				.prop("checked", () => entry.value.isDone)
 				.on("change", function () {
 					let isDone = this.checked;
 
 					if (!state.showDone && isDone) {
-						view.item.isLeaving = true;
+						entry.value.isLeaving = true;
 					}
 
-					view.item.isDone = isDone;
+					entry.value.isDone = isDone;
 				});
 			let itemLabel = label()
-				.attr("for", () => `item-${view.index}`)
-				.text(() => view.item.text);
+				.attr("for", () => `item-${entry.index}`)
+				.text(() => entry.value.text);
 			let deleteButton = button()
 				.attr("type", "button")
 				.classes("delete")
 				.on("click", function () {
-					view.item.isLeaving = true;
-					view.item.isDeleted = true;
+					entry.value.isLeaving = true;
+					entry.value.isDeleted = true;
 				})
 				.nodes(
 					svg()
@@ -120,14 +120,14 @@ define("to-do-app").connected((host) => {
 
 			return li()
 				.classes("item", {
-					done: () => view.item.isDone,
-					leaving: () => view.item.isLeaving,
-					entering: () => view.item.isEntering,
-					dragging: () => dragState.item === view.item,
+					done: () => entry.value.isDone,
+					leaving: () => entry.value.isLeaving,
+					entering: () => entry.value.isEntering,
+					dragging: () => dragState.item === entry.value,
 				})
 				.prop("draggable", true)
 				.on("dragstart", function (e) {
-					dragState.item = view.item;
+					dragState.item = entry.value;
 
 					e.dataTransfer.effectAllowed = "move";
 					// e.dataTransfer.setDragImage(this, e.offsetX, e.offsetY);
@@ -140,19 +140,19 @@ define("to-do-app").connected((host) => {
 						let from = state.list.findIndex((t) => t === dragState.item);
 
 						state.list.splice(from, 1);
-						state.list.splice(view.index, 0, dragState.item);
+						state.list.splice(entry.index, 0, dragState.item);
 					}
 				})
 				.on(["dragover", "dragleave", "drop"], function (e) {
 					e.preventDefault();
 				})
 				.on("animationend", function () {
-					view.item.isLeaving = false;
-					view.item.isEntering = false;
+					entry.value.isLeaving = false;
+					entry.value.isEntering = false;
 
-					if (view.item.isDeleted) {
+					if (entry.value.isDeleted) {
 						state.list.splice(
-							state.list.findIndex((item) => item === view.item),
+							state.list.findIndex((item) => item === entry.value),
 							1
 						);
 					}

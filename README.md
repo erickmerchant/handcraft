@@ -122,6 +122,9 @@ Set classes. Accepts a variable number of strings and objects. With objects the 
 
 ```js
 import {html} from "handcraft/dom.js";
+import "handcraft/element/attr.js";
+import "handcraft/element/prop.js";
+import "handcraft/element/classes.js";
 
 let {input} = html;
 
@@ -143,6 +146,24 @@ Set aria attributes. Accepts an object. Values can be _effects_. Returns the _el
 
 Set data attributes. Accepts an object. Values can be _effects_. Returns the _element_ for chaining.
 
+```js
+import {html} from "handcraft/dom.js";
+import "handcraft/element/styles.js";
+import "handcraft/element/aria.js";
+import "handcraft/element/data.js";
+
+let {div} = html;
+
+div()
+	.styles({
+		"--foo": () => (state.foo ? "red" : "blue"),
+	})
+	.aria({
+		label: "example",
+	})
+	.data({foo: () => state.foo});
+```
+
 #### element.on(name, callback, options = {})
 
 Set an event handler. Has the same signature as `addEventListener` but the first parameter can also be an array to set the same handler for multiple event types. Returns the _element_ for chaining.
@@ -155,9 +176,37 @@ Set the children of an _element_. Each child can be a string, a DOM element, an 
 
 When you need to set one text node, use `text` instead of `nodes`. The parameter can be a string or an _effect_. Returns the _element_ for chaining.
 
+```js
+import {html} from "handcraft/dom.js";
+import "handcraft/element/on.js";
+import "handcraft/element/nodes.js";
+import "handcraft/element/text.js";
+
+let {button, span} = html;
+
+button()
+	.on("click", () => console.log("clicked!"))
+	.nodes(span().text("click me"));
+```
+
 #### element.shadow(options = {mode: "open"})
 
 Attaches and returns a shadow, or returns an existing one. The returned shadow DOM instance is wrapped in the `Element` API.
+
+```js
+import {html} from "handcraft/dom.js";
+import {define} from "handcraft/define.js";
+import "handcraft/element/text.js";
+import "handcraft/element/shadow.js";
+
+let {div} = html;
+
+define("hello-world").connected((host) => {
+	let shadow = host.shadow();
+
+	shadow.nodes(div().text("hello world!"));
+});
+```
 
 #### element.observe()
 
@@ -167,9 +216,43 @@ Returns an observer that uses a `MutationObserver` backed way to read attributes
 
 Read an attribute.
 
+```js
+import {html} from "handcraft/dom.js";
+import {define} from "handcraft/define.js";
+import "handcraft/element/nodes.js";
+import "handcraft/element/text.js";
+import "handcraft/element/observe.js";
+
+let {div} = html;
+
+define("hello-world").connected((host) => {
+	let observed = host.observe();
+
+	host.nodes(div().text(() => `hello ${observed.attr("name")}!`));
+});
+```
+
 #### observer.find(query)
 
 Find children.
+
+```js
+import {$} from "handcraft/dom.js";
+import {effect} from "handcraft/reactivity.js";
+import "handcraft/element/on.js";
+import "handcraft/element/observe.js";
+
+let observed = $(document.body).observe();
+let buttons = observed.find("button");
+
+effect(() => {
+	for (let button of buttons) {
+		button.on("click", () => {
+			console.log("clicked");
+		});
+	}
+});
+```
 
 ### _each.js_
 
@@ -186,6 +269,28 @@ The callback will be run for each item in the _collection_. Return a boolean to 
 #### collection.map(callback)
 
 The callback will be run for each item in the _collection_ that passes the filter step. It should return an _element_. It is passed an object that contains `item`, the _collection_ item, and `index` its index. Do not use destructuring assignment with the `item` between _effects_, because they will not be rerun if the item is swapped out since the callback when run in `nodes` is only run once per index. This avoids destroying DOM elements only to rebuild them with new data.
+
+```js
+import {html} from "handcraft/dom.js";
+import {each} from "handcraft/each.js";
+import {watch} from "handcraft/reactivity.js";
+import "handcraft/element/on.js";
+import "handcraft/element/nodes.js";
+import "handcraft/element/text.js";
+
+let {button, ul, li} = html;
+let list = watch([Math.floot(Math.random() * 100)]);
+
+button().on("click", () => {
+	list.push(Math.floot(Math.random() * 100));
+});
+
+ul().nodes(
+	each(list)
+		.filter((entry) => entry.value % 2)
+		.map((entry) => li().text(entry.value))
+);
+```
 
 ### _prelude/min.js_
 
