@@ -1,6 +1,6 @@
 import {Element} from "../dom.js";
 
-Element.prototype.on = function (events, handler, options = {}) {
+export function on(events, handler, options = {}) {
 	let el = this.element.deref();
 
 	if (el) {
@@ -10,4 +10,6 @@ Element.prototype.on = function (events, handler, options = {}) {
 	}
 
 	return this;
-};
+}
+
+Element.prototype.on = on;

@@ -1,7 +1,7 @@
 import {Element, $} from "../dom.js";
 import {watch} from "../reactivity.js";
 
-Element.prototype.observe = function () {
+export function observe() {
 	let el = this.element.deref();
 
 	if (!el) return;
@@ -82,4 +82,6 @@ Element.prototype.observe = function () {
 			};
 		},
 	};
-};
+}
+
+Element.prototype.observe = observe;

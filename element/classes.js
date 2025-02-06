@@ -1,7 +1,7 @@
 import {Element} from "../dom.js";
 import {mutate} from "../reactivity.js";
 
-Element.prototype.classes = function (...classes) {
+export function classes(...classes) {
 	classes = classes.flat(Infinity);
 
 	for (let c of classes) {
@@ -23,4 +23,6 @@ Element.prototype.classes = function (...classes) {
 	}
 
 	return this;
-};
+}
+
+Element.prototype.classes = classes;

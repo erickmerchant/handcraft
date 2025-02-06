@@ -1,7 +1,7 @@
 import {Element} from "../dom.js";
 import {mutate} from "../reactivity.js";
 
-Element.prototype.aria = function (attrs) {
+export function aria(attrs) {
 	for (let [key, value] of Object.entries(attrs)) {
 		mutate(
 			this.element,
@@ -13,4 +13,6 @@ Element.prototype.aria = function (attrs) {
 	}
 
 	return this;
-};
+}
+
+Element.prototype.aria = aria;

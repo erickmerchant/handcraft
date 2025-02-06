@@ -1,7 +1,7 @@
 import {Element} from "../dom.js";
 import {mutate} from "../reactivity.js";
 
-Element.prototype.data = function (data) {
+export function data(data) {
 	for (let [key, value] of Object.entries(data)) {
 		mutate(
 			this.element,
@@ -13,4 +13,6 @@ Element.prototype.data = function (data) {
 	}
 
 	return this;
-};
+}
+
+Element.prototype.data = data;

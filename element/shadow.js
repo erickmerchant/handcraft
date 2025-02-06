@@ -1,6 +1,6 @@
 import {Element, $} from "../dom.js";
 
-Element.prototype.shadow = function (options = {mode: "open"}) {
+export function shadow(options = {mode: "open"}) {
 	let el = this.element.deref();
 
 	if (el) {
@@ -12,4 +12,6 @@ Element.prototype.shadow = function (options = {mode: "open"}) {
 
 		return $(el.shadowRoot);
 	}
-};
+}
+
+Element.prototype.shadow = shadow;

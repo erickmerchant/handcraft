@@ -1,7 +1,7 @@
 import {Element} from "../dom.js";
 import {mutate} from "../reactivity.js";
 
-Element.prototype.nodes = function (...children) {
+export function nodes(...children) {
 	let el = this.element.deref();
 
 	clear(el.firstChild);
@@ -50,7 +50,9 @@ Element.prototype.nodes = function (...children) {
 	}
 
 	return this;
-};
+}
+
+Element.prototype.nodes = nodes;
 
 function clear(currentChild, end) {
 	while (currentChild && currentChild !== end) {

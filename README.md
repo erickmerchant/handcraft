@@ -106,7 +106,7 @@ The callback is run in the custom element's `disconnectedCallback`.
 
 ### _element/\*.js_
 
-Every module in the element directory adds a method to the `Element` prototype. Import the file to add the method. They don't export anything. For instance to use `styles(styles)` import `element/styles.js`.
+Every module in the element directory adds a method to the `Element` prototype. Import the file to add the method. For instance to use `styles(styles)` import `element/styles.js`.
 
 #### element.prop(key, value)
 

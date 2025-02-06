@@ -1,7 +1,7 @@
 import {Element} from "../dom.js";
 import {mutate} from "../reactivity.js";
 
-Element.prototype.prop = function (key, value) {
+export function prop(key, value) {
 	mutate(
 		this.element,
 		(element, value) => {
@@ -11,4 +11,6 @@ Element.prototype.prop = function (key, value) {
 	);
 
 	return this;
-};
+}
+
+Element.prototype.prop = prop;

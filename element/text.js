@@ -1,7 +1,7 @@
 import {Element} from "../dom.js";
 import {mutate} from "../reactivity.js";
 
-Element.prototype.text = function (txt) {
+export function text(txt) {
 	mutate(
 		this.element,
 		(element, txt) => {
@@ -11,4 +11,6 @@ Element.prototype.text = function (txt) {
 	);
 
 	return this;
-};
+}
+
+Element.prototype.text = text;

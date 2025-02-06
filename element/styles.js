@@ -1,7 +1,7 @@
 import {Element} from "../dom.js";
 import {mutate} from "../reactivity.js";
 
-Element.prototype.styles = function (styles) {
+export function styles(styles) {
 	for (let [key, value] of Object.entries(styles)) {
 		mutate(
 			this.element,
@@ -13,4 +13,6 @@ Element.prototype.styles = function (styles) {
 	}
 
 	return this;
-};
+}
+
+Element.prototype.styles = styles;
