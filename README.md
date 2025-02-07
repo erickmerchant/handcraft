@@ -58,14 +58,6 @@ Element.prototype.text = function (txt) {
 
 A method on `Element` instances that returns the underlying DOM element.
 
-```js
-import {html} from "handcraft/dom.js";
-
-let {div} = html;
-
-document.body.append(div().text("hello world!").deref());
-```
-
 #### $(node)
 
 Wraps a DOM node in the fluent interface.
@@ -89,14 +81,14 @@ Pass it the name of your custom element. It returns a definition that is also a 
 The callback is run in the custom element's `connectedCallback`.
 
 ```js
+import {$} from "handcraft/dom.js";
 import {define} from "handcraft/define.js";
 
-document.body.append(
+$(target).nodes(
 	define("hello-world")
 		.connected((host) => {
 			host.text("hello world!");
 		})
-		.deref()
 );
 ```
 
