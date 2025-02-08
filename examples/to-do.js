@@ -28,12 +28,6 @@ define("to-do-app").connected((host) => {
 		localStorage.setItem("to-do-app", JSON.stringify(state));
 	});
 
-	host.on(["dragover", "dragleave", "drop"], function (e) {
-		if (dragState.item != null) {
-			e.preventDefault();
-		}
-	});
-
 	let heading = h1().classes("title").text("To Do List");
 	let showDoneCheckbox = input()
 		.classes("show-done")
@@ -130,7 +124,6 @@ define("to-do-app").connected((host) => {
 					dragState.item = entry.value;
 
 					e.dataTransfer.effectAllowed = "move";
-					// e.dataTransfer.setDragImage(this, e.offsetX, e.offsetY);
 				})
 				.on("dragend", function () {
 					dragState.item = null;
@@ -143,7 +136,7 @@ define("to-do-app").connected((host) => {
 						state.list.splice(entry.index, 0, dragState.item);
 					}
 				})
-				.on(["dragover", "dragleave", "drop"], function (e) {
+				.on(["dragover", "dragleave"], function (e) {
 					e.preventDefault();
 				})
 				.on("animationend", function () {
