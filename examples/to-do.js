@@ -136,9 +136,6 @@ define("to-do-app").connected((host) => {
 						state.list.splice(entry.index, 0, dragState.item);
 					}
 				})
-				.on(["dragover", "dragleave"], function (e) {
-					e.preventDefault();
-				})
 				.on("animationend", function () {
 					entry.value.isLeaving = false;
 					entry.value.isEntering = false;
