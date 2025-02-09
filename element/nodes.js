@@ -25,7 +25,7 @@ export function nodes(...children) {
 				for (let item of child) {
 					if (!currentChild) {
 						let result = item();
-						result = Element.derefIfElement(result);
+						result = derefIfElement(result);
 
 						if (result != null) {
 							fragment.append(result);
@@ -43,7 +43,7 @@ export function nodes(...children) {
 				clear(currentChild, end);
 			});
 		} else {
-			let result = Element.derefIfElement(child);
+			let result = derefIfElement(child);
 
 			el.append(result);
 		}
@@ -53,6 +53,10 @@ export function nodes(...children) {
 }
 
 Element.prototype.nodes = nodes;
+
+function derefIfElement(val) {
+	return typeof val === "object" && val instanceof Element ? val.deref() : val;
+}
 
 function clear(currentChild, end) {
 	while (currentChild && currentChild !== end) {

@@ -1,10 +1,4 @@
 export class Element {
-	static derefIfElement(val) {
-		return typeof val === "object" && val instanceof Element
-			? val.deref()
-			: val;
-	}
-
 	constructor(element) {
 		this.element = new WeakRef(element);
 	}
