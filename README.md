@@ -181,6 +181,10 @@ button()
 	.nodes(span().text("click me"));
 ```
 
+#### element.effect(callback)
+
+Run an _effect_. The callback is passed the DOM element. Returns the _element_ for chaining.
+
 #### element.shadow(options = {mode: "open"})
 
 Attaches and returns a shadow, or returns an existing one. The returned shadow DOM instance is wrapped in the `Element` API.

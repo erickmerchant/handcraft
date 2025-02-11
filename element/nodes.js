@@ -4,8 +4,6 @@ import {mutate} from "../reactivity.js";
 export function nodes(...children) {
 	let el = this.element.deref();
 
-	clear(el.firstChild);
-
 	children = children.flat(Infinity);
 
 	for (let child of children) {
