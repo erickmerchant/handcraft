@@ -1,6 +1,6 @@
 # Handcraft
 
-A tiny front-end framework using a fluent interface for constructing UI. It also has shallow reactivity. Less than 2kB minified and compressed. Use or download it from a CDN like [jsDelivr](https://cdn.jsdelivr.net/gh/erickmerchant/handcraft/prelude/all.js) and add it to your import map.
+A tiny front-end framework using a fluent interface for constructing UI. It also has shallow reactivity. Less than 2kB minified and compressed. Use or download it from a CDN like [jsDelivr](https://cdn.jsdelivr.net/gh/erickmerchant/handcraft@latest/prelude/all.js) and add it to your import map.
 
 ---
 
