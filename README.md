@@ -192,6 +192,7 @@ Attaches and returns a shadow, or returns an existing one. The returned shadow D
 ```js
 import {html} from "handcraft/dom.js";
 import {define} from "handcraft/define.js";
+import "handcraft/element/nodes.js";
 import "handcraft/element/text.js";
 import "handcraft/element/shadow.js";
 

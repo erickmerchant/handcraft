@@ -4,11 +4,9 @@ export function shadow(options = {mode: "open"}) {
 	let el = this.element.deref();
 
 	if (el) {
-		if (el.shadowRoot) {
-			return $(el.shadowRoot);
+		if (!el.shadowRoot) {
+			el.attachShadow(options);
 		}
-
-		el.attachShadow(options);
 
 		return $(el.shadowRoot);
 	}
