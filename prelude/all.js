@@ -6,6 +6,7 @@ import "../element/aria.js";
 import "../element/attr.js";
 import "../element/classes.js";
 import "../element/data.js";
+import "../element/effect.js";
 import "../element/nodes.js";
 import "../element/observe.js";
 import "../element/on.js";
