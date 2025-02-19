@@ -38,7 +38,7 @@ export function nodes(...children) {
 
 				end.before(fragment);
 
-				clear(currentChild, end);
+				truncate(currentChild, end);
 			});
 		} else {
 			let result = derefIfElement(child);
@@ -56,7 +56,7 @@ function derefIfElement(val) {
 	return typeof val === "object" && val instanceof Element ? val.deref() : val;
 }
 
-function clear(currentChild, end) {
+function truncate(currentChild, end) {
 	while (currentChild && currentChild !== end) {
 		let nextChild = currentChild.nextSibling;
 

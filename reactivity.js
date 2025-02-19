@@ -4,7 +4,7 @@ let reads = new WeakMap();
 let registered = new WeakSet();
 let scheduled = false;
 
-function get(o, key, r) {
+function getProperty(o, key, r) {
 	if (current) {
 		let callbacks = reads.get(o).get(key);
 
@@ -19,7 +19,7 @@ function get(o, key, r) {
 	return Reflect.get(o, key, r);
 }
 
-function modify(o, key) {
+function modifyProperty(o, key) {
 	let callbacks = reads.get(o).get(key);
 
 	if (callbacks) {
@@ -31,14 +31,14 @@ function modify(o, key) {
 	}
 }
 
-function set(o, key, value, r) {
-	modify(o, key);
+function setProperty(o, key, value, r) {
+	modifyProperty(o, key);
 
 	return Reflect.set(o, key, value, r);
 }
 
 function deleteProperty(o, key) {
-	modify(o, key);
+	modifyProperty(o, key);
 
 	return Reflect.deleteProperty(o, key);
 }
@@ -69,7 +69,11 @@ export function effect(callback) {
 export function watch(object) {
 	reads.set(object, new Map());
 
-	return new Proxy(object, {set, get, deleteProperty});
+	return new Proxy(object, {
+		set: setProperty,
+		get: getProperty,
+		deleteProperty,
+	});
 }
 
 export function mutate(element, callback, value = () => {}) {

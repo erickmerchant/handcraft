@@ -71,15 +71,25 @@ export function observe() {
 
 			queries[query] = watch(results);
 
-			return {
-				*[Symbol.iterator]() {
-					for (let el of queries[query].slice(index)) {
-						yield $(el);
+			return new Proxy(
+				{
+					*[Symbol.iterator]() {
+						for (let el of queries[query].slice(index)) {
+							yield $(el);
 
-						index++;
-					}
+							index++;
+						}
+					},
 				},
-			};
+				{
+					get(target, key) {
+						return (
+							target[key] ??
+							(queries[query][key] ? $(queries[query][key]) : undefined)
+						);
+					},
+				}
+			);
 		},
 	};
 }
