@@ -4,15 +4,8 @@ export function each(list) {
 	let mapper;
 	let filterer = () => true;
 	let entries = [];
-	let zipped = [];
 
 	return {
-		zip(collection) {
-			zipped.push(collection);
-
-			return this;
-		},
-
 		map(cb) {
 			mapper = cb;
 
@@ -48,10 +41,7 @@ export function each(list) {
 				entry.index = index;
 
 				yield () => {
-					return mapper(
-						entry,
-						...zipped.map((collection) => collection[index])
-					);
+					return mapper(entry);
 				};
 
 				i++;
