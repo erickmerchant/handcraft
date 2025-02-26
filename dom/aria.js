@@ -1,4 +1,4 @@
-import {Element} from "../dom.js";
+import {HandcraftElement} from "../dom.js";
 import {mutate} from "../reactivity.js";
 
 export function aria(attrs) {
@@ -15,4 +15,4 @@ export function aria(attrs) {
 	return this;
 }
 
-Element.prototype.aria = aria;
+HandcraftElement.prototype.aria = aria;

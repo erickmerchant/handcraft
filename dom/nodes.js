@@ -1,4 +1,4 @@
-import {Element} from "../dom.js";
+import {HandcraftNode, HandcraftElement} from "../dom.js";
 import {mutate} from "../reactivity.js";
 
 export function nodes(...children) {
@@ -50,10 +50,12 @@ export function nodes(...children) {
 	return this;
 }
 
-Element.prototype.nodes = nodes;
+HandcraftNode.prototype.nodes = nodes;
 
 function derefIfElement(val) {
-	return typeof val === "object" && val instanceof Element ? val.deref() : val;
+	return typeof val === "object" && val instanceof HandcraftElement
+		? val.deref()
+		: val;
 }
 
 function truncate(currentChild, end) {

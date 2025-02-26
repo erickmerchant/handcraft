@@ -16,7 +16,7 @@ Pass it an object (arrays supported) and it returns the object wrapped in a prox
 
 #### effect(callback)
 
-Pass it a callback to do operations that should get rerun when _watched_ objects are changed. It's for things not covered by the _element_ API. Eg. setting localStorage or calling methods on DOM elements. Only properties that are later changed will trigger a rerun. Internally this same method is used anywhere a callback known as an _effect_ is allowed.
+Pass it a callback to do operations that should get rerun when _watched_ objects are changed. It's for things not covered by the DOM API. Eg. setting localStorage or calling methods on DOM elements. Only properties that are later changed will trigger a rerun. Internally this same method is used anywhere a callback known as an _effect_ is allowed.
 
 ```js
 import {watch, effect} from "handcraft/reactivity.js";
@@ -38,25 +38,27 @@ Where everything for creating DOM elements resides.
 
 #### html, svg, math
 
-These are proxies of objects that return functions referred to as _tags_ that when run return an instance of `Element`. There are three because HTML, SVG, and MathML all require different namespaces when creating an DOM element.
+These are proxies of objects that return functions referred to as _tags_ that when run return an instance of `HandcraftElement`. There are three because HTML, SVG, and MathML all require different namespaces when creating an DOM element.
 
-#### Element
+#### HandcraftNode, HandcraftElement, and HandcraftShadowRoot
 
-Usually you won't use `Element` directly unless you want to write your own methods. It is exported so that methods can be added to it's prototype.
+Usually you won't use these directly unless you want to write your own methods. They are exported so that methods can be added to their prototype. `HandcraftElement` and `HandcraftShadowRoot` are sub-classes of `HandcraftNode` so they inherit all methods on `HandcraftNode`.
 
 ```js
-import {Element} from "handcraft/dom.js";
+import {HandcraftElement} from "handcraft/dom.js";
 
-Element.prototype.text = function (txt) {
+HandcraftElement.prototype.text = function (txt) {
 	this.element.textContent = txt;
 
 	return this;
 };
 ```
 
-#### element.deref()
+Below `node` refers to methods on `HandcraftNode`, `element` refers to methods on `HandcraftElement`, and `shadow` those on `HandcraftShadowRoot`.
 
-A method on `Element` instances that returns the underlying DOM element.
+#### node.deref()
+
+A method on `HandcraftNode` instances that returns the underlying DOM element.
 
 #### $(node)
 
@@ -85,10 +87,9 @@ import {$} from "handcraft/dom.js";
 import {define} from "handcraft/define.js";
 
 $(target).nodes(
-	define("hello-world")
-		.connected((host) => {
-			host.text("hello world!");
-		})
+	define("hello-world").connected((host) => {
+		host.text("hello world!");
+	})
 );
 ```
 
@@ -96,13 +97,13 @@ $(target).nodes(
 
 The callback is run in the custom element's `disconnectedCallback`.
 
-### _element/\*.js_
+### _dom/\*.js_
 
-Every module in the element directory adds a method to the `Element` prototype. Import the file to add the method. For instance to use `styles(styles)` import `element/styles.js`.
+Every module in the "dom" directory adds a method to the `HandcraftNode`, `HandcraftElement`, or `HandcraftShadowRoot` prototype. Import the file to add the method. For instance to use `styles(styles)` import `dom/styles.js`.
 
-#### element.prop(key, value)
+#### element.aria(attrs)
 
-Set a property. The second parameter can be an _effect_. Returns the _element_ for chaining.
+Set aria attributes. Accepts an object. Values can be _effects_. Returns the _element_ for chaining.
 
 #### element.attr(key, value)
 
@@ -112,11 +113,35 @@ Set an attribute. The second parameter can be an _effect_. Returns the _element_
 
 Set classes. Accepts a variable number of strings and objects. With objects the keys become the class strings if their values are true. Values can be _effects_. Returns the _element_ for chaining.
 
+#### element.data(data)
+
+Set data attributes. Accepts an object. Values can be _effects_. Returns the _element_ for chaining.
+
+#### node.effect(callback)
+
+Run an _effect_. The callback is passed the DOM element. Returns the _node_ for chaining.
+
+#### node.nodes(...children)
+
+Set the children of an _node_. Each child can be a string, a DOM element, an _node_, an array, or an _effect_. Returns the _node_ for chaining.
+
+#### node.observe()
+
+Returns an observer that uses a `MutationObserver` backed way to read attributes, and query descendants. When methods of the returned `observer` are used in an _effect_ the effect will be rerun when a mutation happens.
+
+#### node.on(name, callback, options = {})
+
+Set an event handler. Has the same signature as `addEventListener` but the first parameter can also be an array to set the same handler for multiple event types. Returns the _node_ for chaining.
+
+#### node.prop(key, value)
+
+Set a property. The second parameter can be an _effect_. Returns the _node_ for chaining.
+
 ```js
 import {html} from "handcraft/dom.js";
-import "handcraft/element/attr.js";
-import "handcraft/element/prop.js";
-import "handcraft/element/classes.js";
+import "handcraft/dom/attr.js";
+import "handcraft/dom/classes.js";
+import "handcraft/dom/prop.js";
 
 let {input} = html;
 
@@ -126,23 +151,19 @@ input()
 	.classes({error: () => !state.valid});
 ```
 
+#### element.shadow(options = {mode: "open"})
+
+Attaches and returns a _shadow_, or returns an existing one. The returned shadow DOM instance is wrapped in the `HandcraftShadow` API.
+
 #### element.styles(styles)
 
 Set styles. Accepts an object. Values can be _effects_. Returns the _element_ for chaining.
 
-#### element.aria(attrs)
-
-Set aria attributes. Accepts an object. Values can be _effects_. Returns the _element_ for chaining.
-
-#### element.data(data)
-
-Set data attributes. Accepts an object. Values can be _effects_. Returns the _element_ for chaining.
-
 ```js
 import {html} from "handcraft/dom.js";
-import "handcraft/element/styles.js";
-import "handcraft/element/aria.js";
-import "handcraft/element/data.js";
+import "handcraft/dom/aria.js";
+import "handcraft/dom/data.js";
+import "handcraft/dom/styles.js";
 
 let {div} = html;
 
@@ -156,58 +177,30 @@ div()
 	.data({foo: () => state.foo});
 ```
 
-#### element.on(name, callback, options = {})
+#### node.text(text)
 
-Set an event handler. Has the same signature as `addEventListener` but the first parameter can also be an array to set the same handler for multiple event types. Returns the _element_ for chaining.
-
-#### element.nodes(...children)
-
-Set the children of an _element_. Each child can be a string, a DOM element, an _element_, an array, or an _effect_. Returns the _element_ for chaining.
-
-#### element.text(text)
-
-When you need to set one text node, use `text` instead of `nodes`. The parameter can be a string or an _effect_. Returns the _element_ for chaining.
-
-```js
-import {html} from "handcraft/dom.js";
-import "handcraft/element/on.js";
-import "handcraft/element/nodes.js";
-import "handcraft/element/text.js";
-
-let {button, span} = html;
-
-button()
-	.on("click", () => console.log("clicked!"))
-	.nodes(span().text("click me"));
-```
-
-#### element.effect(callback)
-
-Run an _effect_. The callback is passed the DOM element. Returns the _element_ for chaining.
-
-#### element.shadow(options = {mode: "open"})
-
-Attaches and returns a shadow, or returns an existing one. The returned shadow DOM instance is wrapped in the `Element` API.
+When you need to set one text node, use `text` instead of `nodes`. The parameter can be a string or an _effect_. Returns the _node_ for chaining.
 
 ```js
 import {html} from "handcraft/dom.js";
 import {define} from "handcraft/define.js";
-import "handcraft/element/nodes.js";
-import "handcraft/element/text.js";
-import "handcraft/element/shadow.js";
+import "handcraft/dom/nodes.js";
+import "handcraft/dom/on.js";
+import "handcraft/dom/shadow.js";
+import "handcraft/dom/text.js";
 
-let {div} = html;
+let {button, span} = html;
 
 define("hello-world").connected((host) => {
 	let shadow = host.shadow();
 
-	shadow.nodes(div().text("hello world!"));
+	shadow.nodes(
+		button()
+			.on("click", () => console.log("clicked!"))
+			.nodes(span().text("click me"))
+	);
 });
 ```
-
-#### element.observe()
-
-Returns an observer that uses a `MutationObserver` backed way to read attributes, and query descendants. When methods of the returned `observer` are used in an _effect_ the effect will be rerun when a mutation happens.
 
 #### observer.attr(key)
 
@@ -216,9 +209,9 @@ Read an attribute.
 ```js
 import {html} from "handcraft/dom.js";
 import {define} from "handcraft/define.js";
-import "handcraft/element/nodes.js";
-import "handcraft/element/text.js";
-import "handcraft/element/observe.js";
+import "handcraft/dom/nodes.js";
+import "handcraft/dom/text.js";
+import "handcraft/dom/observe.js";
 
 let {div} = html;
 
@@ -236,8 +229,8 @@ Find children.
 ```js
 import {$} from "handcraft/dom.js";
 import {effect} from "handcraft/reactivity.js";
-import "handcraft/element/on.js";
-import "handcraft/element/observe.js";
+import "handcraft/dom/on.js";
+import "handcraft/dom/observe.js";
 
 let observed = $(document.body).observe();
 let buttons = observed.find("button");
@@ -271,9 +264,9 @@ The callback will be run for each item in the _collection_ that passes the filte
 import {html} from "handcraft/dom.js";
 import {each} from "handcraft/each.js";
 import {watch} from "handcraft/reactivity.js";
-import "handcraft/element/on.js";
-import "handcraft/element/nodes.js";
-import "handcraft/element/text.js";
+import "handcraft/dom/on.js";
+import "handcraft/dom/nodes.js";
+import "handcraft/dom/text.js";
 
 let {button, ul, li} = html;
 let list = watch([uuid()]);
@@ -295,7 +288,7 @@ For convenience, a module that exports all of dom and reactivity and imports att
 
 ### _prelude/all.js_
 
-Exports all other exports, and imports all element/\*.js files. Probably only use this for demos.
+Exports all other exports, and imports all dom/\*.js files. Probably only use this for demos.
 
 ---
 

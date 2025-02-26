@@ -1,4 +1,4 @@
-import {Element, $} from "../dom.js";
+import {HandcraftElement, $} from "../dom.js";
 
 export function shadow(options = {mode: "open"}) {
 	let el = this.element.deref();
@@ -12,4 +12,4 @@ export function shadow(options = {mode: "open"}) {
 	}
 }
 
-Element.prototype.shadow = shadow;
+HandcraftElement.prototype.shadow = shadow;

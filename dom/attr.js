@@ -1,4 +1,4 @@
-import {Element} from "../dom.js";
+import {HandcraftElement} from "../dom.js";
 import {mutate} from "../reactivity.js";
 
 export function attr(key, value) {
@@ -17,4 +17,4 @@ export function attr(key, value) {
 	return this;
 }
 
-Element.prototype.attr = attr;
+HandcraftElement.prototype.attr = attr;

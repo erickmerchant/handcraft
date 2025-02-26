@@ -1,4 +1,4 @@
-export class Element {
+export class HandcraftNode {
 	constructor(element) {
 		this.element = new WeakRef(element);
 	}
@@ -8,8 +8,16 @@ export class Element {
 	}
 }
 
+export class HandcraftElement extends HandcraftNode {}
+
+export class HandcraftShadowRoot extends HandcraftNode {}
+
 export function $(node) {
-	return new Element(node);
+	if (node instanceof Element) return new HandcraftElement(node);
+
+	if (node instanceof ShadowRoot) return new HandcraftShadowRoot(node);
+
+	return new HandcraftNode(node);
 }
 
 function h(default_tag, namespace = "http://www.w3.org/1999/xhtml") {

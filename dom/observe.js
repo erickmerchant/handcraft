@@ -1,4 +1,4 @@
-import {Element, $} from "../dom.js";
+import {HandcraftNode, $} from "../dom.js";
 import {watch} from "../reactivity.js";
 
 export function observe() {
@@ -8,7 +8,7 @@ export function observe() {
 
 	let attributes = {};
 
-	for (let attr of el.getAttributeNames()) {
+	for (let attr of el?.getAttributeNames?.() ?? []) {
 		attributes[attr] = el.getAttribute(attr);
 	}
 
@@ -25,7 +25,7 @@ export function observe() {
 		}
 
 		for (let record of records) {
-			if (record.type === "attributes") {
+			if (record.type === "attributes" && record.target === el) {
 				attributes[record.attributeName] = el.getAttribute(
 					record.attributeName
 				);
@@ -94,4 +94,4 @@ export function observe() {
 	};
 }
 
-Element.prototype.observe = observe;
+HandcraftNode.prototype.observe = observe;

@@ -1,4 +1,4 @@
-import {Element} from "../dom.js";
+import {HandcraftNode} from "../dom.js";
 
 export function on(events, handler, options = {}) {
 	let el = this.element.deref();
@@ -12,4 +12,4 @@ export function on(events, handler, options = {}) {
 	return this;
 }
 
-Element.prototype.on = on;
+HandcraftNode.prototype.on = on;

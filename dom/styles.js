@@ -1,4 +1,4 @@
-import {Element} from "../dom.js";
+import {HandcraftElement} from "../dom.js";
 import {mutate} from "../reactivity.js";
 
 export function styles(styles) {
@@ -15,4 +15,4 @@ export function styles(styles) {
 	return this;
 }
 
-Element.prototype.styles = styles;
+HandcraftElement.prototype.styles = styles;
