@@ -111,7 +111,7 @@ Set an attribute. The second parameter can be an _effect_. Returns the _element_
 
 #### element.classes(...classes)
 
-Set classes. Accepts a variable number of strings and objects. With objects the keys become the class strings if their values are true. Values can be _effects_. Returns the _element_ for chaining.
+Set classes. Accepts a variable number of strings and objects. With objects the keys become the class strings if their values are truthy. Values can be _effects_. Returns the _element_ for chaining.
 
 #### element.data(data)
 
@@ -123,7 +123,7 @@ Run an _effect_. The callback is passed the DOM element. Returns the _node_ for 
 
 #### node.nodes(...children)
 
-Set the children of an _node_. Each child can be a string, a DOM element, an _node_, an array, or an _effect_. Returns the _node_ for chaining.
+Set the children of a _node_. Each child can be a string, a DOM element, a _node_, an array, or an _effect_. Returns the _node_ for chaining.
 
 #### node.observe()
 
@@ -254,7 +254,7 @@ Entry point for this API. Pass it a _watched_ array. Returns a _collection_ that
 
 #### collection.filter(callback)
 
-The callback will be run for each item in the _collection_. Return a boolean to move onto the map step.
+The callback will be run for each item in the _collection_. Return a truthy value to move onto the map step.
 
 #### collection.map(callback)
 
