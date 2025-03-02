@@ -1,6 +1,6 @@
 # Handcraft
 
-A tiny front-end framework using a fluent interface for constructing UI. It also has shallow reactivity. Less than 2kB minified and compressed. Use or download it from a CDN like [jsDelivr](https://cdn.jsdelivr.net/gh/erickmerchant/handcraft@latest/prelude/all.js) and add it to your import map.
+A tiny front-end framework using a fluent interface for constructing UI. It also has shallow reactivity. Install from NPM or get it from a CDN like [jsDelivr](https://cdn.jsdelivr.net/gh/erickmerchant/handcraft@latest/prelude/all.js) and add it to your import map.
 
 ---
 
@@ -38,7 +38,7 @@ Where everything for creating DOM elements resides.
 
 #### html, svg, math
 
-These are proxies of objects that return functions referred to as _tags_ that when run return an instance of `HandcraftElement`. There are three because HTML, SVG, and MathML all require different namespaces when creating an DOM element.
+These are proxies of objects with properties that are functions referred to as _tags_ that when run return an instance of `HandcraftElement`. There are three because HTML, SVG, and MathML all require different namespaces when creating a DOM element.
 
 #### HandcraftNode, HandcraftElement, and HandcraftShadowRoot
 
