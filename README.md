@@ -117,9 +117,48 @@ Set classes. Accepts a variable number of strings and objects. With objects the 
 
 Set data attributes. Accepts an object. Values can be _effects_. Returns the _element_ for chaining.
 
+```js
+import {html} from "handcraft/dom.js";
+import "handcraft/dom/aria.js";
+import "handcraft/dom/attr.js";
+import "handcraft/dom/classes.js";
+import "handcraft/dom/data.js";
+
+let {div} = html;
+
+div()
+	.aria({
+		label: "example",
+	})
+	.attr("role", "foo"})
+	.classes({
+		"foo": () => state.foo
+	})
+	.data({"foo": "example"});
+```
+
 #### node.effect(callback)
 
 Run an _effect_. The callback is passed the DOM element. Returns the _node_ for chaining.
+
+```js
+import "handcraft/dom/effect.js";
+import {html} from "handcraft/dom.js";
+import {watch} from "handcraft/reactivity.js";
+
+let {dialog} = html;
+let state = watch({
+	modalOpen: false,
+});
+
+dialog().effect((el) => {
+	if (state.modalOpen) {
+		el.showModal();
+	} else {
+		el.close();
+	}
+});
+```
 
 #### node.nodes(...children)
 
@@ -127,82 +166,9 @@ Set the children of a _node_. Each child can be a string, a DOM element, a _node
 
 #### node.observe()
 
-Returns an observer that uses a `MutationObserver` backed way to read attributes, and query descendants. When methods of the returned `observer` are used in an _effect_ the effect will be rerun when a mutation happens.
+Returns an observer that uses a `MutationObserver` backed way to read attributes and query descendants.
 
-#### node.on(name, callback, options = {})
-
-Set an event handler. Has the same signature as `addEventListener` but the first parameter can also be an array to set the same handler for multiple event types. Returns the _node_ for chaining.
-
-#### node.prop(key, value)
-
-Set a property. The second parameter can be an _effect_. Returns the _node_ for chaining.
-
-```js
-import {html} from "handcraft/dom.js";
-import "handcraft/dom/attr.js";
-import "handcraft/dom/classes.js";
-import "handcraft/dom/prop.js";
-
-let {input} = html;
-
-input()
-	.attr("type", "checkbox")
-	.prop("checked", () => state.checked)
-	.classes({error: () => !state.valid});
-```
-
-#### element.shadow(options = {mode: "open"})
-
-Attaches and returns a _shadow_, or returns an existing one. The returned shadow DOM instance is wrapped in the `HandcraftShadow` API.
-
-#### element.styles(styles)
-
-Set styles. Accepts an object. Values can be _effects_. Returns the _element_ for chaining.
-
-```js
-import {html} from "handcraft/dom.js";
-import "handcraft/dom/aria.js";
-import "handcraft/dom/data.js";
-import "handcraft/dom/styles.js";
-
-let {div} = html;
-
-div()
-	.styles({
-		"--foo": () => (state.foo ? "red" : "blue"),
-	})
-	.aria({
-		label: "example",
-	})
-	.data({foo: () => state.foo});
-```
-
-#### node.text(text)
-
-When you need to set one text node, use `text` instead of `nodes`. The parameter can be a string or an _effect_. Returns the _node_ for chaining.
-
-```js
-import {html} from "handcraft/dom.js";
-import {define} from "handcraft/define.js";
-import "handcraft/dom/nodes.js";
-import "handcraft/dom/on.js";
-import "handcraft/dom/shadow.js";
-import "handcraft/dom/text.js";
-
-let {button, span} = html;
-
-define("hello-world").connected((host) => {
-	let shadow = host.shadow();
-
-	shadow.nodes(
-		button()
-			.on("click", () => console.log("clicked!"))
-			.nodes(span().text("click me"))
-	);
-});
-```
-
-#### observer.attr(key)
+##### observer.attr(key)
 
 Read an attribute.
 
@@ -210,8 +176,8 @@ Read an attribute.
 import {html} from "handcraft/dom.js";
 import {define} from "handcraft/define.js";
 import "handcraft/dom/nodes.js";
-import "handcraft/dom/text.js";
 import "handcraft/dom/observe.js";
+import "handcraft/dom/text.js";
 
 let {div} = html;
 
@@ -222,25 +188,70 @@ define("hello-world").connected((host) => {
 });
 ```
 
-#### observer.find(query)
+##### observer.find(query)
 
 Find children.
 
 ```js
 import {$} from "handcraft/dom.js";
 import {effect} from "handcraft/reactivity.js";
-import "handcraft/dom/on.js";
 import "handcraft/dom/observe.js";
 
 let observed = $(document.body).observe();
-let buttons = observed.find("button");
+let divs = observed.find("div");
 
 effect(() => {
-	for (let button of buttons) {
-		button.on("click", () => {
-			console.log("clicked");
-		});
+	for (let div of divs) {
+		div.classes("bar");
 	}
+});
+```
+
+#### node.on(name, callback, options = {})
+
+Set an event handler. Has the same signature as `addEventListener` but the first parameter can also be an array to set the same handler for multiple event types. Returns the _node_ for chaining.
+
+#### node.prop(key, value)
+
+Set a property. The second parameter can be an _effect_. Returns the _node_ for chaining.
+
+#### element.shadow(options = {mode: "open"})
+
+Attaches and returns a _shadow_, or returns an existing one. The returned shadow DOM instance is wrapped in the `HandcraftShadow` API.
+
+#### element.styles(styles)
+
+Set styles. Accepts an object. Values can be _effects_. Returns the _element_ for chaining.
+
+#### node.text(text)
+
+When you need to set one text node, use `text` instead of `nodes`. The parameter can be a string or an _effect_. Returns the _node_ for chaining.
+
+```js
+import {html} from "handcraft/dom.js";
+import {define} from "handcraft/define.js";
+import "handcraft/dom/nodes.js";
+import "handcraft/dom/on.js";
+import "handcraft/dom/prop.js";
+import "handcraft/dom/shadow.js";
+import "handcraft/dom/styles.js";
+import "handcraft/dom/text.js";
+
+let {button, span} = html;
+
+define("hello-world").connected((host) => {
+	let shadow = host.shadow();
+
+	shadow.nodes(
+		button()
+			.prop("type", "button")
+			.styles({
+				color: "white",
+				background: "rebeccapurple",
+			})
+			.on("click", () => console.log("clicked!"))
+			.nodes(span().text("click me"))
+	);
 });
 ```
 
@@ -252,13 +263,13 @@ Each is a way to create reactive lists.
 
 Entry point for this API. Pass it a _watched_ array. Returns a _collection_ that is iterable, having a `Symbol.iterator` method.
 
-#### collection.filter(callback)
+##### collection.filter(callback)
 
-The callback will be run for each item in the _collection_. Return a truthy value to move onto the map step.
+The callback will be run for each item in the _collection_. Return a truthy value to move onto the map step. It is passed an object that contains `value`, the _collection_ item, and `index` its index.
 
-#### collection.map(callback)
+##### collection.map(callback)
 
-The callback will be run for each item in the _collection_ that passes the filter step. It should return an _element_. It is passed an object that contains `item`, the _collection_ item, and `index` its index. Do not use destructuring assignment with the `item` between _effects_, because they will not be rerun if the item is swapped out since the callback when run in `nodes` is only run once per index. This avoids destroying DOM elements only to rebuild them with new data.
+The callback will be run for each item in the _collection_ that passes the filter step. It should return an _element_. It is passed an object that contains `value`, the _collection_ item, and `index` its index. Do not use destructuring assignment with the `value` between _effects_, because they will not be rerun if the item is swapped out since the callback when run in `nodes` is only run once per index. This avoids destroying DOM elements only to rebuild them with new data.
 
 ```js
 import {html} from "handcraft/dom.js";
@@ -269,10 +280,10 @@ import "handcraft/dom/nodes.js";
 import "handcraft/dom/text.js";
 
 let {button, ul, li} = html;
-let list = watch([uuid()]);
+let list = watch([]);
 
 button().on("click", () => {
-	list.push(uuid());
+	list.push(Math.floor(Math.random() * 20) + 1);
 });
 
 ul().nodes(
