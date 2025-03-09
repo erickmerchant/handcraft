@@ -103,7 +103,7 @@ Every module in the "dom" directory adds a method to the `HandcraftNode`, `Handc
 
 #### node.append(...children)
 
-Append children to a _node_. Each child can be a string, a DOM element, a _node_, an array, or an _effect_. Children are initially appended, but on update their position is maintained. Returns the _node_ for chaining.
+Append children to a _node_. Each child can be a string, a DOM element, or a _node_. Children are initially appended, but on update their position is maintained. Returns the _node_ for chaining. Though it's not necessary you may want to also import dom/_nodes.js, to reduce network waterfall.
 
 #### element.aria(attrs)
 
@@ -170,7 +170,7 @@ Returns an observer that uses a `MutationObserver` backed way to read attributes
 
 #### node.prepend(...children)
 
-Like `append`, but for prepending children to a _node_. Each child can be a string, a DOM element, a _node_, an array, or an _effect_. Children are initially prepended, but on update their position is maintained. Returns the _node_ for chaining.
+Like `append`, but for prepending children to a _node_. Each child can be a string, a DOM element, or a _node_. Children are initially prepended, but on update their position is maintained. Returns the _node_ for chaining. Though it's not necessary you may want to also import dom/_nodes.js, to reduce network waterfall.
 
 ##### observer.attr(key)
 
