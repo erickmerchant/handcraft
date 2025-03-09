@@ -1,32 +1,53 @@
 import {HandcraftNode, HandcraftElement} from "../dom.js";
 import {mutate} from "../reactivity.js";
 
-export function nodes(...children) {
+export let position = {
+	start: Symbol("start"),
+	end: Symbol("end"),
+};
+
+export function nodes(pos, ...children) {
 	let el = this.element.deref();
+	let nodeToCallback = new WeakMap();
+	let fragment = new DocumentFragment();
 
 	children = children.flat(Infinity);
 
 	for (let child of children) {
-		if (typeof child === "function") {
-			child = [child];
-		}
-
 		if (typeof child === "object" && child[Symbol.iterator] != null) {
-			let bounds = comments(this.element);
+			let bounds = [document.createComment(""), document.createComment("")];
+
+			fragment.append(...bounds);
+
+			bounds = bounds.map((c) => new WeakRef(c));
 
 			mutate(this.element, () => {
-				let [start, end] = bounds();
+				let [start, end] = bounds.map((b) => b.deref());
 				let currentChild =
 					start && start.nextSibling !== end ? start.nextSibling : null;
 				let fragment = new DocumentFragment();
 
 				for (let item of child) {
-					if (!currentChild) {
+					let create = !currentChild;
+					let replace = !create && nodeToCallback.get(currentChild) !== item;
+
+					if (create || replace) {
 						let result = item();
+
 						result = derefIfElement(result);
 
 						if (result != null) {
-							fragment.append(result);
+							if (create) {
+								fragment.append(result);
+							} else {
+								currentChild.replaceWith(result);
+
+								currentChild = result;
+							}
+
+							nodeToCallback.set(result, item);
+						} else if (replace) {
+							continue;
 						}
 					}
 
@@ -43,14 +64,22 @@ export function nodes(...children) {
 		} else {
 			let result = derefIfElement(child);
 
-			el.append(result);
+			fragment.append(result);
 		}
+	}
+
+	switch (pos) {
+		case position.start:
+			el.prepend(fragment);
+			break;
+
+		case position.end:
+			el.append(fragment);
+			break;
 	}
 
 	return this;
 }
-
-HandcraftNode.prototype.nodes = nodes;
 
 function derefIfElement(val) {
 	return typeof val === "object" && val instanceof HandcraftElement
@@ -68,14 +97,8 @@ function truncate(currentChild, end) {
 	}
 }
 
-function comments(element) {
-	element = element.deref();
-
-	let bounds = [document.createComment(""), document.createComment("")];
-
-	element.append(...bounds);
-
-	bounds = bounds.map((c) => new WeakRef(c));
-
-	return () => bounds.map((b) => b.deref());
+export function append(...children) {
+	return nodes.call(this, position.end, ...children);
 }
+
+HandcraftNode.prototype.append = append;

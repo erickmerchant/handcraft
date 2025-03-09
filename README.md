@@ -86,7 +86,7 @@ The callback is run in the custom element's `connectedCallback`.
 import {$} from "handcraft/dom.js";
 import {define} from "handcraft/define.js";
 
-$(target).nodes(
+$(target).append(
 	define("hello-world").connected((host) => {
 		host.text("hello world!");
 	})
@@ -100,6 +100,10 @@ The callback is run in the custom element's `disconnectedCallback`.
 ### _dom/\*.js_
 
 Every module in the "dom" directory adds a method to the `HandcraftNode`, `HandcraftElement`, or `HandcraftShadowRoot` prototype. Import the file to add the method. For instance to use `styles(styles)` import `dom/styles.js`.
+
+#### node.append(...children)
+
+Append children to a _node_. Each child can be a string, a DOM element, a _node_, an array, or an _effect_. Children are initially appended, but on update their position is maintained. Returns the _node_ for chaining.
 
 #### element.aria(attrs)
 
@@ -160,13 +164,13 @@ dialog().effect((el) => {
 });
 ```
 
-#### node.nodes(...children)
-
-Set the children of a _node_. Each child can be a string, a DOM element, a _node_, an array, or an _effect_. Returns the _node_ for chaining.
-
 #### node.observe()
 
 Returns an observer that uses a `MutationObserver` backed way to read attributes and query descendants.
+
+#### node.prepend(...children)
+
+Like `append`, but for prepending children to a _node_. Each child can be a string, a DOM element, a _node_, an array, or an _effect_. Children are initially prepended, but on update their position is maintained. Returns the _node_ for chaining.
 
 ##### observer.attr(key)
 
@@ -175,7 +179,7 @@ Read an attribute.
 ```js
 import {html} from "handcraft/dom.js";
 import {define} from "handcraft/define.js";
-import "handcraft/dom/nodes.js";
+import "handcraft/dom/append.js";
 import "handcraft/dom/observe.js";
 import "handcraft/dom/text.js";
 
@@ -184,7 +188,7 @@ let {div} = html;
 define("hello-world").connected((host) => {
 	let observed = host.observe();
 
-	host.nodes(div().text(() => `hello ${observed.attr("name")}!`));
+	host.append(div().text(() => `hello ${observed.attr("name")}!`));
 });
 ```
 
@@ -225,12 +229,12 @@ Set styles. Accepts an object. Values can be _effects_. Returns the _element_ fo
 
 #### node.text(text)
 
-When you need to set one text node, use `text` instead of `nodes`. The parameter can be a string or an _effect_. Returns the _node_ for chaining.
+When you need to set one text node, use `text` instead of `append` or `prepend`. The parameter can be a string or an _effect_. Returns the _node_ for chaining.
 
 ```js
 import {html} from "handcraft/dom.js";
 import {define} from "handcraft/define.js";
-import "handcraft/dom/nodes.js";
+import "handcraft/dom/append.js";
 import "handcraft/dom/on.js";
 import "handcraft/dom/prop.js";
 import "handcraft/dom/shadow.js";
@@ -242,7 +246,7 @@ let {button, span} = html;
 define("hello-world").connected((host) => {
 	let shadow = host.shadow();
 
-	shadow.nodes(
+	shadow.append(
 		button()
 			.prop("type", "button")
 			.styles({
@@ -250,7 +254,7 @@ define("hello-world").connected((host) => {
 				background: "rebeccapurple",
 			})
 			.on("click", () => console.log("clicked!"))
-			.nodes(span().text("click me"))
+			.append(span().text("click me"))
 	);
 });
 ```
@@ -269,14 +273,14 @@ The callback will be run for each item in the _collection_. Return a truthy valu
 
 ##### collection.map(callback)
 
-The callback will be run for each item in the _collection_ that passes the filter step. It should return an _element_. It is passed an object that contains `value`, the _collection_ item, and `index` its index. Do not use destructuring assignment with the `value` between _effects_, because they will not be rerun if the item is swapped out since the callback when run in `nodes` is only run once per index. This avoids destroying DOM elements only to rebuild them with new data.
+The callback will be run for each item in the _collection_ that passes the filter step. It should return an _element_. It is passed an object that contains `value`, the _collection_ item, and `index` its index. Do not use destructuring assignment with the `value` between _effects_, because they will not be rerun if the item is swapped out since the callback when run in `append` or `prepend` is only run once per index. This avoids destroying DOM elements only to rebuild them with new data.
 
 ```js
 import {html} from "handcraft/dom.js";
 import {each} from "handcraft/each.js";
 import {watch} from "handcraft/reactivity.js";
 import "handcraft/dom/on.js";
-import "handcraft/dom/nodes.js";
+import "handcraft/dom/append.js";
 import "handcraft/dom/text.js";
 
 let {button, ul, li} = html;
@@ -286,16 +290,56 @@ button().on("click", () => {
 	list.push(Math.floor(Math.random() * 20) + 1);
 });
 
-ul().nodes(
+ul().append(
 	each(list)
 		.filter((entry) => entry.value % 2)
 		.map((entry) => li().text(entry.value))
 );
 ```
 
+### _when.js_
+
+When is used to conditionally render an _element_.
+
+#### when(callback)
+
+Entry point for this API. Pass it a function that should return a boolean that controls whether the _element_ should be rendered. The function is passed the previous result of the callback being called. Returns a _conditional_.
+
+##### conditional.show(callback)
+
+The callback should return the _element_ to be rendered.
+
+##### conditional.fallback(callback)
+
+The callback should return a different _element_ to be rendered if the the `when` callback returns false.
+
+```js
+import {html} from "handcraft/dom.js";
+import {watch} from "handcraft/reactivity.js";
+import {when} from "handcraft/when.js";
+import "handcraft/dom/append.js";
+import "handcraft/dom/on.js";
+import "handcraft/dom/text.js";
+
+let {span, button} = html;
+let state = watch({
+	clicked,
+});
+
+button()
+	.on("click", () => {
+		state.clicked = true;
+	})
+	.append(
+		when(() => state.clicked)
+			.show((entry) => span().text("clicked!"))
+			.fallback("not clicked")
+	);
+```
+
 ### _prelude/min.js_
 
-For convenience, a module that exports all of dom and reactivity and imports attr, nodes, on, prop, and text. The minimum you'd need to get started.
+For convenience, a module that exports all of dom and reactivity and imports attr, append, on, prop, and text. The minimum you'd need to get started.
 
 ### _prelude/all.js_
 
