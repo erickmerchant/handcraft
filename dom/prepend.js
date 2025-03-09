@@ -1,4 +1,4 @@
-import {nodes, position} from "./append.js";
+import {nodes, position} from "./_nodes.js";
 import {HandcraftNode} from "../dom.js";
 
 export function prepend(...children) {
