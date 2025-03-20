@@ -122,11 +122,11 @@ Set classes. Accepts a variable number of strings and objects. With objects the 
 Set data attributes. Accepts an object. Values can be _effects_. Returns the _element_ for chaining.
 
 ```js
-import {html} from "handcraft/dom.js";
 import "handcraft/dom/aria.js";
 import "handcraft/dom/attr.js";
 import "handcraft/dom/classes.js";
 import "handcraft/dom/data.js";
+import {html} from "handcraft/dom.js";
 
 let {div} = html;
 
@@ -177,11 +177,11 @@ Like `append`, but for prepending children to a _node_. Each child can be a stri
 Read an attribute.
 
 ```js
-import {html} from "handcraft/dom.js";
-import {define} from "handcraft/define.js";
 import "handcraft/dom/append.js";
 import "handcraft/dom/observe.js";
 import "handcraft/dom/text.js";
+import {html} from "handcraft/dom.js";
+import {define} from "handcraft/define.js";
 
 let {div} = html;
 
@@ -197,9 +197,9 @@ define("hello-world").connected((host) => {
 Find children.
 
 ```js
+import "handcraft/dom/observe.js";
 import {$} from "handcraft/dom.js";
 import {effect} from "handcraft/reactivity.js";
-import "handcraft/dom/observe.js";
 
 let observed = $(document.body).observe();
 let divs = observed.find("div");
@@ -232,14 +232,14 @@ Set styles. Accepts an object. Values can be _effects_. Returns the _element_ fo
 When you need to set one text node, use `text` instead of `append` or `prepend`. The parameter can be a string or an _effect_. Returns the _node_ for chaining.
 
 ```js
-import {html} from "handcraft/dom.js";
-import {define} from "handcraft/define.js";
 import "handcraft/dom/append.js";
 import "handcraft/dom/on.js";
 import "handcraft/dom/prop.js";
 import "handcraft/dom/shadow.js";
 import "handcraft/dom/styles.js";
 import "handcraft/dom/text.js";
+import {html} from "handcraft/dom.js";
+import {define} from "handcraft/define.js";
 
 let {button, span} = html;
 
@@ -276,12 +276,12 @@ The callback will be run for each item in the _collection_. Return a truthy valu
 The callback will be run for each item in the _collection_ that passes the filter step. It should return an _element_. It is passed an object that contains `value`, the _collection_ item, and `index` its index. Do not use destructuring assignment with the `value` between _effects_, because they will not be rerun if the item is swapped out since the callback when run in `append` or `prepend` is only run once per index. This avoids destroying DOM elements only to rebuild them with new data.
 
 ```js
-import {html} from "handcraft/dom.js";
-import {each} from "handcraft/each.js";
-import {watch} from "handcraft/reactivity.js";
 import "handcraft/dom/on.js";
 import "handcraft/dom/append.js";
 import "handcraft/dom/text.js";
+import {html} from "handcraft/dom.js";
+import {each} from "handcraft/each.js";
+import {watch} from "handcraft/reactivity.js";
 
 let {button, ul, li} = html;
 let list = watch([]);
@@ -314,12 +314,12 @@ The callback should return the _element_ to be rendered.
 The callback should return a different _element_ to be rendered if the the `when` callback returns false.
 
 ```js
-import {html} from "handcraft/dom.js";
-import {watch} from "handcraft/reactivity.js";
-import {when} from "handcraft/when.js";
 import "handcraft/dom/append.js";
 import "handcraft/dom/on.js";
 import "handcraft/dom/text.js";
+import {html} from "handcraft/dom.js";
+import {watch} from "handcraft/reactivity.js";
+import {when} from "handcraft/when.js";
 
 let {span, button} = html;
 let state = watch({
