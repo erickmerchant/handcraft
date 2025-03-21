@@ -18,7 +18,7 @@ export function observe() {
 	let observer = new MutationObserver((records) => {
 		let el = this.element.deref();
 
-		if (el == null) {
+		if (!el) {
 			observer.disconnect();
 
 			return;
