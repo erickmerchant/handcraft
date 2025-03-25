@@ -168,10 +168,6 @@ dialog().effect((el) => {
 
 Returns an observer that uses a `MutationObserver` backed way to read attributes and query descendants.
 
-#### node.prepend(...children)
-
-Like `append`, but for prepending children to a _node_. Each child can be a string, a DOM element, or a _node_. Children are initially prepended, but on update their position is maintained. Returns the _node_ for chaining. Though it's not necessary you may want to also import dom/_nodes.js, to reduce network waterfall.
-
 ##### observer.attr(key)
 
 Read an attribute.
@@ -211,6 +207,10 @@ effect(() => {
 });
 ```
 
+#### node.prepend(...children)
+
+Like `append`, but for prepending children to a _node_. Each child can be a string, a DOM element, or a _node_. Children are initially prepended, but on update their position is maintained. Returns the _node_ for chaining. Though it's not necessary you may want to also import dom/_nodes.js, to reduce network waterfall.
+
 #### node.on(name, callback, options = {})
 
 Set an event handler. Has the same signature as `addEventListener` but the first parameter can also be an array to set the same handler for multiple event types. Returns the _node_ for chaining.
@@ -218,6 +218,47 @@ Set an event handler. Has the same signature as `addEventListener` but the first
 #### node.prop(key, value)
 
 Set a property. The second parameter can be an _effect_. Returns the _node_ for chaining.
+
+#### node.query()
+
+Returns a querier to read attributes and query descendants. Has the same API as `observe`, but the results and DOM are not watched.
+
+##### querier.attr(key)
+
+Read an attribute.
+
+```js
+import "handcraft/dom/append.js";
+import "handcraft/dom/query.js";
+import "handcraft/dom/text.js";
+import {html} from "handcraft/dom.js";
+import {define} from "handcraft/define.js";
+
+let {div} = html;
+
+define("hello-world").connected((host) => {
+	let queried = host.query();
+
+	host.append(div().text(`hello ${queried.attr("name")}!`));
+});
+```
+
+##### querier.find(query)
+
+Find children.
+
+```js
+import "handcraft/dom/query.js";
+import {$} from "handcraft/dom.js";
+import {effect} from "handcraft/reactivity.js";
+
+let queried = $(document.body).query();
+let divs = queried.find("div");
+
+for (let div of divs) {
+	div.classes("bar");
+}
+```
 
 #### element.shadow(options = {mode: "open"})
 
