@@ -10,12 +10,13 @@ export class HandcraftNode {
 
 export class HandcraftElement extends HandcraftNode {}
 
-export class HandcraftShadowRoot extends HandcraftNode {}
+export class HandcraftRoot extends HandcraftNode {}
 
 export function $(node) {
 	if (node instanceof Element) return new HandcraftElement(node);
 
-	if (node instanceof ShadowRoot) return new HandcraftShadowRoot(node);
+	if (node instanceof ShadowRoot || node instanceof Document)
+		return new HandcraftRoot(node);
 
 	return new HandcraftNode(node);
 }
@@ -37,3 +38,11 @@ function h(default_tag, namespace = "http://www.w3.org/1999/xhtml") {
 export let html = h();
 export let svg = h("svg", "http://www.w3.org/2000/svg");
 export let math = h("math", "http://www.w3.org/1998/Math/MathML");
+
+HandcraftNode.prototype.root = function () {
+	let el = this.element.deref();
+
+	if (!el) return;
+
+	return $(el.getRootNode());
+};

@@ -40,9 +40,9 @@ Where everything for creating DOM elements resides.
 
 These are proxies of objects with properties that are functions referred to as _tags_ that when run return an instance of `HandcraftElement`. There are three because HTML, SVG, and MathML all require different namespaces when creating a DOM element.
 
-#### HandcraftNode, HandcraftElement, and HandcraftShadowRoot
+#### HandcraftNode, HandcraftElement, and HandcraftRoot
 
-Usually you won't use these directly unless you want to write your own methods. They are exported so that methods can be added to their prototype. `HandcraftElement` and `HandcraftShadowRoot` are sub-classes of `HandcraftNode` so they inherit all methods on `HandcraftNode`.
+Usually you won't use these directly unless you want to write your own methods. They are exported so that methods can be added to their prototype. `HandcraftElement` and `HandcraftRoot` are sub-classes of `HandcraftNode` so they inherit all methods on `HandcraftNode`.
 
 ```js
 import {HandcraftElement} from "handcraft/dom.js";
@@ -54,7 +54,7 @@ HandcraftElement.prototype.text = function (txt) {
 };
 ```
 
-Below `node` refers to methods on `HandcraftNode`, `element` refers to methods on `HandcraftElement`, and `shadow` those on `HandcraftShadowRoot`.
+Below `node` refers to methods on `HandcraftNode`, `element` refers to methods on `HandcraftElement`, and `shadow` those on `HandcraftRoot`.
 
 #### node.deref()
 
@@ -99,7 +99,7 @@ The callback is run in the custom element's `disconnectedCallback`.
 
 ### _dom/\*.js_
 
-Every module in the "dom" directory adds a method to the `HandcraftNode`, `HandcraftElement`, or `HandcraftShadowRoot` prototype. Import the file to add the method. For instance to use `styles(styles)` import `dom/styles.js`.
+Every module in the "dom" directory adds a method to the `HandcraftNode`, `HandcraftElement`, or `HandcraftRoot` prototype. Import the file to add the method. For instance to use `styles(styles)` import `dom/styles.js`.
 
 #### node.append(...children)
 
@@ -116,6 +116,10 @@ Set an attribute. The second parameter can be an _effect_. Returns the _element_
 #### element.classes(...classes)
 
 Set classes. Accepts a variable number of strings and objects. With objects the keys become the class strings if their values are truthy. Values can be _effects_. Returns the _element_ for chaining.
+
+#### root.css(css)
+
+Adds a stylesheet to the `adoptedStyleSheets` of a `HandcraftRoot` instance. The `css` can be an `effect`. Returns the _root_ for chaining.
 
 #### element.data(data)
 
@@ -262,7 +266,7 @@ for (let div of divs) {
 
 #### element.shadow(options = {mode: "open"})
 
-Attaches and returns a _shadow_, or returns an existing one. The returned shadow DOM instance is wrapped in the `HandcraftShadow` API.
+Attaches and returns a _shadow_, or returns an existing one. The returned shadow instance is wrapped in the `HandcraftRoot` API.
 
 #### element.styles(styles)
 
