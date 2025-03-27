@@ -111,7 +111,7 @@ Set aria attributes. Accepts an object. Values can be _effects_. Returns the _el
 
 #### element.attr(key, value)
 
-Set an attribute. The second parameter can be an _effect_. Returns the _element_ for chaining.
+Set an attribute. The second parameter can be an _effect_. Returns the _element_ for chaining. This method also can be used to read an attribute if no value is provided.
 
 #### element.classes(...classes)
 
@@ -168,9 +168,24 @@ dialog().effect((el) => {
 });
 ```
 
+##### node.find(selector)
+
+Find children based on a selector. Returns an iterable with each item wrapped in the DOM API.
+
+```js
+import "handcraft/dom/find.js";
+import {$} from "handcraft/dom.js";
+
+let divs = $(document.body).find("div");
+
+for (let div of divs) {
+	div.classes("bar");
+}
+```
+
 #### node.observe()
 
-Returns an observer that uses a `MutationObserver` backed way to read attributes and query descendants.
+Returns an observer that uses a `MutationObserver` backed way to read attributes and find descendants.
 
 ##### observer.attr(key)
 
@@ -192,7 +207,7 @@ define("hello-world").connected((host) => {
 });
 ```
 
-##### observer.find(query)
+##### observer.find(selector)
 
 Find children.
 
@@ -223,47 +238,6 @@ Set an event handler. Has the same signature as `addEventListener` but the first
 
 Set a property. The second parameter can be an _effect_. Returns the _node_ for chaining.
 
-#### node.query()
-
-Returns a querier to read attributes and query descendants. Has the same API as `observe`, but the results and DOM are not watched.
-
-##### querier.attr(key)
-
-Read an attribute.
-
-```js
-import "handcraft/dom/append.js";
-import "handcraft/dom/query.js";
-import "handcraft/dom/text.js";
-import {html} from "handcraft/dom.js";
-import {define} from "handcraft/define.js";
-
-let {div} = html;
-
-define("hello-world").connected((host) => {
-	let queried = host.query();
-
-	host.append(div().text(`hello ${queried.attr("name")}!`));
-});
-```
-
-##### querier.find(query)
-
-Find children.
-
-```js
-import "handcraft/dom/query.js";
-import {$} from "handcraft/dom.js";
-import {effect} from "handcraft/reactivity.js";
-
-let queried = $(document.body).query();
-let divs = queried.find("div");
-
-for (let div of divs) {
-	div.classes("bar");
-}
-```
-
 #### element.shadow(options = {mode: "open"})
 
 Attaches and returns a _shadow_, or returns an existing one. The returned shadow instance is wrapped in the `HandcraftRoot` API.
@@ -274,7 +248,7 @@ Set styles. Accepts an object. Values can be _effects_. Returns the _element_ fo
 
 #### node.text(text)
 
-When you need to set one text node, use `text` instead of `append` or `prepend`. The parameter can be a string or an _effect_. Returns the _node_ for chaining.
+When you need to set one text node, use `text` instead of `append` or `prepend`. The parameter can be a string or an _effect_. Returns the _node_ for chaining. This method also can be used to read text if no argument is provided.
 
 ```js
 import "handcraft/dom/append.js";
