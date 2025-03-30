@@ -2,8 +2,8 @@ import {HandcraftNode} from "../dom.js";
 import {mutate} from "../reactivity.js";
 
 export function prop(key, value) {
-	mutate(
-		this.element,
+	mutate.call(
+		this,
 		(element, value) => {
 			element[key] = value;
 		},

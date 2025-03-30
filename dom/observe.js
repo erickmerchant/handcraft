@@ -3,9 +3,6 @@ import {watch} from "../reactivity.js";
 
 export function observe() {
 	let el = this.element.deref();
-
-	if (!el) return;
-
 	let attributes = {};
 
 	for (let attr of el?.getAttributeNames?.() ?? []) {

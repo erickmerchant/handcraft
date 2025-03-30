@@ -21,7 +21,7 @@ export function nodes(pos, ...children) {
 
 			bounds = bounds.map((c) => new WeakRef(c));
 
-			mutate(this.element, () => {
+			mutate.call(this, () => {
 				let [start, end] = bounds.map((b) => b.deref());
 				let currentChild =
 					start && start.nextSibling !== end ? start.nextSibling : null;

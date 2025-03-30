@@ -6,8 +6,8 @@ export function attr(key, value) {
 		return this.element?.deref?.()?.getAttribute?.(key);
 	}
 
-	mutate(
-		this.element,
+	mutate.call(
+		this,
 		(element, value) => {
 			if (value === true || value === false || value == null) {
 				element.toggleAttribute(key, !!value);

@@ -76,16 +76,16 @@ export function watch(object) {
 	});
 }
 
-export function mutate(element, callback, value = () => {}) {
+export function mutate(callback, value = () => {}) {
 	let immediate = typeof value !== "function";
 	let cb = () => {
-		let el = element.deref();
+		let el = this.element.deref();
 
 		if (el && registered.has(el)) {
 			callback(el, immediate ? value : value());
 		}
 	};
-	let el = element.deref();
+	let el = this.element.deref();
 
 	if (el) {
 		registered.add(el);

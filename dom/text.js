@@ -6,8 +6,8 @@ export function text(txt) {
 		return this.element?.deref?.()?.textContent;
 	}
 
-	mutate(
-		this.element,
+	mutate.call(
+		this,
 		(element, txt) => {
 			element.textContent = txt;
 		},
