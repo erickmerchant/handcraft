@@ -9,7 +9,7 @@ import "../dom/observe.js";
 import "../dom/on.js";
 import "../dom/prepend.js";
 import "../dom/prop.js";
-import "../dom/query.js";
+import "../dom/find.js";
 import "../dom/shadow.js";
 import "../dom/styles.js";
 import "../dom/text.js";
