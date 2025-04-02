@@ -6,7 +6,7 @@ A tiny front-end framework using a fluent interface for constructing UI. It also
 
 ## API
 
-### _reactivity.js_
+### reactivity.js
 
 Where everything for creating reactive state resides.
 
@@ -32,7 +32,7 @@ setInterval(() => {
 }, 10_000);
 ```
 
-### _dom.js_
+### dom.js
 
 Where everything for creating DOM elements resides.
 
@@ -70,7 +70,7 @@ import {$} from "handcraft/dom.js";
 assert($(document.body).deref() === document.body);
 ```
 
-### _define.js_
+### define.js
 
 Contains the API for creating custom elements.
 
@@ -97,7 +97,7 @@ $(target).append(
 
 The callback is run in the custom element's `disconnectedCallback`.
 
-### _dom/\*.js_
+### dom/\*.js
 
 Every module in the "dom" directory adds a method to the `HandcraftNode`, `HandcraftElement`, or `HandcraftRoot` prototype. Import the file to add the method. For instance to use `styles(styles)` import `dom/styles.js`.
 
@@ -234,6 +234,10 @@ Like `append`, but for prepending children to a _node_. Each child can be a stri
 
 Set an event handler. Has the same signature as `addEventListener` but the first parameter can also be an array to set the same handler for multiple event types. Returns the _node_ for chaining.
 
+#### node.once(name, callback, options = {})
+
+Set an event handler. Has the same signature as `node.on` but it automatically adds `once: true` to the options. Returns the _node_ for chaining.
+
 #### node.prop(key, value)
 
 Set a property. The second parameter can be an _effect_. Returns the _node_ for chaining.
@@ -278,7 +282,7 @@ define("hello-world").connected((host) => {
 });
 ```
 
-### _each.js_
+### each.js
 
 Each is a way to create reactive lists.
 
@@ -316,7 +320,7 @@ ul().append(
 );
 ```
 
-### _when.js_
+### when.js
 
 When is used to conditionally render an _element_.
 
@@ -356,11 +360,11 @@ button()
 	);
 ```
 
-### _prelude/min.js_
+### prelude/min.js
 
 For convenience, a module that exports all of dom and reactivity and imports attr, append, on, prop, and text. The minimum you'd need to get started.
 
-### _prelude/all.js_
+### prelude/all.js
 
 Exports all other exports, and imports all dom/\*.js files. Probably only use this for demos.
 
