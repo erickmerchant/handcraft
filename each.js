@@ -7,7 +7,7 @@ export function each(list) {
 	let entries = [];
 	let current;
 	let show = () => {
-		return mapper(current);
+		return mapper(current.value, current.index);
 	};
 
 	return {
@@ -37,23 +37,70 @@ export function each(list) {
 			}
 
 			for (let [index, value] of list.entries()) {
-				if (!filterer({value, index})) {
+				if (
+					!filterer(
+						new Proxy(() => value, {
+							get(_, p) {
+								return typeof value === "object"
+									? Reflect.get(value, p)
+									: undefined;
+							},
+						}),
+						() => index
+					)
+				) {
 					continue;
 				}
 
 				current = entries[i];
 
 				if (!current) {
-					current = watch({});
+					let store = watch({
+						value: null,
+						index,
+					});
+
+					current = {
+						store,
+						value: new Proxy(
+							function () {
+								return store.value;
+							},
+							{
+								get(_, p) {
+									return typeof store.value === "object"
+										? Reflect.get(store.value, p)
+										: undefined;
+								},
+								set(_, p, newValue) {
+									if (typeof store.value !== "object") {
+										return false;
+									}
+
+									return Reflect.set(store.value, p, newValue);
+								},
+								deleteProperty(_, p) {
+									if (typeof store.value !== "object") {
+										return false;
+									}
+
+									return Reflect.deleteProperty(store.value, p);
+								},
+							}
+						),
+						index: function () {
+							return store.index;
+						},
+					};
 
 					entries.push(current);
 				}
 
-				if (value !== current.value) {
-					current.value = value;
+				if (value !== current.store.value) {
+					current.store.value = value;
 				}
 
-				current.index = index;
+				current.store.index = index;
 
 				yield show;
 

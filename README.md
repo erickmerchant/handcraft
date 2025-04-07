@@ -292,11 +292,11 @@ Entry point for this API. Pass it a _watched_ array. Returns a _collection_ that
 
 ##### collection.filter(callback)
 
-The callback will be run for each item in the _collection_. Return a truthy value to move onto the map step. It is passed an object that contains `value`, the _collection_ item, and `index` its index.
+The callback will be run for each item in the _collection_. Return a truthy value to move onto the map step. It is passed `value` and `index`. Both are functions, but `value` proxies to the underlying item.
 
 ##### collection.map(callback)
 
-The callback will be run for each item in the _collection_ that passes the filter step. It should return an _element_. It is passed an object that contains `value`, the _collection_ item, and `index` its index. Do not use destructuring assignment with the `value` between _effects_, because they will not be rerun if the item is swapped out since the callback when run in `append` or `prepend` is only run once per index. This avoids destroying DOM elements only to rebuild them with new data.
+The callback will be run for each item in the _collection_ that passes the filter step. It should return an _element_. It is passed `value` and `index`. Both are functions, but `value` proxies to the underlying item. Do not use destructuring assignment with the `value` between _effects_, because they will not be rerun if the item is swapped out since the callback when run in `append` or `prepend` is only run once per index. This avoids destroying DOM elements only to rebuild them with new data.
 
 ```js
 import "handcraft/dom/on.js";
@@ -315,8 +315,8 @@ button().on("click", () => {
 
 ul().append(
 	each(list)
-		.filter((entry) => entry.value % 2)
-		.map((entry) => li().text(entry.value))
+		.filter((value) => value() % 2)
+		.map((value) => li().text(value()))
 );
 ```
 
