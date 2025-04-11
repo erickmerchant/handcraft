@@ -372,7 +372,7 @@ Exports all other exports, and imports all dom/\*.js files. Probably only use th
 
 ## Inspiration
 
-A lot of the API is inspired by Rust and its ecosystem. The rest is the latest iteration of ideas I've had since around 2015. I need to mention the following as inspiration though.
+Much of the API is inspired by Rust and its ecosystem. The rest is the latest iteration of ideas I've had since around 2015. I need to mention the following as inspiration though.
 
 - [jQuery](https://github.com/jquery/jquery)
 - [Ender](https://github.com/ender-js/Ender)
