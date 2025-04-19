@@ -2,10 +2,6 @@ export class HandcraftNode {
 	constructor(element) {
 		this.element = new WeakRef(element);
 	}
-
-	deref() {
-		return this.element.deref();
-	}
 }
 
 export class HandcraftElement extends HandcraftNode {}
@@ -39,10 +35,28 @@ export let html = h();
 export let svg = h("svg", "http://www.w3.org/2000/svg");
 export let math = h("math", "http://www.w3.org/1998/Math/MathML");
 
-HandcraftNode.prototype.root = function () {
-	let el = this.element.deref();
+export function reset() {
+	for (let proto of [
+		HandcraftNode.prototype,
+		HandcraftElement.prototype,
+		HandcraftRoot.prototype,
+	]) {
+		for (let key in proto) {
+			delete proto[key];
+		}
+	}
 
-	if (!el) return;
+	HandcraftNode.prototype.deref = function () {
+		return this.element.deref();
+	};
 
-	return $(el.getRootNode());
-};
+	HandcraftElement.prototype.root = function () {
+		let el = this.element.deref();
+
+		if (!el) return;
+
+		return $(el.getRootNode());
+	};
+}
+
+reset();

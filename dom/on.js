@@ -4,7 +4,7 @@ export function on(events, handler, options = {}) {
 	let el = this.element.deref();
 
 	if (el) {
-		for (let event of [].concat(events)) {
+		for (let event of events.split(/\s+/)) {
 			el.addEventListener(event, handler, options);
 		}
 	}

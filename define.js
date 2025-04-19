@@ -3,9 +3,11 @@ import {html, $} from "./dom.js";
 export function define(name) {
 	let connected = () => {};
 	let disconnected = () => {};
+	let baseClass = HTMLElement;
+	let baseTag = null;
 
 	setTimeout(() => {
-		class CustomElement extends HTMLElement {
+		class CustomElement extends baseClass {
 			element = $(this);
 
 			connectedCallback() {
@@ -17,7 +19,13 @@ export function define(name) {
 			}
 		}
 
-		customElements.define(name, CustomElement);
+		let options;
+
+		if (baseTag) {
+			options = {extends: baseTag};
+		}
+
+		customElements.define(name, CustomElement, options);
 	}, 0);
 
 	let factory = html[name];
@@ -30,6 +38,13 @@ export function define(name) {
 
 	factory.disconnected = (cb) => {
 		disconnected = cb;
+
+		return factory;
+	};
+
+	factory.extends = (tag) => {
+		baseClass = document.createElement(tag).constructor;
+		baseTag = tag;
 
 		return factory;
 	};
