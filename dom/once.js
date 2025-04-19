@@ -1,4 +1,4 @@
-import {HandcraftNode} from "../dom.js";
+import {HandcraftEventTarget} from "../dom.js";
 import {on} from "./on.js";
 
 export function once(events, handler, options = {}) {
@@ -9,4 +9,4 @@ export function once(events, handler, options = {}) {
 	return on.call(this, events, handler, {...options, once: true});
 }
 
-HandcraftNode.prototype.once = once;
+HandcraftEventTarget.prototype.once = once;

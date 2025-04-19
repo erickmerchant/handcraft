@@ -1,8 +1,10 @@
-export class HandcraftNode {
+export class HandcraftEventTarget {
 	constructor(element) {
 		this.element = new WeakRef(element);
 	}
 }
+
+export class HandcraftNode extends HandcraftEventTarget {}
 
 export class HandcraftElement extends HandcraftNode {}
 
@@ -14,7 +16,7 @@ export function $(node) {
 	if (node instanceof ShadowRoot || node instanceof Document)
 		return new HandcraftRoot(node);
 
-	return new HandcraftNode(node);
+	return new HandcraftEventTarget(node);
 }
 
 function h(default_tag, namespace = "http://www.w3.org/1999/xhtml") {
@@ -35,18 +37,8 @@ export let html = h();
 export let svg = h("svg", "http://www.w3.org/2000/svg");
 export let math = h("math", "http://www.w3.org/1998/Math/MathML");
 
-export function reset() {
-	for (let proto of [
-		HandcraftNode.prototype,
-		HandcraftElement.prototype,
-		HandcraftRoot.prototype,
-	]) {
-		for (let key in proto) {
-			delete proto[key];
-		}
-	}
-
-	HandcraftNode.prototype.deref = function () {
+function init() {
+	HandcraftEventTarget.prototype.deref = function () {
 		return this.element.deref();
 	};
 
@@ -59,4 +51,19 @@ export function reset() {
 	};
 }
 
-reset();
+export function reset() {
+	for (let proto of [
+		HandcraftEventTarget.prototype,
+		HandcraftNode.prototype,
+		HandcraftElement.prototype,
+		HandcraftRoot.prototype,
+	]) {
+		for (let key in proto) {
+			delete proto[key];
+		}
+	}
+
+	init();
+}
+
+init();

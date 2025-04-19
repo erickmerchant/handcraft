@@ -1,4 +1,4 @@
-import {HandcraftNode} from "../dom.js";
+import {HandcraftEventTarget} from "../dom.js";
 
 export function on(events, handler, options = {}) {
 	let el = this.element.deref();
@@ -12,4 +12,4 @@ export function on(events, handler, options = {}) {
 	return this;
 }
 
-HandcraftNode.prototype.on = on;
+HandcraftEventTarget.prototype.on = on;
