@@ -40,9 +40,9 @@ Where everything for creating DOM elements resides.
 
 These are proxies of objects with properties that are functions referred to as _tags_ that when run return an instance of `HandcraftElement`. There are three because HTML, SVG, and MathML all require different namespaces when creating a DOM element.
 
-#### HandcraftNode, HandcraftElement, and HandcraftRoot
+#### HandcraftEventTarget, HandcraftNode, HandcraftElement, and HandcraftRoot
 
-Usually you won't use these directly unless you want to write your own methods. They are exported so that methods can be added to their prototype. `HandcraftElement` and `HandcraftRoot` are sub-classes of `HandcraftNode` so they inherit all methods on `HandcraftNode`.
+Usually you won't use these directly unless you want to write your own methods. They are exported so that methods can be added to their prototype. `HandcraftElement` and `HandcraftRoot` are sub-classes of `HandcraftNode` so they inherit all methods on `HandcraftNode`. `HandcraftNode` extends `HandcraftEventTarget`
 
 ```js
 import {HandcraftElement} from "handcraft/dom.js";
@@ -97,6 +97,10 @@ $(target).append(
 
 The callback is run in the custom element's `disconnectedCallback`.
 
+#### definition.extends(name)
+
+Another element to extend, making the custom element a customized built-in element.
+
 ### dom/\*.js
 
 Every module in the "dom" directory adds a method to the `HandcraftNode`, `HandcraftElement`, or `HandcraftRoot` prototype. Import the file to add the method. For instance to use `styles(styles)` import `dom/styles.js`.
@@ -117,9 +121,9 @@ Set an attribute. The second parameter can be an _effect_. Returns the _element_
 
 Set classes. Accepts a variable number of strings and objects. With objects the keys become the class strings if their values are truthy. Values can be _effects_. Returns the _element_ for chaining.
 
-#### root.css(css)
+#### root.css(css, options)
 
-Adds a stylesheet to the `adoptedStyleSheets` of a `HandcraftRoot` instance. The `css` can be an `effect`. Returns the _root_ for chaining.
+Adds a stylesheet to the `adoptedStyleSheets` of a `HandcraftRoot` instance. The `css` can be an `effect`. Returns the _root_ for chaining. The second argument, `options` are passed to `CSSStyleSheet`, and `media` and `disabled` can be _effects_.
 
 #### element.data(data)
 
@@ -230,13 +234,13 @@ effect(() => {
 
 Like `append`, but for prepending children to a _node_. Each child can be a string, a DOM element, or a _node_. Children are initially prepended, but on update their position is maintained. Returns the _node_ for chaining. Though it's not necessary you may want to also import dom/_nodes.js, to reduce network waterfall.
 
-#### node.on(name, callback, options = {})
+#### target.on(name, callback, options = {})
 
-Set an event handler. Has the same signature as `addEventListener` but the first parameter can also be an array to set the same handler for multiple event types. Returns the _node_ for chaining.
+Set an event handler. Has the same signature as `addEventListener` but the first parameter can also be an array to set the same handler for multiple event types. Returns the _target_ for chaining.
 
-#### node.once(name, callback, options = {})
+#### target.once(name, callback, options = {})
 
-Set an event handler. Has the same signature as `node.on` but it automatically adds `once: true` to the options. Returns the _node_ for chaining.
+Set an event handler. Has the same signature as `node.on` but it automatically adds `once: true` to the options. Returns the _target_ for chaining.
 
 #### node.prop(key, value)
 
