@@ -1,6 +1,6 @@
 {
 	"name": "handcraft",
-	"version": "0.16.0",
+	"version": "0.16.1",
 	"description": "A tiny front-end framework using a fluent interface for constructing UI. It also has shallow reactivity.",
 	"homepage": "https://github.com/erickmerchant/handcraft#readme",
 	"bugs": {

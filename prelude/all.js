@@ -3,6 +3,7 @@ import "../dom/append.js";
 import "../dom/aria.js";
 import "../dom/attr.js";
 import "../dom/classes.js";
+import "../dom/command.js";
 import "../dom/css.js";
 import "../dom/data.js";
 import "../dom/effect.js";
