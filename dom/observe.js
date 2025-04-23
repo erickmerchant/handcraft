@@ -46,7 +46,9 @@ export function observe() {
 		attr: (key) => {
 			let el = this.element.deref();
 
-			if (!el) return;
+			if (!el) {
+				return;
+			}
 
 			let val = attributes[key];
 
@@ -61,7 +63,9 @@ export function observe() {
 		find: (query) => {
 			let el = this.element.deref();
 
-			if (!el) return;
+			if (!el) {
+				return;
+			}
 
 			let results = [...el.querySelectorAll(query)];
 			let index = 0;

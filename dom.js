@@ -11,10 +11,13 @@ export class HandcraftElement extends HandcraftNode {}
 export class HandcraftRoot extends HandcraftNode {}
 
 export function $(node) {
-	if (node instanceof Element) return new HandcraftElement(node);
+	if (node instanceof Element) {
+		return new HandcraftElement(node);
+	}
 
-	if (node instanceof ShadowRoot || node instanceof Document)
+	if (node instanceof ShadowRoot || node instanceof Document) {
 		return new HandcraftRoot(node);
+	}
 
 	return new HandcraftEventTarget(node);
 }
@@ -45,7 +48,9 @@ function init() {
 	HandcraftElement.prototype.root = function () {
 		let el = this.element.deref();
 
-		if (!el) return;
+		if (!el) {
+			return;
+		}
 
 		return $(el.getRootNode());
 	};
