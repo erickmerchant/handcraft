@@ -36,9 +36,18 @@ function h(default_tag, namespace = "http://www.w3.org/1999/xhtml") {
 	});
 }
 
-export let html = h();
+export let html = h("html");
 export let svg = h("svg", "http://www.w3.org/2000/svg");
 export let math = h("math", "http://www.w3.org/1998/Math/MathML");
+
+export function unsafe(content) {
+	let div = document.createElement("div");
+	let shadow = div.attachShadow({mode: "open"});
+
+	shadow.setHTMLUnsafe(content);
+
+	return [...shadow.children].map((child) => $(child));
+}
 
 function init() {
 	HandcraftEventTarget.prototype.deref = function () {

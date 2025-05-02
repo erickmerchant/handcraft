@@ -14,7 +14,11 @@ export function nodes(pos, ...children) {
 	children = children.flat(Infinity);
 
 	for (let child of children) {
-		if (typeof child === "object" && child[Symbol.iterator] != null) {
+		if (
+			child != null &&
+			typeof child === "object" &&
+			child[Symbol.iterator] != null
+		) {
 			let bounds = [document.createComment(""), document.createComment("")];
 
 			fragment.append(...bounds);
@@ -62,7 +66,7 @@ export function nodes(pos, ...children) {
 				truncate(currentChild, end);
 			});
 		} else {
-			let result = derefIfElement(child);
+			let result = derefIfElement(child) ?? "";
 
 			fragment.append(result);
 		}
