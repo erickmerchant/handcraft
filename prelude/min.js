@@ -1,6 +1,4 @@
-import "../dom/_nodes.js";
 import "../dom/append.js";
-import "../dom/attr.js";
 import "../dom/on.js";
 import "../dom/prop.js";
 import "../dom/text.js";

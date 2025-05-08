@@ -1,4 +1,4 @@
-import {html, $} from "./dom.js";
+import {h, $} from "./dom.js";
 
 export function define(name) {
 	let connected = () => {};
@@ -8,7 +8,11 @@ export function define(name) {
 
 	setTimeout(() => {
 		class CustomElement extends baseClass {
-			element = $(this);
+			constructor() {
+				super();
+
+				this.element = $(this);
+			}
 
 			connectedCallback() {
 				connected(this.element);
@@ -28,7 +32,7 @@ export function define(name) {
 		customElements.define(name, CustomElement, options);
 	}, 0);
 
-	let factory = html[name];
+	let factory = {};
 
 	factory.connected = (cb) => {
 		connected = cb;

@@ -86,7 +86,7 @@ The callback is run in the custom element's `connectedCallback`.
 import {$} from "handcraft/dom.js";
 import {define} from "handcraft/define.js";
 
-$(target).append(
+$(target)(
 	define("hello-world").connected((host) => {
 		host.text("hello world!");
 	})
@@ -107,7 +107,7 @@ Every module in the "dom" directory adds a method to the `HandcraftNode`, `Handc
 
 #### node.append(...children)
 
-Append children to a _node_. Each child can be a string, a DOM element, or a _node_. Children are initially appended, but on update their position is maintained. Returns the _node_ for chaining. Though it's not necessary you may want to also import dom/_nodes.js, to reduce network waterfall.
+Append children to a _node_. Each child can be a string, a DOM element, or a _node_. Children are initially appended, but on update their position is maintained. Returns the _node_ for chaining.
 
 #### element.aria(attrs)
 
@@ -131,18 +131,17 @@ Set data attributes. Accepts an object. Values can be _effects_. Returns the _el
 
 ```js
 import "handcraft/dom/aria.js";
-import "handcraft/dom/attr.js";
 import "handcraft/dom/classes.js";
 import "handcraft/dom/data.js";
-import {html} from "handcraft/dom.js";
+import {h} from "handcraft/dom.js";
 
-let {div} = html;
+let {div} = h.html;
 
-div()
+div
 	.aria({
 		label: "example",
 	})
-	.attr("role", "foo"})
+	.role("foo"})
 	.classes({
 		"foo": () => state.foo
 	})
@@ -155,15 +154,15 @@ Run an _effect_. The callback is passed the DOM element. Returns the _node_ for 
 
 ```js
 import "handcraft/dom/effect.js";
-import {html} from "handcraft/dom.js";
+import {h} from "handcraft/dom.js";
 import {watch} from "handcraft/reactivity.js";
 
-let {dialog} = html;
+let {dialog} = h.html;
 let state = watch({
 	modalOpen: false,
 });
 
-dialog().effect((el) => {
+dialog.effect((el) => {
 	if (state.modalOpen) {
 		el.showModal();
 	} else {
@@ -196,18 +195,17 @@ Returns an observer that uses a `MutationObserver` backed way to read attributes
 Read an attribute.
 
 ```js
-import "handcraft/dom/append.js";
 import "handcraft/dom/observe.js";
 import "handcraft/dom/text.js";
-import {html} from "handcraft/dom.js";
+import {h} from "handcraft/dom.js";
 import {define} from "handcraft/define.js";
 
-let {div} = html;
+let {div} = h.html;
 
 define("hello-world").connected((host) => {
 	let observed = host.observe();
 
-	host.append(div().text(() => `hello ${observed.attr("name")}!`));
+	host(div.text(() => `hello ${observed.attr("name")}!`));
 });
 ```
 
@@ -232,7 +230,7 @@ effect(() => {
 
 #### node.prepend(...children)
 
-Like `append`, but for prepending children to a _node_. Each child can be a string, a DOM element, or a _node_. Children are initially prepended, but on update their position is maintained. Returns the _node_ for chaining. Though it's not necessary you may want to also import dom/_nodes.js, to reduce network waterfall.
+Like `append`, but for prepending children to a _node_. Each child can be a string, a DOM element, or a _node_. Children are initially prepended, but on update their position is maintained. Returns the _node_ for chaining.
 
 #### target.on(name, callback, options = {})
 
@@ -265,23 +263,23 @@ import "handcraft/dom/prop.js";
 import "handcraft/dom/shadow.js";
 import "handcraft/dom/styles.js";
 import "handcraft/dom/text.js";
-import {html} from "handcraft/dom.js";
+import {h} from "handcraft/dom.js";
 import {define} from "handcraft/define.js";
 
-let {button, span} = html;
+let {button, span} = h.html;
 
 define("hello-world").connected((host) => {
 	let shadow = host.shadow();
 
 	shadow.append(
-		button()
+		button
 			.prop("type", "button")
 			.styles({
 				color: "white",
 				background: "rebeccapurple",
 			})
 			.on("click", () => console.log("clicked!"))
-			.append(span().text("click me"))
+			.append(span.text("click me"))
 	);
 });
 ```
@@ -306,21 +304,21 @@ The callback will be run for each item in the _collection_ that passes the filte
 import "handcraft/dom/on.js";
 import "handcraft/dom/append.js";
 import "handcraft/dom/text.js";
-import {html} from "handcraft/dom.js";
+import {h} from "handcraft/dom.js";
 import {each} from "handcraft/each.js";
 import {watch} from "handcraft/reactivity.js";
 
-let {button, ul, li} = html;
+let {button, ul, li} = h.html;
 let list = watch([]);
 
-button().on("click", () => {
+button.on("click", () => {
 	list.push(Math.floor(Math.random() * 20) + 1);
 });
 
-ul().append(
+ul.append(
 	each(list)
 		.filter((value) => value() % 2)
-		.map((value) => li().text(value()))
+		.map((value) => li.text(value()))
 );
 ```
 
@@ -341,32 +339,29 @@ The callback should return the _element_ to be rendered.
 The callback should return a different _element_ to be rendered if the the `when` callback returns false.
 
 ```js
-import "handcraft/dom/append.js";
 import "handcraft/dom/on.js";
 import "handcraft/dom/text.js";
-import {html} from "handcraft/dom.js";
+import {h} from "handcraft/dom.js";
 import {watch} from "handcraft/reactivity.js";
 import {when} from "handcraft/when.js";
 
-let {span, button} = html;
+let {span, button} = h.html;
 let state = watch({
 	clicked,
 });
 
-button()
-	.on("click", () => {
-		state.clicked = true;
-	})
-	.append(
-		when(() => state.clicked)
-			.show((entry) => span().text("clicked!"))
-			.fallback("not clicked")
-	);
+button.on("click", () => {
+	state.clicked = true;
+})(
+	when(() => state.clicked)
+		.show((entry) => span.text("clicked!"))
+		.fallback("not clicked")
+);
 ```
 
 ### prelude/min.js
 
-For convenience, a module that exports all of dom and reactivity and imports attr, append, on, prop, and text. The minimum you'd need to get started.
+For convenience, a module that exports all of dom and reactivity and imports on, prop, and text. The minimum you'd need to get started.
 
 ### prelude/all.js
 
