@@ -3,7 +3,7 @@ import {HandcraftEventTarget} from "../dom.js";
 export function command(events, handler, options = {}) {
 	events = events.split(/\s+/);
 
-	return this.on(
+	this.on(
 		"command",
 		(e) => {
 			if (events.includes(e.command)) {

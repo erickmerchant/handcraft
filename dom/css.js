@@ -27,8 +27,6 @@ export function css(css, options = {}) {
 		},
 		css
 	);
-
-	return this;
 }
 
 HandcraftRoot.prototype.css = css;

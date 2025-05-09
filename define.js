@@ -32,26 +32,39 @@ export function define(name) {
 		customElements.define(name, CustomElement, options);
 	}, 0);
 
+	let tag = h.html[name];
 	let factory = {};
+	let proxy = new Proxy(function () {}, {
+		apply(_, __, children) {
+			return tag(children);
+		},
+		get(_, key) {
+			if (key in factory) {
+				return factory[key];
+			}
+
+			return tag[key];
+		},
+	});
 
 	factory.connected = (cb) => {
 		connected = cb;
 
-		return factory;
+		return proxy;
 	};
 
 	factory.disconnected = (cb) => {
 		disconnected = cb;
 
-		return factory;
+		return proxy;
 	};
 
 	factory.extends = (tag) => {
 		baseClass = document.createElement(tag).constructor;
 		baseTag = tag;
 
-		return factory;
+		return proxy;
 	};
 
-	return factory;
+	return proxy;
 }

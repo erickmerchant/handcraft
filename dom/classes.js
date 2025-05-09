@@ -21,8 +21,6 @@ export function classes(...classes) {
 			);
 		}
 	}
-
-	return this;
 }
 
 HandcraftElement.prototype.classes = classes;

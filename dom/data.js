@@ -11,8 +11,6 @@ export function data(data) {
 			value
 		);
 	}
-
-	return this;
 }
 
 HandcraftElement.prototype.data = data;

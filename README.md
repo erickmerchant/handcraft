@@ -115,7 +115,7 @@ Set aria attributes. Accepts an object. Values can be _effects_. Returns the _el
 
 #### element.attr(key, value)
 
-Set an attribute. The second parameter can be an _effect_. Returns the _element_ for chaining. This method also can be used to read an attribute if no value is provided.
+Set an attribute. The second parameter can be an _effect_. Returns the _element_ for chaining.
 
 #### element.classes(...classes)
 
@@ -254,7 +254,7 @@ Set styles. Accepts an object. Values can be _effects_. Returns the _element_ fo
 
 #### node.text(text)
 
-When you need to set one text node, use `text` instead of `append` or `prepend`. The parameter can be a string or an _effect_. Returns the _node_ for chaining. This method also can be used to read text if no argument is provided.
+When you need to set one text node, use `text` instead of `append` or `prepend`. The parameter can be a string or an _effect_. Returns the _node_ for chaining.
 
 ```js
 import "handcraft/dom/append.js";

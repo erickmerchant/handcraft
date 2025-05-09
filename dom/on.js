@@ -8,8 +8,6 @@ export function on(events, handler, options = {}) {
 			el.addEventListener(event, handler, options);
 		}
 	}
-
-	return this;
 }
 
 HandcraftEventTarget.prototype.on = on;

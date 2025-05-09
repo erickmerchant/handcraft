@@ -2,10 +2,6 @@ import {HandcraftNode} from "../dom.js";
 import {mutate} from "../reactivity.js";
 
 export function text(txt) {
-	if (txt === undefined) {
-		return this.element?.deref?.()?.textContent;
-	}
-
 	mutate.call(
 		this,
 		(element, txt) => {
@@ -13,8 +9,6 @@ export function text(txt) {
 		},
 		txt
 	);
-
-	return this;
 }
 
 HandcraftNode.prototype.text = text;

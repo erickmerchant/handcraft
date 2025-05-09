@@ -37,7 +37,7 @@ export function nodes(pos, ...children) {
 					if (create || replace) {
 						let result = item();
 
-						result = derefIfElement(result);
+						result = deref(result);
 
 						if (result != null) {
 							if (create) {
@@ -65,7 +65,7 @@ export function nodes(pos, ...children) {
 				truncate(currentChild, end);
 			});
 		} else {
-			let result = derefIfElement(child) ?? "";
+			let result = deref(child) ?? "";
 
 			if (result) {
 				fragment.append(result);
@@ -86,7 +86,7 @@ export function nodes(pos, ...children) {
 	return this;
 }
 
-function derefIfElement(val) {
+function deref(val) {
 	return (typeof val === "object" || typeof val === "function") && val.deref
 		? val.deref()
 		: val;
@@ -126,10 +126,6 @@ export class HandcraftElement extends HandcraftNode {
 	}
 
 	attr(key, value) {
-		if (value === undefined) {
-			return this.element?.deref?.()?.getAttribute?.(key);
-		}
-
 		mutate.call(
 			this,
 			(element, value) => {
@@ -172,13 +168,7 @@ export function $(el) {
 		get(_, key) {
 			if (key in element) {
 				return typeof element[key] === "function"
-					? (...args) => {
-							let result = element[key](...args);
-
-							if (result === element) return p;
-
-							return result;
-					  }
+					? (...args) => element[key](...args) ?? p
 					: element[key];
 			}
 

@@ -11,8 +11,6 @@ export function aria(attrs) {
 			value
 		);
 	}
-
-	return this;
 }
 
 HandcraftElement.prototype.aria = aria;
