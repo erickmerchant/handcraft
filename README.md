@@ -171,21 +171,6 @@ dialog.effect((el) => {
 });
 ```
 
-##### node.find(selector)
-
-Find children based on a selector. Returns an iterable with each item wrapped in the DOM API.
-
-```js
-import "handcraft/dom/find.js";
-import {$} from "handcraft/dom.js";
-
-let divs = $(document.body).find("div");
-
-for (let div of divs) {
-	div.classes("bar");
-}
-```
-
 #### node.observe()
 
 Returns an observer that uses a `MutationObserver` backed way to read attributes and find descendants.
