@@ -359,10 +359,6 @@ button.on("click", () => {
 );
 ```
 
-### prelude/min.js
-
-For convenience, a module that exports all of dom and reactivity and imports on, prop, and text. The minimum you'd need to get started.
-
 ### prelude/all.js
 
 Exports all other exports, and imports all dom/\*.js files. Probably only use this for demos.
