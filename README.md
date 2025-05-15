@@ -141,11 +141,11 @@ div
 	.aria({
 		label: "example",
 	})
-	.role("foo"})
+	.role("foo")
 	.classes({
-		"foo": () => state.foo
+		foo: () => state.foo,
 	})
-	.data({"foo": "example"});
+	.data({foo: "example"});
 ```
 
 #### node.effect(callback)
