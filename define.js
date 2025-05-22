@@ -33,7 +33,24 @@ export function define(name) {
 	}, 0);
 
 	let tag = h.html[name];
-	let factory = {};
+	let factory = {
+		connected: (cb) => {
+			connected = cb;
+
+			return proxy;
+		},
+		disconnected: (cb) => {
+			disconnected = cb;
+
+			return proxy;
+		},
+		extends: (tag) => {
+			baseClass = document.createElement(tag).constructor;
+			baseTag = tag;
+
+			return proxy;
+		},
+	};
 	let proxy = new Proxy(function () {}, {
 		apply(_, __, children) {
 			return tag(children);
@@ -46,25 +63,6 @@ export function define(name) {
 			return tag[key];
 		},
 	});
-
-	factory.connected = (cb) => {
-		connected = cb;
-
-		return proxy;
-	};
-
-	factory.disconnected = (cb) => {
-		disconnected = cb;
-
-		return proxy;
-	};
-
-	factory.extends = (tag) => {
-		baseClass = document.createElement(tag).constructor;
-		baseTag = tag;
-
-		return proxy;
-	};
 
 	return proxy;
 }
