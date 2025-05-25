@@ -87,9 +87,7 @@ export function nodes(pos, ...children) {
 }
 
 function deref(val) {
-	return (typeof val === "object" || typeof val === "function") && val.deref
-		? val.deref()
-		: val;
+	return val instanceof HandcraftEventTarget ? val.deref() : val;
 }
 
 function truncate(currentChild, end) {
@@ -177,6 +175,9 @@ export function $(el) {
 
 				return p;
 			};
+		},
+		getPrototypeOf() {
+			return Object.getPrototypeOf(element);
 		},
 	});
 
