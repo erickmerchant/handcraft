@@ -6,8 +6,8 @@ export function css(css, options = {}) {
 
 	for (let prop of ["media", "disabled"]) {
 		if (options[prop]) {
-			mutate.call(
-				this,
+			mutate(
+				this.element,
 				(stylesheet, val) => {
 					stylesheet[prop] = val;
 				},
@@ -20,8 +20,8 @@ export function css(css, options = {}) {
 
 	el.adoptedStyleSheets.splice(el.adoptedStyleSheets.length, 1, stylesheet);
 
-	mutate.call(
-		this,
+	mutate(
+		this.element,
 		(_element, css) => {
 			stylesheet.replaceSync(css);
 		},

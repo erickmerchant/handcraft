@@ -1,4 +1,3 @@
-import "../dom/append.js";
 import "../dom/aria.js";
 import "../dom/classes.js";
 import "../dom/command.js";
@@ -8,11 +7,9 @@ import "../dom/effect.js";
 import "../dom/observe.js";
 import "../dom/on.js";
 import "../dom/once.js";
-import "../dom/prepend.js";
 import "../dom/prop.js";
 import "../dom/shadow.js";
 import "../dom/styles.js";
-import "../dom/text.js";
 
 export * from "../define.js";
 export * from "../dom.js";

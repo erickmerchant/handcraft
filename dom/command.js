@@ -7,7 +7,7 @@ export function command(events, handler, options = {}) {
 		"command",
 		(e) => {
 			if (events.includes(e.command)) {
-				return handler.bind(this)(e);
+				return handler.call(this, e);
 			}
 		},
 		options

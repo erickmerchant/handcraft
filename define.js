@@ -3,11 +3,11 @@ import {h, $} from "./dom.js";
 export function define(name) {
 	let connected = () => {};
 	let disconnected = () => {};
-	let baseClass = HTMLElement;
+	let BaseClass = HTMLElement;
 	let baseTag = null;
 
 	setTimeout(() => {
-		class CustomElement extends baseClass {
+		class CustomElement extends BaseClass {
 			constructor() {
 				super();
 
@@ -45,7 +45,7 @@ export function define(name) {
 			return proxy;
 		},
 		extends: (tag) => {
-			baseClass = document.createElement(tag).constructor;
+			BaseClass = document.createElement(tag).constructor;
 			baseTag = tag;
 
 			return proxy;

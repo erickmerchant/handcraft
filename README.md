@@ -1,6 +1,6 @@
 # Handcraft
 
-A tiny front-end framework using a fluent interface for constructing UI. It also has shallow reactivity. Install from NPM or get it from a CDN like [jsDelivr](https://cdn.jsdelivr.net/gh/erickmerchant/handcraft@latest/prelude/all.js) and add it to your import map.
+A tiny front-end framework for constructing declarative/reactive UI. Install from NPM or get it from a CDN like [jsDelivr](https://cdn.jsdelivr.net/gh/erickmerchant/handcraft@latest/prelude/all.js) and add it to your import map.
 
 ---
 
@@ -8,345 +8,89 @@ A tiny front-end framework using a fluent interface for constructing UI. It also
 
 ### reactivity.js
 
-Where everything for creating reactive state resides.
+#### export function effect(callback)
 
-#### watch(object)
-
-Pass it an object (arrays supported) and it returns the object wrapped in a proxy that will track reads of properties in _effects_, and writes/deletions will rerun those _effects_.
-
-#### effect(callback)
-
-Pass it a callback to do operations that should get rerun when _watched_ objects are changed. It's for things not covered by the DOM API. Eg. setting localStorage or calling methods on DOM elements. Only properties that are later changed will trigger a rerun. Internally this same method is used anywhere a callback known as an _effect_ is allowed.
-
-```js
-import {watch, effect} from "handcraft/reactivity.js";
-
-let state = watch({foo: 0});
-
-effect(() => {
-	console.log(state.foo);
-});
-
-setInterval(() => {
-	state.foo += 1;
-}, 10_000);
-```
+#### export function watch(object)
 
 ### dom.js
 
-Where everything for creating DOM elements resides.
+#### export let position
 
-#### html, svg, math
+#### export class HandcraftEventTarget
 
-These are proxies of objects with properties that are functions referred to as _tags_ that when run return an instance of `HandcraftElement`. There are three because HTML, SVG, and MathML all require different namespaces when creating a DOM element.
+#### export class HandcraftNode extends HandcraftEventTarget
 
-#### HandcraftEventTarget, HandcraftNode, HandcraftElement, and HandcraftRoot
+#### export class HandcraftElement extends HandcraftNode
 
-Usually you won't use these directly unless you want to write your own methods. They are exported so that methods can be added to their prototype. `HandcraftElement` and `HandcraftRoot` are sub-classes of `HandcraftNode` so they inherit all methods on `HandcraftNode`. `HandcraftNode` extends `HandcraftEventTarget`
+#### export class HandcraftRoot extends HandcraftNode
 
-```js
-import {HandcraftElement} from "handcraft/dom.js";
+#### export function $(el)
 
-HandcraftElement.prototype.text = function (txt) {
-	this.element.textContent = txt;
+#### export let h
 
-	return this;
-};
-```
+#### export function unsafe(content)
 
-Below `node` refers to methods on `HandcraftNode`, `element` refers to methods on `HandcraftElement`, and `shadow` those on `HandcraftRoot`.
+### dom/aria.js
 
-#### node.deref()
+#### HandcraftElement.prototype.aria = function aria(attrs)
 
-A method on `HandcraftNode` instances that returns the underlying DOM element.
+### dom/classes.js
 
-#### $(node)
+#### HandcraftElement.prototype.classes = function classes(...classes)
 
-Wraps a DOM node in the fluent interface.
+### dom/command.js
 
-```js
-import {$} from "handcraft/dom.js";
+#### HandcraftEventTarget.prototype.command = function command(events, handler, options = {})
 
-assert($(document.body).deref() === document.body);
-```
+### dom/css.js
 
-### define.js
+#### HandcraftRoot.prototype.css = function css(css, options = {})
 
-Contains the API for creating custom elements.
+### dom/data.js
 
-#### define(name)
+#### HandcraftElement.prototype.data = function data(data)
 
-Pass it the name of your custom element. It returns a definition that is also a _tag_.
+### dom/effect.js
 
-#### definition.connected(callback)
+#### HandcraftNode.prototype.effect = function effect(cb)
 
-The callback is run in the custom element's `connectedCallback`.
+### dom/observe.js
 
-```js
-import {$} from "handcraft/dom.js";
-import {define} from "handcraft/define.js";
+#### HandcraftNode.prototype.observe = function observe()
 
-$(target)(
-	define("hello-world").connected((host) => {
-		host.text("hello world!");
-	})
-);
-```
+### dom/on.js
 
-#### definition.disconnected(callback)
+#### HandcraftEventTarget.prototype.on = function on(events, handler, options = {})
 
-The callback is run in the custom element's `disconnectedCallback`.
+### dom/once.js
 
-#### definition.extends(name)
+#### HandcraftEventTarget.prototype.once = function once(events, handler, options = {})
 
-Another element to extend, making the custom element a customized built-in element.
+### dom/prop.js
 
-### dom/\*.js
+#### HandcraftNode.prototype.prop = function prop(key, value)
 
-Every module in the "dom" directory adds a method to the `HandcraftNode`, `HandcraftElement`, or `HandcraftRoot` prototype. Import the file to add the method. For instance to use `styles(styles)` import `dom/styles.js`.
+### dom/shadow.js
 
-#### node.append(...children)
+#### HandcraftElement.prototype.shadow = function shadow(options = {mode: "open"})
 
-Append children to a _node_. Each child can be a string, a DOM element, or a _node_. Children are initially appended, but on update their position is maintained. Returns the _node_ for chaining.
+### dom/styles.js
 
-#### element.aria(attrs)
-
-Set aria attributes. Accepts an object. Values can be _effects_. Returns the _element_ for chaining.
-
-#### element.attr(key, value)
-
-Set an attribute. The second parameter can be an _effect_. Returns the _element_ for chaining.
-
-#### element.classes(...classes)
-
-Set classes. Accepts a variable number of strings and objects. With objects the keys become the class strings if their values are truthy. Values can be _effects_. Returns the _element_ for chaining.
-
-#### root.css(css, options)
-
-Adds a stylesheet to the `adoptedStyleSheets` of a `HandcraftRoot` instance. The `css` can be an `effect`. Returns the _root_ for chaining. The second argument, `options` are passed to `CSSStyleSheet`, and `media` and `disabled` can be _effects_.
-
-#### element.data(data)
-
-Set data attributes. Accepts an object. Values can be _effects_. Returns the _element_ for chaining.
-
-```js
-import "handcraft/dom/aria.js";
-import "handcraft/dom/classes.js";
-import "handcraft/dom/data.js";
-import {h} from "handcraft/dom.js";
-
-let {div} = h.html;
-
-div
-	.aria({
-		label: "example",
-	})
-	.role("foo")
-	.classes({
-		foo: () => state.foo,
-	})
-	.data({foo: "example"});
-```
-
-#### node.effect(callback)
-
-Run an _effect_. The callback is passed the DOM element. Returns the _node_ for chaining.
-
-```js
-import "handcraft/dom/effect.js";
-import {h} from "handcraft/dom.js";
-import {watch} from "handcraft/reactivity.js";
-
-let {dialog} = h.html;
-let state = watch({
-	modalOpen: false,
-});
-
-dialog.effect((el) => {
-	if (state.modalOpen) {
-		el.showModal();
-	} else {
-		el.close();
-	}
-});
-```
-
-#### node.observe()
-
-Returns an observer that uses a `MutationObserver` backed way to read attributes and find descendants.
-
-##### observer.attr(key)
-
-Read an attribute.
-
-```js
-import "handcraft/dom/observe.js";
-import "handcraft/dom/text.js";
-import {h} from "handcraft/dom.js";
-import {define} from "handcraft/define.js";
-
-let {div} = h.html;
-
-define("hello-world").connected((host) => {
-	let observed = host.observe();
-
-	host(div.text(() => `hello ${observed.attr("name")}!`));
-});
-```
-
-##### observer.find(selector)
-
-Find children.
-
-```js
-import "handcraft/dom/observe.js";
-import {$} from "handcraft/dom.js";
-import {effect} from "handcraft/reactivity.js";
-
-let observed = $(document.body).observe();
-let divs = observed.find("div");
-
-effect(() => {
-	for (let div of divs) {
-		div.classes("bar");
-	}
-});
-```
-
-#### node.prepend(...children)
-
-Like `append`, but for prepending children to a _node_. Each child can be a string, a DOM element, or a _node_. Children are initially prepended, but on update their position is maintained. Returns the _node_ for chaining.
-
-#### target.on(name, callback, options = {})
-
-Set an event handler. Has the same signature as `addEventListener` but the first parameter can also be an array to set the same handler for multiple event types. Returns the _target_ for chaining.
-
-#### target.once(name, callback, options = {})
-
-Set an event handler. Has the same signature as `node.on` but it automatically adds `once: true` to the options. Returns the _target_ for chaining.
-
-#### node.prop(key, value)
-
-Set a property. The second parameter can be an _effect_. Returns the _node_ for chaining.
-
-#### element.shadow(options = {mode: "open"})
-
-Attaches and returns a _shadow_, or returns an existing one. The returned shadow instance is wrapped in the `HandcraftRoot` API.
-
-#### element.styles(styles)
-
-Set styles. Accepts an object. Values can be _effects_. Returns the _element_ for chaining.
-
-#### node.text(text)
-
-When you need to set one text node, use `text` instead of `append` or `prepend`. The parameter can be a string or an _effect_. Returns the _node_ for chaining.
-
-```js
-import "handcraft/dom/append.js";
-import "handcraft/dom/on.js";
-import "handcraft/dom/prop.js";
-import "handcraft/dom/shadow.js";
-import "handcraft/dom/styles.js";
-import "handcraft/dom/text.js";
-import {h} from "handcraft/dom.js";
-import {define} from "handcraft/define.js";
-
-let {button, span} = h.html;
-
-define("hello-world").connected((host) => {
-	let shadow = host.shadow();
-
-	shadow.append(
-		button
-			.prop("type", "button")
-			.styles({
-				color: "white",
-				background: "rebeccapurple",
-			})
-			.on("click", () => console.log("clicked!"))
-			.append(span.text("click me"))
-	);
-});
-```
+#### HandcraftElement.prototype.styles = function styles(styles)
 
 ### each.js
 
-Each is a way to create reactive lists.
-
-#### each(list)
-
-Entry point for this API. Pass it a _watched_ array. Returns a _collection_ that is iterable, having a `Symbol.iterator` method.
-
-##### collection.filter(callback)
-
-The callback will be run for each item in the _collection_. Return a truthy value to move onto the map step. It is passed `value` and `index`. Both are functions, but `value` proxies to the underlying item.
-
-##### collection.map(callback)
-
-The callback will be run for each item in the _collection_ that passes the filter step. It should return an _element_. It is passed `value` and `index`. Both are functions, but `value` proxies to the underlying item. Do not use destructuring assignment with the `value` between _effects_, because they will not be rerun if the item is swapped out since the callback when run in `append` or `prepend` is only run once per index. This avoids destroying DOM elements only to rebuild them with new data.
-
-```js
-import "handcraft/dom/on.js";
-import "handcraft/dom/append.js";
-import "handcraft/dom/text.js";
-import {h} from "handcraft/dom.js";
-import {each} from "handcraft/each.js";
-import {watch} from "handcraft/reactivity.js";
-
-let {button, ul, li} = h.html;
-let list = watch([]);
-
-button.on("click", () => {
-	list.push(Math.floor(Math.random() * 20) + 1);
-});
-
-ul.append(
-	each(list)
-		.filter((value) => value() % 2)
-		.map((value) => li.text(value()))
-);
-```
+#### export function each(list)
 
 ### when.js
 
-When is used to conditionally render an _element_.
+#### export function when(cb)
 
-#### when(callback)
+### define.js
 
-Entry point for this API. Pass it a function that should return a boolean that controls whether the _element_ should be rendered. The function is passed the previous result of the callback being called. Returns a _conditional_.
-
-##### conditional.show(callback)
-
-The callback should return the _element_ to be rendered.
-
-##### conditional.fallback(callback)
-
-The callback should return a different _element_ to be rendered if the the `when` callback returns false.
-
-```js
-import "handcraft/dom/on.js";
-import "handcraft/dom/text.js";
-import {h} from "handcraft/dom.js";
-import {watch} from "handcraft/reactivity.js";
-import {when} from "handcraft/when.js";
-
-let {span, button} = h.html;
-let state = watch({
-	clicked,
-});
-
-button.on("click", () => {
-	state.clicked = true;
-})(
-	when(() => state.clicked)
-		.show((entry) => span.text("clicked!"))
-		.fallback("not clicked")
-);
-```
+#### export function define(name)
 
 ### prelude/all.js
-
-Exports all other exports, and imports all dom/\*.js files. Probably only use this for demos.
 
 ---
 

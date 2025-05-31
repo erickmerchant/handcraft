@@ -10,8 +10,8 @@ export function classes(...classes) {
 		}
 
 		for (let [key, value] of Object.entries(c)) {
-			mutate.call(
-				this,
+			mutate(
+				this.element,
 				(element, value) => {
 					for (let k of key.split(" ")) {
 						element.classList.toggle(k, value);

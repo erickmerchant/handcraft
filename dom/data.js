@@ -3,8 +3,8 @@ import {mutate} from "../reactivity.js";
 
 export function data(data) {
 	for (let [key, value] of Object.entries(data)) {
-		mutate.call(
-			this,
+		mutate(
+			this.element,
 			(element, value) => {
 				element.dataset[key] = value;
 			},
