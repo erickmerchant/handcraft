@@ -1,4 +1,4 @@
-import {HandcraftElement} from "../dom.js";
+import {HandcraftElement, utils} from "../dom.js";
 import {mutate} from "../reactivity.js";
 
 export function classes(...classes) {
@@ -14,7 +14,7 @@ export function classes(...classes) {
 				this.element,
 				(element, value) => {
 					for (let k of key.split(" ")) {
-						element.classList.toggle(k, value);
+						utils.class(element, k, value);
 					}
 				},
 				value

@@ -1,4 +1,4 @@
-import {HandcraftElement} from "../dom.js";
+import {HandcraftElement, utils} from "../dom.js";
 import {mutate} from "../reactivity.js";
 
 export function data(data) {
@@ -6,7 +6,7 @@ export function data(data) {
 		mutate(
 			this.element,
 			(element, value) => {
-				element.dataset[key] = value;
+				utils.data(element, key, value);
 			},
 			value
 		);

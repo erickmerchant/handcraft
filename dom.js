@@ -1,5 +1,145 @@
 import {mutate} from "./reactivity.js";
 
+export let namespaces = {
+	html: "http://www.w3.org/1999/xhtml",
+	svg: "http://www.w3.org/2000/svg",
+	math: "http://www.w3.org/1998/Math/MathML",
+};
+
+export let utils = {
+	wrap(node) {
+		if (node instanceof Element) {
+			return new HandcraftElement(node);
+		}
+
+		if (node instanceof ShadowRoot || node instanceof Document) {
+			return new HandcraftRoot(node);
+		}
+
+		return new HandcraftEventTarget(node);
+	},
+	define(name, CustomElement, options) {
+		customElements.define(name, CustomElement, options);
+	},
+	create(tag, namespace = namespaces.html) {
+		return document.createElementNS(namespace, tag);
+	},
+	comment(content = "") {
+		return document.createComment(content);
+	},
+	text(content = "") {
+		return document.createTextNode(content);
+	},
+	fragment() {
+		return new DocumentFragment();
+	},
+	stylesheet: {
+		create() {
+			return new CSSStyleSheet();
+		},
+		adopt(element, stylesheet) {
+			element.adoptedStyleSheets.splice(
+				element.adoptedStyleSheets.length,
+				1,
+				stylesheet
+			);
+		},
+		css(stylesheet, css) {
+			stylesheet.replaceSync(css);
+		},
+	},
+	observer: {
+		create(cb) {
+			return new MutationObserver(cb);
+		},
+		disconnect(observer) {
+			observer.disconnect();
+		},
+		observe(
+			observer,
+			element,
+			options = {attributes: true, childList: true, subtree: true}
+		) {
+			observer.observe(element, options);
+		},
+	},
+	append(element, ...children) {
+		element.append(...children);
+	},
+	root(element) {
+		return element.getRootNode();
+	},
+	attr: {
+		set(element, key, value) {
+			if (value === true || value === false || value == null) {
+				element.toggleAttribute(key, !!value);
+			} else {
+				element.setAttribute(key, value);
+			}
+		},
+		get(element, key) {
+			return element.getAttribute(key);
+		},
+	},
+	class(element, key, value) {
+		element.classList.toggle(key, value);
+	},
+	data(element, key, value) {
+		element.dataset[key] = value;
+	},
+	find(element, query) {
+		return element.querySelectorAll(query);
+	},
+	on(element, event, handler, options) {
+		element.addEventListener(event, handler, options);
+	},
+	shadow(element, options) {
+		if (!element.shadowRoot) {
+			element.attachShadow(options);
+		}
+
+		return element.shadowRoot;
+	},
+	style(element, key, value) {
+		element.style.setProperty(key, value);
+	},
+	next(element) {
+		return element?.nextSibling;
+	},
+	remove(element) {
+		element.remove();
+	},
+	replace(current, next) {
+		if (!(next instanceof Element)) {
+			if (current.nodeType === 3) {
+				utils.content(current, next);
+
+				return current;
+			}
+
+			next = utils.text(next);
+		}
+
+		current.replaceWith(next);
+
+		return next;
+	},
+	before(element, child) {
+		element.before(child);
+	},
+	content(element, content) {
+		element.textContent = content;
+	},
+	unsafe(content) {
+		let div = utils.create("div");
+		let shadow = utils.shadow(div, {mode: "open"});
+
+		shadow.setHTMLUnsafe(content);
+
+		return [...shadow.childNodes];
+	},
+};
+
 export let position = {
 	start: Symbol("start"),
 	end: Symbol("end"),
@@ -11,9 +151,9 @@ function deref(val) {
 
 function truncate(currentChild, end) {
 	while (currentChild && currentChild !== end) {
-		let nextChild = currentChild.nextSibling;
+		let nextChild = utils.next(currentChild);
 
-		currentChild.remove();
+		utils.remove(currentChild);
 
 		currentChild = nextChild;
 	}
@@ -33,7 +173,7 @@ export class HandcraftNode extends HandcraftEventTarget {
 	nodes(pos, ...children) {
 		let el = this.element.deref();
 		let nodeToCallback = new WeakMap();
-		let fragment = new DocumentFragment();
+		let fragment = utils.fragment();
 
 		children = children.flat(Infinity);
 
@@ -45,17 +185,17 @@ export class HandcraftNode extends HandcraftEventTarget {
 				typeof child === "object" &&
 				child[Symbol.iterator] != null
 			) {
-				let bounds = [document.createComment(""), document.createComment("")];
+				let bounds = [utils.comment(), utils.comment()];
 
-				fragment.append(...bounds);
+				utils.append(fragment, ...bounds);
 
 				bounds = bounds.map((c) => new WeakRef(c));
 
 				mutate(this.element, () => {
 					let [start, end] = bounds.map((b) => b.deref());
 					let currentChild =
-						start && start.nextSibling !== end ? start.nextSibling : null;
-					let fragment = new DocumentFragment();
+						start && utils.next(start) !== end ? utils.next(start) : null;
+					let fragment = utils.fragment();
 
 					for (let item of child) {
 						let create = !currentChild;
@@ -68,11 +208,9 @@ export class HandcraftNode extends HandcraftEventTarget {
 
 							if (result != null) {
 								if (create) {
-									fragment.append(result);
+									utils.append(fragment, result);
 								} else {
-									currentChild.replaceWith(result);
-
-									currentChild = result;
+									currentChild = utils.replace(currentChild, result);
 								}
 
 								nodeToCallback.set(result, item);
@@ -82,20 +220,19 @@ export class HandcraftNode extends HandcraftEventTarget {
 						}
 
 						currentChild =
-							currentChild?.nextSibling !== end
-								? currentChild?.nextSibling
+							utils.next(currentChild) !== end
+								? utils.next(currentChild)
 								: null;
 					}
 
-					end.before(fragment);
+					utils.before(end, fragment);
 
 					truncate(currentChild, end);
 				});
 			} else if (child != null && typeof child === "function") {
-				let prev = document.createComment("");
-				let prevStr = false;
+				let prev = utils.comment();
 
-				fragment.append(prev);
+				utils.append(fragment, prev);
 
 				prev = new WeakRef(prev);
 
@@ -107,21 +244,7 @@ export class HandcraftNode extends HandcraftEventTarget {
 						let p = prev.deref();
 
 						if (p) {
-							if (!(child instanceof Element)) {
-								if (prevStr) {
-									p.textContent = child;
-
-									return;
-								}
-
-								child = document.createTextNode(child);
-
-								prevStr = true;
-							}
-
-							p.replaceWith(child);
-
-							prev = new WeakRef(child);
+							prev = new WeakRef(utils.replace(p, child));
 						}
 					},
 					child
@@ -129,17 +252,17 @@ export class HandcraftNode extends HandcraftEventTarget {
 			} else {
 				child = deref(child);
 
-				fragment.append(child);
+				utils.append(fragment, child);
 			}
 		}
 
 		switch (pos) {
 			case position.start:
-				el.prepend(fragment);
+				utils.append(el, fragment);
 				break;
 
 			case position.end:
-				el.append(fragment);
+				utils.append(el, fragment);
 				break;
 		}
 
@@ -155,18 +278,14 @@ export class HandcraftElement extends HandcraftNode {
 			return;
 		}
 
-		return $(el.getRootNode());
+		return $(utils.root(el));
 	}
 
 	attr(key, value) {
 		mutate(
 			this.element,
 			(element, value) => {
-				if (value === true || value === false || value == null) {
-					element.toggleAttribute(key, !!value);
-				} else {
-					element.setAttribute(key, value);
-				}
+				utils.attr.set(element, key, value);
 			},
 			value
 		);
@@ -177,20 +296,8 @@ export class HandcraftElement extends HandcraftNode {
 
 export class HandcraftRoot extends HandcraftNode {}
 
-function create(node) {
-	if (node instanceof Element) {
-		return new HandcraftElement(node);
-	}
-
-	if (node instanceof ShadowRoot || node instanceof Document) {
-		return new HandcraftRoot(node);
-	}
-
-	return new HandcraftEventTarget(node);
-}
-
 export function $(el) {
-	let element = new WeakRef(create(el));
+	let element = new WeakRef(utils.wrap(el));
 
 	let p = new Proxy(function () {}, {
 		apply(_, __, children) {
@@ -242,12 +349,12 @@ function factory(namespace) {
 			get(_, tag) {
 				return new Proxy(function () {}, {
 					apply(_, __, args) {
-						let el = $(document.createElementNS(namespace, tag));
+						let el = $(utils.create(tag, namespace));
 
 						return el(...args);
 					},
 					get(_, key) {
-						let el = $(document.createElementNS(namespace, tag));
+						let el = $(utils.create(tag, namespace));
 
 						return el[key];
 					},
@@ -258,16 +365,11 @@ function factory(namespace) {
 }
 
 export let h = {
-	html: factory("http://www.w3.org/1999/xhtml"),
-	svg: factory("http://www.w3.org/2000/svg"),
-	math: factory("http://www.w3.org/1998/Math/MathML"),
+	html: factory(namespaces.html),
+	svg: factory(namespaces.svg),
+	math: factory(namespaces.math),
 };
 
 export function unsafe(content) {
-	let div = document.createElement("div");
-	let shadow = div.attachShadow({mode: "open"});
-
-	shadow.setHTMLUnsafe(content);
-
-	return [...shadow.childNodes];
+	return utils.unsafe(content);
 }

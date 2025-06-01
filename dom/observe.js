@@ -1,4 +1,4 @@
-import {HandcraftNode, $} from "../dom.js";
+import {HandcraftNode, $, utils} from "../dom.js";
 import {watch} from "../reactivity.js";
 
 export function observe() {
@@ -6,31 +6,32 @@ export function observe() {
 	let attributes = {};
 
 	for (let attr of el?.getAttributeNames?.() ?? []) {
-		attributes[attr] = el.getAttribute(attr);
+		attributes[attr] = utils.attr.get(el, attr);
 	}
 
 	attributes = watch(attributes);
 
 	let queries = {};
-	let observer = new MutationObserver((records) => {
+	let observer = utils.observer.create((records) => {
 		let el = this.element.deref();
 
 		if (!el) {
-			observer.disconnect();
+			utils.observer.disconnect(observer);
 
 			return;
 		}
 
 		for (let record of records) {
 			if (record.type === "attributes" && record.target === el) {
-				attributes[record.attributeName] = el.getAttribute(
+				attributes[record.attributeName] = utils.attr.get(
+					el,
 					record.attributeName
 				);
 			}
 
 			if (record.type === "childList") {
 				for (let query of Object.keys(queries)) {
-					for (let result of el.querySelectorAll(query)) {
+					for (let result of utils.find(el, query)) {
 						if ([...record.addedNodes].includes(result)) {
 							queries[query].push(result);
 						}
@@ -40,7 +41,7 @@ export function observe() {
 		}
 	});
 
-	observer.observe(el, {attributes: true, childList: true, subtree: true});
+	utils.observer.observe(observer, el);
 
 	return {
 		attr: (key) => {
@@ -53,7 +54,7 @@ export function observe() {
 			let val = attributes[key];
 
 			if (val == null) {
-				val = el.getAttribute(key);
+				val = utils.attr.get(el, key);
 
 				attributes[key] = val;
 			}
@@ -67,7 +68,7 @@ export function observe() {
 				return;
 			}
 
-			let results = [...el.querySelectorAll(query)];
+			let results = [...utils.find(el, query)];
 			let index = 0;
 
 			queries[query] = watch(results);

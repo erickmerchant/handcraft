@@ -1,4 +1,4 @@
-import {HandcraftElement} from "../dom.js";
+import {HandcraftElement, utils} from "../dom.js";
 import {mutate} from "../reactivity.js";
 
 export function styles(styles) {
@@ -6,7 +6,7 @@ export function styles(styles) {
 		mutate(
 			this.element,
 			(element, value) => {
-				element.style.setProperty(key, value);
+				utils.style(element, key, value);
 			},
 			value
 		);

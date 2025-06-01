@@ -1,8 +1,8 @@
-import {HandcraftRoot} from "../dom.js";
+import {HandcraftRoot, utils} from "../dom.js";
 import {mutate} from "../reactivity.js";
 
 export function css(css, options = {}) {
-	let stylesheet = new CSSStyleSheet();
+	let stylesheet = utils.stylesheet.create();
 
 	for (let prop of ["media", "disabled"]) {
 		if (options[prop]) {
@@ -18,12 +18,12 @@ export function css(css, options = {}) {
 
 	let el = this.element.deref();
 
-	el.adoptedStyleSheets.splice(el.adoptedStyleSheets.length, 1, stylesheet);
+	utils.stylesheet.adopt(el, stylesheet);
 
 	mutate(
 		this.element,
 		(_element, css) => {
-			stylesheet.replaceSync(css);
+			utils.stylesheet.css(stylesheet, css);
 		},
 		css
 	);

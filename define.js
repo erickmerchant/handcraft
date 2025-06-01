@@ -1,4 +1,4 @@
-import {h, $} from "./dom.js";
+import {h, $, utils} from "./dom.js";
 
 export function define(name) {
 	let connected = () => {};
@@ -29,7 +29,7 @@ export function define(name) {
 			options = {extends: baseTag};
 		}
 
-		customElements.define(name, CustomElement, options);
+		utils.define(name, CustomElement, options);
 	}, 0);
 
 	let tag = h.html[name];
@@ -45,7 +45,7 @@ export function define(name) {
 			return proxy;
 		},
 		extends: (tag) => {
-			BaseClass = document.createElement(tag).constructor;
+			BaseClass = utils.create(tag).constructor;
 			baseTag = tag;
 
 			return proxy;
