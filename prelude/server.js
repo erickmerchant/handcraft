@@ -10,11 +10,11 @@ let parents = new WeakMap();
 
 Object.assign(utils, {
 	wrap(node) {
-		if (node.tag) {
+		if (node.type === "element") {
 			return new HandcraftElement(node);
 		}
 
-		if (node.shadow) {
+		if (node.type === "shadow") {
 			return new HandcraftRoot(node);
 		}
 
@@ -22,7 +22,7 @@ Object.assign(utils, {
 	},
 	define() {},
 	create(tag, namespace) {
-		let element = {tag};
+		let element = {type: "element", tag};
 
 		if (namespace !== namespaces.html) {
 			element.namespace = namespace;
@@ -31,13 +31,13 @@ Object.assign(utils, {
 		return element;
 	},
 	comment(content = "") {
-		return {comment: content};
+		return {type: "comment", content};
 	},
 	text(content = "") {
-		return {text: content};
+		return {type: "text", content};
 	},
 	fragment() {
-		return {fragment: true, children: []};
+		return {type: "fragment", children: []};
 	},
 	stylesheet: {
 		create() {
@@ -62,7 +62,7 @@ Object.assign(utils, {
 
 		children = children
 			.reduce((acc, child) => {
-				if (child.fragment) {
+				if (child.type === "fragment") {
 					acc.push(...child.children);
 				} else {
 					acc.push(child);
@@ -72,7 +72,7 @@ Object.assign(utils, {
 			}, [])
 			.map((child) => {
 				if (typeof child !== "object") {
-					child = {text: child};
+					child = {type: "text", child};
 				}
 
 				parents.set(child, element);
@@ -115,7 +115,7 @@ Object.assign(utils, {
 	on() {},
 	shadow(element, options) {
 		if (!element.shadow) {
-			element.shadow = {...options, children: []};
+			element.shadow = {...options, type: "shadow", children: []};
 		}
 
 		return element.shadow;
@@ -159,7 +159,7 @@ Object.assign(utils, {
 
 		children = children
 			.reduce((acc, child) => {
-				if (child.fragment) {
+				if (child.type === "fragment") {
 					acc.push(...child.children);
 				} else {
 					acc.push(child);
@@ -169,7 +169,7 @@ Object.assign(utils, {
 			}, [])
 			.map((child) => {
 				if (typeof child !== "object") {
-					child = {text: child};
+					child = {type: "text", child};
 				}
 
 				parents.set(child, element);
@@ -184,9 +184,6 @@ Object.assign(utils, {
 		}
 	},
 	content(element, content) {
-		element.children = [{text: content}];
-	},
-	unsafe(content) {
-		return {unsafe: content}; // @todo parse to array acutally here
+		element.children = [{type: "text", content}];
 	},
 });

@@ -28,8 +28,6 @@ A tiny front-end framework for constructing declarative/reactive UI. Install fro
 
 #### export let h
 
-#### export function unsafe(content)
-
 ### dom/aria.js
 
 #### HandcraftElement.prototype.aria = function aria(attrs)

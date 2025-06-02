@@ -130,14 +130,6 @@ export let utils = {
 	content(element, content) {
 		element.textContent = content;
 	},
-	unsafe(content) {
-		let div = utils.create("div");
-		let shadow = utils.shadow(div, {mode: "open"});
-
-		shadow.setHTMLUnsafe(content);
-
-		return [...shadow.childNodes];
-	},
 };
 
 export let position = {
@@ -314,6 +306,10 @@ export function $(el) {
 
 			if (!el) return;
 
+			if (key === "then") {
+				return;
+			}
+
 			if (key in el) {
 				return typeof el[key] === "function"
 					? (...args) => el[key](...args) ?? p
@@ -369,7 +365,3 @@ export let h = {
 	svg: factory(namespaces.svg),
 	math: factory(namespaces.math),
 };
-
-export function unsafe(content) {
-	return utils.unsafe(content);
-}
