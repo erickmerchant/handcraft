@@ -4,7 +4,7 @@ import {mutate} from "../reactivity.js";
 export function css(css, options = {}) {
 	let stylesheet = utils.stylesheet.create();
 
-	for (let prop of ["media", "disabled"]) {
+	for (let prop of ["media"]) {
 		if (options[prop]) {
 			mutate(
 				this.element,

@@ -327,7 +327,7 @@ export function $(el) {
 			};
 		},
 		getPrototypeOf() {
-			let el = element.deref();
+			let el = element?.deref?.();
 
 			if (!el) return;
 
