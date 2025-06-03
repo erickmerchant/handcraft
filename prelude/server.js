@@ -142,16 +142,30 @@ Object.assign(utils, {
 			element.namespace = namespace;
 		}
 
+		elements.add(element);
+
 		return element;
 	},
 	comment(content = "") {
-		return {type: "comment", content};
+		let comment = {type: "comment", content};
+
+		elements.add(comment);
+
+		return comment;
 	},
 	text(content = "") {
-		return {type: "text", content};
+		let text = {type: "text", content};
+
+		elements.add(text);
+
+		return text;
 	},
 	fragment() {
-		return {type: "fragment", children: []};
+		let fragment = {type: "fragment", children: []};
+
+		elements.add(fragment);
+
+		return fragment;
 	},
 	stylesheet: {
 		create() {
@@ -178,6 +192,8 @@ Object.assign(utils, {
 			.reduce((acc, child) => {
 				if (child.type === "fragment") {
 					acc.push(...child.children);
+
+					elements.delete(child);
 				} else {
 					acc.push(child);
 				}
@@ -279,6 +295,8 @@ Object.assign(utils, {
 			.reduce((acc, child) => {
 				if (child.type === "fragment") {
 					acc.push(...child.children);
+
+					elements.delete(child);
 				} else {
 					acc.push(child);
 				}

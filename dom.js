@@ -236,7 +236,7 @@ export class HandcraftNode extends HandcraftEventTarget {
 						let p = prev.deref();
 
 						if (p) {
-							prev = new WeakRef(utils.replace(p, child));
+							prev = new WeakRef(utils.replace(p, child ?? utils.comment()));
 						}
 					},
 					child
