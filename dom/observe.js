@@ -1,6 +1,26 @@
 import {HandcraftNode, $, utils} from "../dom.js";
 import {watch} from "../reactivity.js";
 
+utils.observer = {
+	create(cb) {
+		return new MutationObserver(cb);
+	},
+	disconnect(observer) {
+		observer.disconnect();
+	},
+	observe(
+		observer,
+		element,
+		options = {attributes: true, childList: true, subtree: true}
+	) {
+		observer.observe(element, options);
+	},
+};
+
+utils.find = (element, query) => {
+	return element.querySelectorAll(query);
+};
+
 export function observe() {
 	let el = this.element.deref();
 	let attributes = {};
@@ -87,7 +107,11 @@ export function observe() {
 					get(target, key) {
 						return (
 							target[key] ??
-							(queries[query][key] ? $(queries[query][key]) : undefined)
+							(queries[query][key] != null
+								? Number.isInteger(+key)
+									? $(queries[query][key])
+									: queries[query][key]
+								: undefined)
 						);
 					},
 				}

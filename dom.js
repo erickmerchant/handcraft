@@ -18,9 +18,6 @@ export let utils = {
 
 		return new HandcraftEventTarget(node);
 	},
-	define(name, CustomElement, options) {
-		customElements.define(name, CustomElement, options);
-	},
 	create(tag, namespace = namespaces.html) {
 		return document.createElementNS(namespace, tag);
 	},
@@ -32,36 +29,6 @@ export let utils = {
 	},
 	fragment() {
 		return new DocumentFragment();
-	},
-	stylesheet: {
-		create() {
-			return new CSSStyleSheet();
-		},
-		adopt(element, stylesheet) {
-			element.adoptedStyleSheets.splice(
-				element.adoptedStyleSheets.length,
-				1,
-				stylesheet
-			);
-		},
-		css(stylesheet, css) {
-			stylesheet.replaceSync(css);
-		},
-	},
-	observer: {
-		create(cb) {
-			return new MutationObserver(cb);
-		},
-		disconnect(observer) {
-			observer.disconnect();
-		},
-		observe(
-			observer,
-			element,
-			options = {attributes: true, childList: true, subtree: true}
-		) {
-			observer.observe(element, options);
-		},
 	},
 	append(element, ...children) {
 		element.append(...children);
@@ -80,28 +47,6 @@ export let utils = {
 		get(element, key) {
 			return element.getAttribute(key);
 		},
-	},
-	class(element, key, value) {
-		element.classList.toggle(key, value);
-	},
-	data(element, key, value) {
-		element.dataset[key] = value;
-	},
-	find(element, query) {
-		return element.querySelectorAll(query);
-	},
-	on(element, event, handler, options) {
-		element.addEventListener(event, handler, options);
-	},
-	shadow(element, options) {
-		if (!element.shadowRoot) {
-			element.attachShadow(options);
-		}
-
-		return element.shadowRoot;
-	},
-	style(element, key, value) {
-		element.style.setProperty(key, value);
 	},
 	next(element) {
 		return element?.nextSibling;

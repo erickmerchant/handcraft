@@ -1,5 +1,9 @@
 import {h, $, utils} from "./dom.js";
 
+utils.define = (name, CustomElement, options) => {
+	customElements.define(name, CustomElement, options);
+};
+
 export function define(name) {
 	let connected = () => {};
 	let disconnected = () => {};

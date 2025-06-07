@@ -1,5 +1,9 @@
 import {HandcraftEventTarget, utils} from "../dom.js";
 
+utils.on = (element, event, handler, options) => {
+	element.addEventListener(event, handler, options);
+};
+
 export function on(events, handler, options = {}) {
 	let el = this.element.deref();
 

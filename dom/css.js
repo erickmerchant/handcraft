@@ -1,6 +1,22 @@
 import {HandcraftRoot, utils} from "../dom.js";
 import {mutate} from "../reactivity.js";
 
+utils.stylesheet = {
+	create() {
+		return new CSSStyleSheet();
+	},
+	adopt(element, stylesheet) {
+		element.adoptedStyleSheets.splice(
+			element.adoptedStyleSheets.length,
+			1,
+			stylesheet
+		);
+	},
+	css(stylesheet, css) {
+		stylesheet.replaceSync(css);
+	},
+};
+
 export function css(css, options = {}) {
 	let stylesheet = utils.stylesheet.create();
 

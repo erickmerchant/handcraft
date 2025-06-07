@@ -1,6 +1,10 @@
 import {HandcraftElement, utils} from "../dom.js";
 import {mutate} from "../reactivity.js";
 
+utils.class = (element, key, value) => {
+	element.classList.toggle(key, value);
+};
+
 export function classes(...classes) {
 	classes = classes.flat(Infinity);
 
