@@ -1,4 +1,4 @@
-import {mutate} from "./reactivity.js";
+import {mutate, registered} from "./reactivity.js";
 
 export let namespaces = {
 	html: "http://www.w3.org/1999/xhtml",
@@ -36,23 +36,20 @@ export let utils = {
 	root(element) {
 		return element.getRootNode();
 	},
-	attr: {
-		set(element, key, value) {
-			if (value === true || value === false || value == null) {
-				element.toggleAttribute(key, !!value);
-			} else {
-				element.setAttribute(key, value);
-			}
-		},
-		get(element, key) {
-			return element.getAttribute(key);
-		},
+	attr(element, key, value) {
+		if (value === true || value === false || value == null) {
+			element.toggleAttribute(key, !!value);
+		} else {
+			element.setAttribute(key, value);
+		}
 	},
 	next(element) {
 		return element?.nextSibling;
 	},
 	remove(element) {
 		element.remove();
+
+		registered.delete(element);
 	},
 	replace(current, next) {
 		if (!(next instanceof Element)) {
@@ -67,6 +64,8 @@ export let utils = {
 
 		current.replaceWith(next);
 
+		registered.delete(current);
+
 		return next;
 	},
 	before(element, child) {
@@ -74,6 +73,17 @@ export let utils = {
 	},
 	content(element, content) {
 		element.textContent = content;
+	},
+	observer: {
+		create(cb) {
+			return new MutationObserver(cb);
+		},
+		attr(element, key) {
+			return element.getAttribute(key);
+		},
+		query(element, selector) {
+			return element.querySelectorAll(selector);
+		},
 	},
 };
 
@@ -107,7 +117,7 @@ export class HandcraftEventTarget {
 }
 
 export class HandcraftNode extends HandcraftEventTarget {
-	nodes(pos, ...children) {
+	_nodes(pos, ...children) {
 		let el = this.element.deref();
 		let nodeToCallback = new WeakMap();
 		let fragment = utils.fragment();
@@ -202,8 +212,6 @@ export class HandcraftNode extends HandcraftEventTarget {
 				utils.append(el, fragment);
 				break;
 		}
-
-		return this;
 	}
 }
 
@@ -218,11 +226,11 @@ export class HandcraftElement extends HandcraftNode {
 		return $(utils.root(el));
 	}
 
-	attr(key, value) {
+	_attr(key, value) {
 		mutate(
 			this.element,
 			(element, value) => {
-				utils.attr.set(element, key, value);
+				utils.attr(element, key, value);
 			},
 			value
 		);
@@ -234,49 +242,37 @@ export class HandcraftElement extends HandcraftNode {
 export class HandcraftRoot extends HandcraftNode {}
 
 export function $(el) {
-	let element = new WeakRef(utils.wrap(el));
+	let element = utils.wrap(el);
 
 	let p = new Proxy(function () {}, {
 		apply(_, __, children) {
-			let el = element.deref();
-
-			if (!el) return;
-
-			el.nodes(position.end, ...children);
+			element._nodes(position.end, ...children);
 
 			return p;
 		},
 		get(_, key) {
-			let el = element.deref();
-
-			if (!el) return;
-
 			if (key === "then") {
 				return;
 			}
 
-			if (key in el) {
-				return typeof el[key] === "function"
-					? (...args) => el[key](...args) ?? p
-					: el[key];
+			if (key in element) {
+				return typeof element[key] === "function"
+					? (...args) => element[key](...args) ?? p
+					: element[key];
+			}
+
+			if (typeof key !== "string") {
+				return;
 			}
 
 			return (...args) => {
-				let el = element.deref();
-
-				if (!el) return;
-
-				el.attr(key, ...args);
+				element._attr(key, ...args);
 
 				return p;
 			};
 		},
 		getPrototypeOf() {
-			let el = element?.deref?.();
-
-			if (!el) return;
-
-			return Object.getPrototypeOf(el);
+			return Object.getPrototypeOf(element);
 		},
 	});
 

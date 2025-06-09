@@ -1,56 +1,48 @@
 import {h, $, utils} from "./dom.js";
 
-utils.define = (name, CustomElement, options) => {
-	customElements.define(name, CustomElement, options);
-};
-
-export function define(name) {
-	let connected = () => {};
-	let disconnected = () => {};
-	let BaseClass = HTMLElement;
-	let baseTag = null;
-
-	setTimeout(() => {
-		class CustomElement extends BaseClass {
-			constructor() {
-				super();
-
-				this.element = $(this);
-			}
-
+utils.define = (options) => {
+	customElements.define(
+		options.name,
+		class extends (options.extends
+			? utils.create(options.extends).constructor
+			: HTMLElement) {
 			connectedCallback() {
-				connected(this.element);
+				options.connected($(this));
 			}
 
 			disconnectedCallback() {
-				disconnected(this.element);
+				options.disconnected($(this));
 			}
-		}
+		},
+		options.extends ? {extends: options.extends} : null
+	);
+};
 
-		let options;
+export function define(name) {
+	let options = {
+		name,
+		connected: () => {},
+		disconnected: () => {},
+	};
 
-		if (baseTag) {
-			options = {extends: baseTag};
-		}
-
-		utils.define(name, CustomElement, options);
+	setTimeout(() => {
+		utils.define(options);
 	}, 0);
 
 	let tag = h.html[name];
 	let factory = {
 		connected: (cb) => {
-			connected = cb;
+			options.connected = cb;
 
 			return proxy;
 		},
 		disconnected: (cb) => {
-			disconnected = cb;
+			options.disconnected = cb;
 
 			return proxy;
 		},
-		extends: (tag) => {
-			BaseClass = utils.create(tag).constructor;
-			baseTag = tag;
+		extends: (name) => {
+			options.extends = name;
 
 			return proxy;
 		},

@@ -6,7 +6,7 @@ export function aria(attrs) {
 		mutate(
 			this.element,
 			(element, value) => {
-				utils.attr.set(element, `aria-${key}`, value);
+				utils.attr(element, `aria-${key}`, value);
 			},
 			value
 		);

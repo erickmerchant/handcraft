@@ -1,8 +1,9 @@
 let current;
 let queue = [];
 let reads = new WeakMap();
-let registered = new WeakSet();
 let scheduled = false;
+
+export let registered = new WeakSet();
 
 function getProperty(o, key, r) {
 	if (current) {
@@ -22,8 +23,10 @@ function getProperty(o, key, r) {
 function modifyProperty(o, key) {
 	let callbacks = reads.get(o).get(key);
 
-	if (callbacks) {
+	if (callbacks != null && callbacks.size) {
 		for (let cb of callbacks) {
+			if (cb === current) continue;
+
 			effect(cb);
 		}
 
@@ -44,26 +47,32 @@ function deleteProperty(o, key) {
 }
 
 export function effect(callback) {
-	queue.push(callback);
+	if (!queue.includes(callback)) {
+		queue.push(callback);
 
-	if (!scheduled) {
-		scheduled = true;
+		if (!scheduled) {
+			scheduled = true;
 
-		setTimeout(() => {
-			scheduled = false;
+			setTimeout(() => {
+				scheduled = false;
 
-			let callbacks = queue.splice(0, Infinity);
-			let prev = current;
+				let callbacks = queue.splice(0, Infinity);
+				let prev = current;
 
-			for (let cb of callbacks) {
-				current = cb;
+				for (let cb of callbacks) {
+					current = cb;
 
-				cb();
-			}
+					cb();
+				}
 
-			current = prev;
-		}, 0);
+				current = prev;
+			}, 0);
+		}
 	}
+}
+
+export function inEffect() {
+	return current != null;
 }
 
 export function watch(object) {

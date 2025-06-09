@@ -4,91 +4,27 @@ A tiny front-end framework for constructing declarative/reactive UI. Install fro
 
 ---
 
-## API
+## Reactivity
 
-### reactivity.js
+### Watching state
 
-#### export function effect(callback)
+### Effects
 
-#### export function watch(object)
+## Templating
 
-### dom.js
+### Children
 
-#### export let position
+### Attributes and properties
 
-#### export class HandcraftEventTarget
+### Events
 
-#### export class HandcraftNode extends HandcraftEventTarget
+### Loops and conditionals
 
-#### export class HandcraftElement extends HandcraftNode
+### Querying children and reading attributes
 
-#### export class HandcraftRoot extends HandcraftNode
+## Web Components
 
-#### export function $(el)
-
-#### export let h
-
-### dom/aria.js
-
-#### HandcraftElement.prototype.aria = function aria(attrs)
-
-### dom/classes.js
-
-#### HandcraftElement.prototype.classes = function classes(...classes)
-
-### dom/command.js
-
-#### HandcraftEventTarget.prototype.command = function command(events, handler, options = {})
-
-### dom/css.js
-
-#### HandcraftRoot.prototype.css = function css(css, options = {})
-
-### dom/data.js
-
-#### HandcraftElement.prototype.data = function data(data)
-
-### dom/effect.js
-
-#### HandcraftNode.prototype.effect = function effect(cb)
-
-### dom/observe.js
-
-#### HandcraftNode.prototype.observe = function observe()
-
-### dom/on.js
-
-#### HandcraftEventTarget.prototype.on = function on(events, handler, options = {})
-
-### dom/once.js
-
-#### HandcraftEventTarget.prototype.once = function once(events, handler, options = {})
-
-### dom/prop.js
-
-#### HandcraftNode.prototype.prop = function prop(key, value)
-
-### dom/shadow.js
-
-#### HandcraftElement.prototype.shadow = function shadow(options = {mode: "open"})
-
-### dom/styles.js
-
-#### HandcraftElement.prototype.styles = function styles(styles)
-
-### each.js
-
-#### export function each(list)
-
-### when.js
-
-#### export function when(cb)
-
-### define.js
-
-#### export function define(name)
-
-### prelude/all.js
+## Imports and preludes
 
 ---
 

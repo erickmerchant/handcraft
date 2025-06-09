@@ -4,6 +4,7 @@ import {
 	HandcraftEventTarget,
 	HandcraftRoot,
 	namespaces,
+	$,
 } from "../dom.js";
 
 const VOID_ELEMENTS = [
@@ -121,6 +122,7 @@ export function render(node) {
 
 let parents = new WeakMap();
 let elements = new Set();
+let customElements = new Map();
 
 Object.assign(utils, {
 	wrap(node) {
@@ -134,7 +136,13 @@ Object.assign(utils, {
 
 		return new HandcraftEventTarget(node);
 	},
-	define() {},
+	define(options) {
+		customElements.set(options.name, (element) => {
+			this.element = $(element);
+
+			options.connected(this.element);
+		});
+	},
 	create(tag, namespace) {
 		let element = {type: "element", tag};
 
@@ -143,6 +151,12 @@ Object.assign(utils, {
 		}
 
 		elements.add(element);
+
+		let customFn = customElements.get(tag);
+
+		if (customFn) {
+			customFn(element);
+		}
 
 		return element;
 	},
@@ -178,13 +192,6 @@ Object.assign(utils, {
 			stylesheet.css = css;
 		},
 	},
-	observer: {
-		create() {
-			return {observer: true};
-		},
-		disconnect() {},
-		observe() {},
-	},
 	append(element, ...children) {
 		element.children ??= [];
 
@@ -215,21 +222,16 @@ Object.assign(utils, {
 	root() {
 		return {};
 	},
-	attr: {
-		set(element, key, value) {
-			element.attrs ??= {};
+	attr(element, key, value) {
+		element.attrs ??= {};
 
-			if (value == null) {
-				delete element.attrs[key];
-			} else if (value === true || value === false) {
-				element.attrs[key] = !!value;
-			} else {
-				element.attrs[key] = value;
-			}
-		},
-		get(element, key) {
-			return element?.attrs?.[key];
-		},
+		if (value == null) {
+			delete element.attrs[key];
+		} else if (value === true || value === false) {
+			element.attrs[key] = !!value;
+		} else {
+			element.attrs[key] = value;
+		}
 	},
 	class(element, key, value) {
 		element.classes ??= {};
@@ -238,9 +240,6 @@ Object.assign(utils, {
 	},
 	data(element, key, value) {
 		element.attrs[`data-${key}`] = value;
-	},
-	find() {
-		return [];
 	},
 	on() {},
 	shadow(element, options) {
@@ -325,5 +324,16 @@ Object.assign(utils, {
 		} else {
 			element.children = [{type: "text", content}];
 		}
+	},
+	observer: {
+		create() {
+			return {observe() {}};
+		},
+		attr(element, key) {
+			return element?.attrs?.[key];
+		},
+		query() {
+			return [];
+		},
 	},
 });
