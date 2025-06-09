@@ -2,25 +2,27 @@ import {HandcraftNode, $, utils} from "../dom.js";
 import {inEffect, watch} from "../reactivity.js";
 
 let queries = new WeakMap();
-let observer = utils.observer.create((records) => {
-	for (let record of records) {
-		if (record.type === "childList") {
-			let results = queries.get(record.target);
+let observer;
 
-			if (results) {
-				for (let selector of Object.keys(results)) {
-					for (let result of record.target.querySelectorAll(selector)) {
-						if ([...record.addedNodes].includes(result)) {
-							results[selector] = [...results[selector], result];
+export function find(selector) {
+	observer ??= utils.observer.create((records) => {
+		for (let record of records) {
+			if (record.type === "childList") {
+				let results = queries.get(record.target);
+
+				if (results) {
+					for (let selector of Object.keys(results)) {
+						for (let result of record.target.querySelectorAll(selector)) {
+							if ([...record.addedNodes].includes(result)) {
+								results[selector] = [...results[selector], result];
+							}
 						}
 					}
 				}
 			}
 		}
-	}
-});
+	});
 
-export function find(selector) {
 	selector = `:scope ${selector}`;
 
 	let el = this.element.deref();

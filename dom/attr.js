@@ -2,21 +2,23 @@ import {HandcraftNode, utils} from "../dom.js";
 import {inEffect, watch} from "../reactivity.js";
 
 let states = new WeakMap();
-let observer = utils.observer.create((records) => {
-	for (let record of records) {
-		if (record.type === "attributes") {
-			let state = states.get(record.target);
-
-			if (state) {
-				state[record.attributeName] = record.target.getAttribute(
-					record.attributeName
-				);
-			}
-		}
-	}
-});
+let observer;
 
 export function attr(key) {
+	observer ??= utils.observer.create((records) => {
+		for (let record of records) {
+			if (record.type === "attributes") {
+				let state = states.get(record.target);
+
+				if (state) {
+					state[record.attributeName] = record.target.getAttribute(
+						record.attributeName
+					);
+				}
+			}
+		}
+	});
+
 	let el = this.element.deref();
 
 	if (!inEffect()) {
