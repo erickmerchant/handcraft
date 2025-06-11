@@ -35,3 +35,4 @@ Much of the API is inspired by Rust and its ecosystem. The rest is the latest it
 - [jQuery](https://github.com/jquery/jquery)
 - [Ender](https://github.com/ender-js/Ender)
 - [HyperScript](https://github.com/hyperhype/hyperscript)
+- [SolidJS](https://www.solidjs.com/)
