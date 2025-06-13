@@ -1,4 +1,5 @@
-import {HandcraftRoot, utils} from "../dom.js";
+import {utils} from "../dom.js";
+import {HandcraftRoot} from "./HandcraftRoot.js";
 import {mutate} from "../reactivity.js";
 
 utils.stylesheet = {

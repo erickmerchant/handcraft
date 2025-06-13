@@ -1,4 +1,4 @@
-import {HandcraftNode} from "../dom.js";
+import {HandcraftNode} from "./HandcraftNode.js";
 import {mutate} from "../reactivity.js";
 
 export function effect(cb) {

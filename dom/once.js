@@ -1,4 +1,4 @@
-import {HandcraftEventTarget} from "../dom.js";
+import {HandcraftEventTarget} from "./HandcraftEventTarget.js";
 import {on} from "./on.js";
 
 export function once(events, handler, options = {}) {

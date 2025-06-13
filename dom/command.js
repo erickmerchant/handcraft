@@ -1,4 +1,4 @@
-import {HandcraftEventTarget} from "../dom.js";
+import {HandcraftEventTarget} from "./HandcraftEventTarget.js";
 
 export function command(events, handler, options = {}) {
 	events = events.split(/\s+/);

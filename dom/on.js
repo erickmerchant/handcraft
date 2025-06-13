@@ -1,4 +1,5 @@
-import {HandcraftEventTarget, utils} from "../dom.js";
+import {utils} from "../dom.js";
+import {HandcraftEventTarget} from "./HandcraftEventTarget.js";
 
 utils.on = (element, event, handler, options) => {
 	element.addEventListener(event, handler, options);

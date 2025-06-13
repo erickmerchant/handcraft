@@ -1,4 +1,5 @@
-import {HandcraftNode, $, utils} from "../dom.js";
+import {$, utils} from "../dom.js";
+import {HandcraftNode} from "./HandcraftNode.js";
 import {inEffect, watch} from "../reactivity.js";
 
 let queries = new WeakMap();

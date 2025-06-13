@@ -1,4 +1,8 @@
 import "../dom/aria.js";
+import "../dom/HandcraftEventTarget.js";
+import "../dom/HandcraftNode.js";
+import "../dom/HandcraftElement.js";
+import "../dom/HandcraftRoot.js";
 import "../dom/attr.js";
 import "../dom/classes.js";
 import "../dom/command.js";

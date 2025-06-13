@@ -1,4 +1,5 @@
-import {HandcraftElement, utils} from "../dom.js";
+import {utils} from "../dom.js";
+import {HandcraftElement} from "./HandcraftElement.js";
 import {mutate} from "../reactivity.js";
 
 export function aria(attrs) {
