@@ -47,7 +47,7 @@ export function render(node) {
 		if (node.attrs) {
 			for (let [key, value] of Object.entries(node.attrs)) {
 				if (value === true) {
-					result += " " + key;
+					result += " " + escape(key);
 				} else if (value !== false && value != null) {
 					result += " " + escape(key) + "='" + escape(value) + "'";
 				}
