@@ -1,8 +1,4 @@
 import "../dom/aria.js";
-import "../dom/HandcraftEventTarget.js";
-import "../dom/HandcraftNode.js";
-import "../dom/HandcraftElement.js";
-import "../dom/HandcraftRoot.js";
 import "../dom/attr.js";
 import "../dom/classes.js";
 import "../dom/command.js";
@@ -17,6 +13,10 @@ import "../dom/prop.js";
 import "../dom/shadow.js";
 import "../dom/styles.js";
 
+export * from "../dom/HandcraftEventTarget.js";
+export * from "../dom/HandcraftNode.js";
+export * from "../dom/HandcraftElement.js";
+export * from "../dom/HandcraftRoot.js";
 export * from "../define.js";
 export * from "../dom.js";
 export * from "../each.js";
