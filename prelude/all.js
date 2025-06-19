@@ -10,6 +10,7 @@ import "../dom/css.js";
 import "../dom/data.js";
 import "../dom/effect.js";
 import "../dom/find.js";
+import "../dom/nodes.js";
 import "../dom/on.js";
 import "../dom/once.js";
 import "../dom/prop.js";

@@ -20,7 +20,7 @@ export function $(el) {
 
 	let p = new Proxy(function () {}, {
 		apply(_, __, children) {
-			element._nodes(position.end, ...children);
+			element.nodes?.(position.end, ...children);
 
 			return p;
 		},

@@ -1,14 +1,6 @@
 # Handcraft
 
-A tiny front-end framework for constructing declarative/reactive UI. Install from NPM or get it from a CDN like [jsDelivr](https://cdn.jsdelivr.net/gh/erickmerchant/handcraft@latest/prelude/all.js) and add it to your import map.
-
----
-
-## Reactivity
-
-### Watching state
-
-### Effects
+A tiny front-end framework for constructing declarative/reactive UI. Install from NPM, or get it from a CDN like [jsDelivr](https://cdn.jsdelivr.net/gh/erickmerchant/handcraft@latest/prelude/all.js) and add it to your import map.
 
 ## Templating
 
@@ -20,13 +12,21 @@ A tiny front-end framework for constructing declarative/reactive UI. Install fro
 
 ### Loops and conditionals
 
+## Reactivity
+
+### Watching state
+
+### Effects
+
+## Other features
+
 ### Querying children and reading attributes
 
-## Web Components
+### Web Components
 
-## Imports and preludes
+### Imports and preludes
 
----
+### Server-side rendering
 
 ## Inspiration
 
