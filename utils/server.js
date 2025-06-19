@@ -39,9 +39,6 @@ export let utils = {
 	comment(content = "") {
 		return {type: "comment", content};
 	},
-	text(content = "") {
-		return {type: "text", content};
-	},
 	fragment() {
 		return {type: "fragment", children: []};
 	},
@@ -134,13 +131,6 @@ export let utils = {
 			let index = parent.children.findIndex((v) => v === element);
 
 			parent.children.splice(index, 1, ...children, element);
-		}
-	},
-	content(element, content) {
-		if (element.type === "text") {
-			element.content = content;
-		} else {
-			element.children = [{type: "text", content}];
 		}
 	},
 	observer: {

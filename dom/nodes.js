@@ -1,6 +1,51 @@
 import {utils, position} from "../dom.js";
 import {mutate} from "../reactivity.js";
 import {HandcraftNode} from "./HandcraftNode.js";
+import {registered} from "../reactivity.js";
+
+utils.comment = (content = "") => {
+	return document.createComment(content);
+};
+
+utils.fragment = () => {
+	return new DocumentFragment();
+};
+
+utils.append = (element, ...children) => {
+	element.append(...children);
+};
+
+utils.next = (element) => {
+	return element?.nextSibling;
+};
+
+utils.remove = (element) => {
+	element.remove();
+
+	registered.delete(element);
+};
+
+utils.replace = (current, next) => {
+	if (!(next instanceof Element)) {
+		if (current.nodeType === 3) {
+			current.textContent = next;
+
+			return current;
+		}
+
+		next = document.createTextNode(next);
+	}
+
+	current.replaceWith(next);
+
+	registered.delete(current);
+
+	return next;
+};
+
+utils.before = (element, child) => {
+	element.before(child);
+};
 
 export function nodes(pos, ...children) {
 	let el = this.element.deref();
