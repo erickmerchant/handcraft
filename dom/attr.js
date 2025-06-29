@@ -1,4 +1,4 @@
-import {utils} from "../dom.js";
+import {env} from "../dom.js";
 import {HandcraftNode} from "./HandcraftNode.js";
 import {inEffect, watch} from "../reactivity.js";
 
@@ -7,7 +7,7 @@ let observer;
 
 export function attr(key) {
 	let el = this.element.deref();
-	let value = utils.observer.attr(el, key);
+	let value = env.observer.attr(el, key);
 
 	if (!inEffect()) {
 		return value;
@@ -16,13 +16,13 @@ export function attr(key) {
 	let state = states.get(el);
 
 	if (!state) {
-		observer ??= utils.observer.create((records) => {
+		observer ??= env.observer.create((records) => {
 			for (let record of records) {
 				if (record.type === "attributes") {
 					let state = states.get(record.target);
 
 					if (state) {
-						state[record.attributeName] = utils.observer.attr(
+						state[record.attributeName] = env.observer.attr(
 							record.target,
 							record.attributeName
 						);

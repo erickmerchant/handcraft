@@ -1,8 +1,8 @@
-import {utils} from "../dom.js";
+import {env, browser} from "../dom.js";
 import {HandcraftElement} from "./HandcraftElement.js";
 import {mutate} from "../reactivity.js";
 
-utils.class = (element, key, value) => {
+browser.class = (element, key, value) => {
 	element.classList.toggle(key, value);
 };
 
@@ -19,7 +19,7 @@ export function classes(...classes) {
 				this.element,
 				(element, value) => {
 					for (let k of key.split(" ")) {
-						utils.class(element, k, value);
+						env.class(element, k, value);
 					}
 				},
 				value

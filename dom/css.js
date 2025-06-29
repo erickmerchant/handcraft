@@ -1,8 +1,8 @@
-import {utils} from "../dom.js";
+import {env, browser} from "../dom.js";
 import {HandcraftRoot} from "./HandcraftRoot.js";
 import {mutate} from "../reactivity.js";
 
-utils.stylesheet = {
+browser.stylesheet = {
 	create() {
 		return new CSSStyleSheet();
 	},
@@ -19,7 +19,7 @@ utils.stylesheet = {
 };
 
 export function css(css, options = {}) {
-	let stylesheet = utils.stylesheet.create();
+	let stylesheet = env.stylesheet.create();
 
 	for (let prop of ["media"]) {
 		if (options[prop]) {
@@ -35,12 +35,12 @@ export function css(css, options = {}) {
 
 	let el = this.element.deref();
 
-	utils.stylesheet.adopt(el, stylesheet);
+	env.stylesheet.adopt(el, stylesheet);
 
 	mutate(
 		this.element,
 		(_element, css) => {
-			utils.stylesheet.css(stylesheet, css);
+			env.stylesheet.css(stylesheet, css);
 		},
 		css
 	);

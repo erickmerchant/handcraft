@@ -1,4 +1,4 @@
-import {utils} from "../dom.js";
+import {env} from "../dom.js";
 import {HandcraftElement} from "./HandcraftElement.js";
 import {mutate} from "../reactivity.js";
 
@@ -7,7 +7,7 @@ export function aria(attrs) {
 		mutate(
 			this.element,
 			(element, value) => {
-				utils.attr(element, `aria-${key}`, value);
+				env.attr(element, `aria-${key}`, value);
 			},
 			value
 		);

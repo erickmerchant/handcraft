@@ -1,4 +1,4 @@
-import {$, utils} from "../dom.js";
+import {$, env} from "../dom.js";
 import {mutate} from "../reactivity.js";
 import {HandcraftNode} from "./HandcraftNode.js";
 
@@ -10,14 +10,14 @@ export class HandcraftElement extends HandcraftNode {
 			return;
 		}
 
-		return $(utils.root(el));
+		return $(env.root(el));
 	}
 
 	_attr(key, value) {
 		mutate(
 			this.element,
 			(element, value) => {
-				utils.attr(element, key, value);
+				env.attr(element, key, value);
 			},
 			value
 		);

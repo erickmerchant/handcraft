@@ -1,31 +1,36 @@
-import {utils, position} from "../dom.js";
+import {env, browser} from "../dom.js";
 import {mutate} from "../reactivity.js";
 import {HandcraftNode} from "./HandcraftNode.js";
 import {registered} from "../reactivity.js";
 
-utils.comment = (content = "") => {
+export let position = {
+	start: Symbol("start"),
+	end: Symbol("end"),
+};
+
+browser.comment = (content = "") => {
 	return document.createComment(content);
 };
 
-utils.fragment = () => {
+browser.fragment = () => {
 	return new DocumentFragment();
 };
 
-utils.append = (element, ...children) => {
+browser.append = (element, ...children) => {
 	element.append(...children);
 };
 
-utils.next = (element) => {
+browser.next = (element) => {
 	return element?.nextSibling;
 };
 
-utils.remove = (element) => {
+browser.remove = (element) => {
 	element.remove();
 
 	registered.delete(element);
 };
 
-utils.replace = (current, next) => {
+browser.replace = (current, next) => {
 	if (!(next instanceof Element)) {
 		if (current.nodeType === 3) {
 			current.textContent = next;
@@ -43,14 +48,14 @@ utils.replace = (current, next) => {
 	return next;
 };
 
-utils.before = (element, child) => {
+browser.before = (element, child) => {
 	element.before(child);
 };
 
-export function nodes(pos, ...children) {
+export function nodes(children, pos = position.end) {
 	let el = this.element.deref();
 	let nodeToCallback = new WeakMap();
-	let fragment = utils.fragment();
+	let fragment = env.fragment();
 
 	children = children.flat(Infinity);
 
@@ -62,17 +67,17 @@ export function nodes(pos, ...children) {
 			typeof child === "object" &&
 			child[Symbol.iterator] != null
 		) {
-			let bounds = [utils.comment(), utils.comment()];
+			let bounds = [env.comment(), env.comment()];
 
-			utils.append(fragment, ...bounds);
+			env.append(fragment, ...bounds);
 
 			bounds = bounds.map((c) => new WeakRef(c));
 
 			mutate(this.element, () => {
 				let [start, end] = bounds.map((b) => b.deref());
 				let currentChild =
-					start && utils.next(start) !== end ? utils.next(start) : null;
-				let fragment = utils.fragment();
+					start && env.next(start) !== end ? env.next(start) : null;
+				let fragment = env.fragment();
 
 				for (let item of child) {
 					let create = !currentChild;
@@ -85,9 +90,9 @@ export function nodes(pos, ...children) {
 
 						if (result != null) {
 							if (create) {
-								utils.append(fragment, result);
+								env.append(fragment, result);
 							} else {
-								currentChild = utils.replace(currentChild, result);
+								currentChild = env.replace(currentChild, result);
 							}
 
 							nodeToCallback.set(result, item);
@@ -97,17 +102,17 @@ export function nodes(pos, ...children) {
 					}
 
 					currentChild =
-						utils.next(currentChild) !== end ? utils.next(currentChild) : null;
+						env.next(currentChild) !== end ? env.next(currentChild) : null;
 				}
 
-				utils.before(end, fragment);
+				env.before(end, fragment);
 
 				truncate(currentChild, end);
 			});
 		} else if (child != null && typeof child === "function") {
-			let prev = utils.comment();
+			let prev = env.comment();
 
-			utils.append(fragment, prev);
+			env.append(fragment, prev);
 
 			prev = new WeakRef(prev);
 
@@ -119,7 +124,7 @@ export function nodes(pos, ...children) {
 					let p = prev.deref();
 
 					if (p) {
-						prev = new WeakRef(utils.replace(p, child ?? utils.comment()));
+						prev = new WeakRef(env.replace(p, child ?? env.comment()));
 					}
 				},
 				child
@@ -127,17 +132,17 @@ export function nodes(pos, ...children) {
 		} else {
 			child = deref(child);
 
-			utils.append(fragment, child);
+			env.append(fragment, child);
 		}
 	}
 
 	switch (pos) {
 		case position.start:
-			utils.append(el, fragment);
+			env.append(el, fragment);
 			break;
 
 		case position.end:
-			utils.append(el, fragment);
+			env.append(el, fragment);
 			break;
 	}
 }
@@ -150,9 +155,9 @@ function deref(val) {
 
 function truncate(currentChild, end) {
 	while (currentChild && currentChild !== end) {
-		let nextChild = utils.next(currentChild);
+		let nextChild = env.next(currentChild);
 
-		utils.remove(currentChild);
+		env.remove(currentChild);
 
 		currentChild = nextChild;
 	}

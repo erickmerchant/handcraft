@@ -1,7 +1,7 @@
-import {$, utils} from "../dom.js";
+import {$, env, browser} from "../dom.js";
 import {HandcraftElement} from "./HandcraftElement.js";
 
-utils.shadow = (element, options) => {
+browser.shadow = (element, options) => {
 	if (!element.shadowRoot) {
 		element.attachShadow(options);
 	}
@@ -13,7 +13,7 @@ export function shadow(options = {mode: "open"}) {
 	let el = this.element.deref();
 
 	if (el) {
-		let shadowRoot = utils.shadow(el, options);
+		let shadowRoot = env.shadow(el, options);
 
 		return $(shadowRoot);
 	}

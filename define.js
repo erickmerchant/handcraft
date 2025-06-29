@@ -1,10 +1,10 @@
-import {h, $, utils} from "./dom.js";
+import {h, $, env, browser} from "./dom.js";
 
-utils.define = (options) => {
+browser.define = (options) => {
 	customElements.define(
 		options.name,
 		class extends (options.extends
-			? utils.create(options.extends).constructor
+			? env.create(options.extends).constructor
 			: HTMLElement) {
 			connectedCallback() {
 				options.connected($(this));
@@ -26,7 +26,7 @@ export function define(name) {
 	};
 
 	setTimeout(() => {
-		utils.define(options);
+		env.define(options);
 	}, 0);
 
 	let tag = h.html[name];

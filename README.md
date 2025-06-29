@@ -24,7 +24,7 @@ A tiny front-end framework for constructing declarative/reactive UI. Install fro
 
 ### Web Components
 
-### Imports and preludes
+### Imports and environments
 
 ### Server-side rendering
 

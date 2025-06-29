@@ -1,7 +1,7 @@
-import {utils} from "../dom.js";
+import {env, browser} from "../dom.js";
 import {HandcraftEventTarget} from "./HandcraftEventTarget.js";
 
-utils.on = (element, event, handler, options) => {
+browser.on = (element, event, handler, options) => {
 	element.addEventListener(event, handler, options);
 };
 
@@ -18,7 +18,7 @@ export function on(events, handler, options = {}) {
 		};
 
 		for (let event of events.split(/\s+/)) {
-			utils.on(el, event, h, options);
+			env.on(el, event, h, options);
 		}
 	}
 }

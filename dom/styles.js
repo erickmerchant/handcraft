@@ -1,8 +1,8 @@
-import {utils} from "../dom.js";
+import {env, browser} from "../dom.js";
 import {HandcraftElement} from "./HandcraftElement.js";
 import {mutate} from "../reactivity.js";
 
-utils.style = (element, key, value) => {
+browser.style = (element, key, value) => {
 	element.style.setProperty(key, value);
 };
 
@@ -11,7 +11,7 @@ export function styles(styles) {
 		mutate(
 			this.element,
 			(element, value) => {
-				utils.style(element, key, value);
+				env.style(element, key, value);
 			},
 			value
 		);

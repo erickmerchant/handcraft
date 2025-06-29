@@ -1,6 +1,6 @@
-import {utils} from "../dom.js";
+import {browser} from "../dom.js";
 
-utils.observer = {
+browser.observer = {
 	create(cb) {
 		return new MutationObserver(cb);
 	},

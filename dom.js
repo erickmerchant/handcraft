@@ -1,4 +1,6 @@
-import {utils as browserUtils} from "./utils/browser.js";
+import {HandcraftElement} from "./dom/HandcraftElement.js";
+import {HandcraftEventTarget} from "./dom/HandcraftEventTarget.js";
+import {HandcraftRoot} from "./dom/HandcraftRoot.js";
 
 export let namespaces = {
 	html: "http://www.w3.org/1999/xhtml",
@@ -6,21 +8,45 @@ export let namespaces = {
 	math: "http://www.w3.org/1998/Math/MathML",
 };
 
-export let utils = {};
+export let browser = {
+	wrap(node) {
+		if (node instanceof Element) {
+			return new HandcraftElement(node);
+		}
 
-Object.assign(utils, browserUtils);
+		if (node instanceof ShadowRoot || node instanceof Document) {
+			return new HandcraftRoot(node);
+		}
 
-export let position = {
-	start: Symbol("start"),
-	end: Symbol("end"),
+		return new HandcraftEventTarget(node);
+	},
+	create(tag, namespace = namespaces.html) {
+		return document.createElementNS(namespace, tag);
+	},
+	root(element) {
+		return element.getRootNode();
+	},
+	attr(element, key, value) {
+		if (value === true || value === false || value == null) {
+			element.toggleAttribute(key, !!value);
+		} else {
+			element.setAttribute(key, value);
+		}
+	},
 };
 
+export let env = browser;
+
+export function setEnv(current) {
+	env = current;
+}
+
 export function $(el) {
-	let element = utils.wrap(el);
+	let element = env.wrap(el);
 
 	let p = new Proxy(function () {}, {
 		apply(_, __, children) {
-			element.nodes?.(position.end, ...children);
+			element.nodes?.(children);
 
 			return p;
 		},
@@ -60,12 +86,12 @@ function factory(namespace) {
 			get(_, tag) {
 				return new Proxy(function () {}, {
 					apply(_, __, args) {
-						let el = $(utils.create(tag, namespace));
+						let el = $(env.create(tag, namespace));
 
 						return el(...args);
 					},
 					get(_, key) {
-						let el = $(utils.create(tag, namespace));
+						let el = $(env.create(tag, namespace));
 
 						return el[key];
 					},
