@@ -25,9 +25,9 @@ export function define(name) {
 		disconnected: () => {},
 	};
 
-	setTimeout(() => {
+	queueMicrotask(() => {
 		env.define(options);
-	}, 0);
+	});
 
 	let tag = h.html[name];
 	let factory = {

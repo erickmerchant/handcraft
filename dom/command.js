@@ -1,12 +1,12 @@
 import {HandcraftEventTarget} from "./HandcraftEventTarget.js";
 
-export function command(events, handler, options = {}) {
-	events = events.split(/\s+/);
+export function command(commands, handler, options = {}) {
+	commands = commands.split(/\s+/);
 
 	this.on(
 		"command",
 		(e) => {
-			if (events.includes(e.command)) {
+			if (commands.includes(e.command)) {
 				return handler.call(this, e);
 			}
 		},

@@ -2,7 +2,7 @@ import {HandcraftNode} from "./HandcraftNode.js";
 import {mutate} from "../reactivity.js";
 
 export function effect(cb) {
-	setTimeout(() => mutate(this.element, cb), 0);
+	mutate(this.element, cb);
 }
 
 HandcraftNode.prototype.effect = effect;
