@@ -7,11 +7,11 @@ browser.define = (options) => {
 			? env.create(options.extends).constructor
 			: HTMLElement) {
 			connectedCallback() {
-				options.connected($(this));
+				options.setup($(this));
 			}
 
 			disconnectedCallback() {
-				options.disconnected($(this));
+				options.teardown($(this));
 			}
 		},
 		options.extends ? {extends: options.extends} : null
@@ -21,8 +21,8 @@ browser.define = (options) => {
 export function define(name) {
 	let options = {
 		name,
-		connected: () => {},
-		disconnected: () => {},
+		setup: () => {},
+		teardown: () => {},
 	};
 
 	queueMicrotask(() => {
@@ -31,13 +31,13 @@ export function define(name) {
 
 	let tag = h.html[name];
 	let factory = {
-		connected: (cb) => {
-			options.connected = cb;
+		setup: (cb) => {
+			options.setup = cb;
 
 			return proxy;
 		},
-		disconnected: (cb) => {
-			options.disconnected = cb;
+		teardown: (cb) => {
+			options.teardown = cb;
 
 			return proxy;
 		},
@@ -47,7 +47,7 @@ export function define(name) {
 			return proxy;
 		},
 	};
-	let proxy = new Proxy(function () {}, {
+	let proxy = new Proxy(() => {}, {
 		apply(_, __, children) {
 			return tag(children);
 		},

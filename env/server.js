@@ -1,12 +1,4 @@
 export * from "../prelude/all.js";
-export * from "../dom/HandcraftNode.js";
-export * from "../dom/HandcraftElement.js";
-export * from "../dom/HandcraftRoot.js";
-export * from "../define.js";
-export * from "../dom.js";
-export * from "../each.js";
-export * from "../reactivity.js";
-export * from "../when.js";
 
 import {$, setEnv} from "../dom.js";
 import {HandcraftElement} from "../dom/HandcraftElement.js";
@@ -35,7 +27,7 @@ server.define = (options) => {
 	customElements.set(options.name, (element) => {
 		this.element = $(element);
 
-		options.connected(this.element);
+		options.setup(this.element);
 	});
 };
 

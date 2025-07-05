@@ -62,33 +62,28 @@ export function each(list) {
 
 					current = {
 						store,
-						value: new Proxy(
-							function () {
-								return store.value;
+						value: new Proxy(() => store.value, {
+							get(_, p) {
+								return typeof store.value === "object"
+									? Reflect.get(store.value, p)
+									: undefined;
 							},
-							{
-								get(_, p) {
-									return typeof store.value === "object"
-										? Reflect.get(store.value, p)
-										: undefined;
-								},
-								set(_, p, newValue) {
-									if (typeof store.value !== "object") {
-										return false;
-									}
+							set(_, p, newValue) {
+								if (typeof store.value !== "object") {
+									return false;
+								}
 
-									return Reflect.set(store.value, p, newValue);
-								},
-								deleteProperty(_, p) {
-									if (typeof store.value !== "object") {
-										return false;
-									}
+								return Reflect.set(store.value, p, newValue);
+							},
+							deleteProperty(_, p) {
+								if (typeof store.value !== "object") {
+									return false;
+								}
 
-									return Reflect.deleteProperty(store.value, p);
-								},
-							}
-						),
-						index: function () {
+								return Reflect.deleteProperty(store.value, p);
+							},
+						}),
+						index() {
 							return store.index;
 						},
 					};

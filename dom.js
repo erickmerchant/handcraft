@@ -44,7 +44,7 @@ export function setEnv(current) {
 export function $(el) {
 	let element = env.wrap(el);
 
-	let p = new Proxy(function () {}, {
+	let p = new Proxy(() => {}, {
 		apply(_, __, children) {
 			element.nodes?.(children);
 
@@ -84,7 +84,7 @@ function factory(namespace) {
 		{},
 		{
 			get(_, tag) {
-				return new Proxy(function () {}, {
+				return new Proxy(() => {}, {
 					apply(_, __, args) {
 						let el = $(env.create(tag, namespace));
 
