@@ -1,7 +1,7 @@
-import {env, browser} from "../dom.js";
-import {mutate} from "../reactivity.js";
-import {HandcraftNode} from "./HandcraftNode.js";
-import {registered} from "../reactivity.js";
+import { browser, env } from "../dom.js";
+import { mutate } from "../reactivity.js";
+import { HandcraftNode } from "./HandcraftNode.js";
+import { registered } from "../reactivity.js";
 
 export let position = {
 	start: Symbol("start"),
@@ -75,8 +75,9 @@ export function nodes(children, pos = position.end) {
 
 			mutate(this.element, () => {
 				let [start, end] = bounds.map((b) => b.deref());
-				let currentChild =
-					start && env.next(start) !== end ? env.next(start) : null;
+				let currentChild = start && env.next(start) !== end
+					? env.next(start)
+					: null;
 				let fragment = env.fragment();
 
 				for (let item of child) {
@@ -101,8 +102,9 @@ export function nodes(children, pos = position.end) {
 						}
 					}
 
-					currentChild =
-						env.next(currentChild) !== end ? env.next(currentChild) : null;
+					currentChild = env.next(currentChild) !== end
+						? env.next(currentChild)
+						: null;
 				}
 
 				env.before(end, fragment);
@@ -127,7 +129,7 @@ export function nodes(children, pos = position.end) {
 						prev = new WeakRef(env.replace(p, child ?? env.comment()));
 					}
 				},
-				child
+				child,
 			);
 		} else {
 			child = deref(child);

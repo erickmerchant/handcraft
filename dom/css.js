@@ -1,6 +1,6 @@
-import {env, browser} from "../dom.js";
-import {HandcraftRoot} from "./HandcraftRoot.js";
-import {mutate} from "../reactivity.js";
+import { browser, env } from "../dom.js";
+import { HandcraftRoot } from "./HandcraftRoot.js";
+import { mutate } from "../reactivity.js";
 
 browser.stylesheet = {
 	create() {
@@ -10,7 +10,7 @@ browser.stylesheet = {
 		element.adoptedStyleSheets.splice(
 			element.adoptedStyleSheets.length,
 			1,
-			stylesheet
+			stylesheet,
 		);
 	},
 	css(stylesheet, css) {
@@ -28,7 +28,7 @@ export function css(css, options = {}) {
 				(stylesheet, val) => {
 					stylesheet[prop] = val;
 				},
-				options[prop]
+				options[prop],
 			);
 		}
 	}
@@ -42,7 +42,7 @@ export function css(css, options = {}) {
 		(_element, css) => {
 			env.stylesheet.css(stylesheet, css);
 		},
-		css
+		css,
 	);
 }
 

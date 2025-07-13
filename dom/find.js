@@ -1,6 +1,6 @@
-import {$, env} from "../dom.js";
-import {HandcraftNode} from "./HandcraftNode.js";
-import {inEffect, watch} from "../reactivity.js";
+import { $, env } from "../dom.js";
+import { HandcraftNode } from "./HandcraftNode.js";
+import { inEffect, watch } from "../reactivity.js";
 
 let queries = new WeakMap();
 let observer;
@@ -36,11 +36,11 @@ export function find(selector) {
 			}
 		});
 
-		results = watch({[selector]: result});
+		results = watch({ [selector]: result });
 
 		queries.set(el, results);
 
-		observer.observe(el, {childList: true, subtree: true});
+		observer.observe(el, { childList: true, subtree: true });
 	} else if (results[selector] == null) {
 		results[selector] = result;
 	}

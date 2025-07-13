@@ -1,5 +1,5 @@
-import {$, env, browser} from "../dom.js";
-import {HandcraftElement} from "./HandcraftElement.js";
+import { $, browser, env } from "../dom.js";
+import { HandcraftElement } from "./HandcraftElement.js";
 
 browser.shadow = (element, options) => {
 	if (!element.shadowRoot) {
@@ -9,7 +9,7 @@ browser.shadow = (element, options) => {
 	return element.shadowRoot;
 };
 
-export function shadow(options = {mode: "open"}) {
+export function shadow(options = { mode: "open" }) {
 	let el = this.element.deref();
 
 	if (el) {

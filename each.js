@@ -1,4 +1,4 @@
-import {watch} from "./reactivity.js";
+import { watch } from "./reactivity.js";
 
 export function each(list) {
 	let mapper;
@@ -46,7 +46,7 @@ export function each(list) {
 									: undefined;
 							},
 						}),
-						() => index
+						() => index,
 					)
 				) {
 					continue;

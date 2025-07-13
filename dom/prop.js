@@ -1,5 +1,5 @@
-import {HandcraftNode} from "./HandcraftNode.js";
-import {mutate} from "../reactivity.js";
+import { HandcraftNode } from "./HandcraftNode.js";
+import { mutate } from "../reactivity.js";
 
 export function prop(key, value) {
 	mutate(
@@ -7,7 +7,7 @@ export function prop(key, value) {
 		(element, value) => {
 			element[key] = value;
 		},
-		value
+		value,
 	);
 }
 

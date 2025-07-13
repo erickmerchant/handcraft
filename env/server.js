@@ -1,9 +1,9 @@
 export * from "../prelude/all.js";
 
-import {$, setEnv} from "../dom.js";
-import {HandcraftElement} from "../dom/HandcraftElement.js";
-import {HandcraftEventTarget} from "../dom/HandcraftEventTarget.js";
-import {HandcraftRoot} from "../dom/HandcraftRoot.js";
+import { $, setEnv } from "../dom.js";
+import { HandcraftElement } from "../dom/HandcraftElement.js";
+import { HandcraftEventTarget } from "../dom/HandcraftEventTarget.js";
+import { HandcraftRoot } from "../dom/HandcraftRoot.js";
 
 let parents = new WeakMap();
 let customElements = new Map();
@@ -32,7 +32,7 @@ server.define = (options) => {
 };
 
 server.create = (tag) => {
-	let element = {type: "element", tag};
+	let element = { type: "element", tag };
 
 	let customFn = customElements.get(tag);
 
@@ -44,16 +44,16 @@ server.create = (tag) => {
 };
 
 server.comment = (content = "") => {
-	return {type: "comment", content};
+	return { type: "comment", content };
 };
 
 server.fragment = () => {
-	return {type: "fragment", children: []};
+	return { type: "fragment", children: [] };
 };
 
 server.stylesheet = {
 	create() {
-		return {stylesheet: true, css: ""};
+		return { stylesheet: true, css: "" };
 	},
 	adopt(element, stylesheet) {
 		element.stylesheets.push(stylesheet);
@@ -99,7 +99,7 @@ server.on = () => {};
 
 server.shadow = (element, options) => {
 	if (!element.shadow) {
-		element.shadow = {...options, type: "shadow", children: []};
+		element.shadow = { ...options, type: "shadow", children: [] };
 	}
 
 	return element.shadow;
@@ -157,7 +157,7 @@ server.before = (element, ...children) => {
 
 server.observer = {
 	create() {
-		return {observe() {}};
+		return { observe() {} };
 	},
 	attr(element, key) {
 		return element?.attrs?.[key];
@@ -180,7 +180,7 @@ function reduceChildren(element, children) {
 		}, [])
 		.map((child) => {
 			if (typeof child !== "object") {
-				child = {type: "text", content: child};
+				child = { type: "text", content: child };
 			}
 
 			parents.set(child, element);
@@ -243,8 +243,7 @@ export function render(node) {
 		}
 
 		if (node.classes) {
-			result +=
-				" class='" +
+			result += " class='" +
 				Object.entries(node.classes)
 					.map(([key, value]) => (value ? escape(key) : null))
 					.filter((c) => c != null)
@@ -253,8 +252,7 @@ export function render(node) {
 		}
 
 		if (node.styles) {
-			result +=
-				" style='" +
+			result += " style='" +
 				Object.entries(node.styles)
 					.map(([key, value]) => `${escape(key)}: ${escape(value)}`)
 					.join("; ") +
@@ -276,8 +274,8 @@ export function render(node) {
 		}
 
 		if (node.shadow) {
-			result +=
-				"<template shadowrootmode='" + (node.shadow.mode ?? "open") + "'>";
+			result += "<template shadowrootmode='" + (node.shadow.mode ?? "open") +
+				"'>";
 
 			for (let child of node.shadow.children) {
 				result += render(child);

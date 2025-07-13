@@ -1,6 +1,6 @@
-import {env, browser} from "../dom.js";
-import {HandcraftElement} from "./HandcraftElement.js";
-import {mutate} from "../reactivity.js";
+import { browser, env } from "../dom.js";
+import { HandcraftElement } from "./HandcraftElement.js";
+import { mutate } from "../reactivity.js";
 
 browser.style = (element, key, value) => {
 	element.style.setProperty(key, value);
@@ -13,7 +13,7 @@ export function styles(styles) {
 			(element, value) => {
 				env.style(element, key, value);
 			},
-			value
+			value,
 		);
 	}
 }

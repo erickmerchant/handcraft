@@ -1,11 +1,12 @@
-import {h, $, env, browser} from "./dom.js";
+import { $, browser, env, h } from "./dom.js";
 
 browser.define = (options) => {
 	customElements.define(
 		options.name,
-		class extends (options.extends
-			? env.create(options.extends).constructor
-			: HTMLElement) {
+		class
+			extends (options.extends
+				? env.create(options.extends).constructor
+				: HTMLElement) {
 			connectedCallback() {
 				options.setup($(this));
 			}
@@ -14,7 +15,7 @@ browser.define = (options) => {
 				options.teardown($(this));
 			}
 		},
-		options.extends ? {extends: options.extends} : null
+		options.extends ? { extends: options.extends } : null,
 	);
 };
 

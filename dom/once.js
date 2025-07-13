@@ -1,12 +1,12 @@
-import {HandcraftEventTarget} from "./HandcraftEventTarget.js";
-import {on} from "./on.js";
+import { HandcraftEventTarget } from "./HandcraftEventTarget.js";
+import { on } from "./on.js";
 
 export function once(events, handler, options = {}) {
 	if (options === true || options === false) {
-		options = {capture: options};
+		options = { capture: options };
 	}
 
-	on.call(this, events, handler, {...options, once: true});
+	on.call(this, events, handler, { ...options, once: true });
 }
 
 HandcraftEventTarget.prototype.once = once;

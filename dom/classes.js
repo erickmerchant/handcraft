@@ -1,6 +1,6 @@
-import {env, browser} from "../dom.js";
-import {HandcraftElement} from "./HandcraftElement.js";
-import {mutate} from "../reactivity.js";
+import { browser, env } from "../dom.js";
+import { HandcraftElement } from "./HandcraftElement.js";
+import { mutate } from "../reactivity.js";
 
 browser.class = (element, key, value) => {
 	element.classList.toggle(key, value);
@@ -11,7 +11,7 @@ export function classes(...classes) {
 
 	for (let c of classes) {
 		if (typeof c !== "object") {
-			c = {[c]: true};
+			c = { [c]: true };
 		}
 
 		for (let [key, value] of Object.entries(c)) {
@@ -22,7 +22,7 @@ export function classes(...classes) {
 						env.class(element, k, value);
 					}
 				},
-				value
+				value,
 			);
 		}
 	}

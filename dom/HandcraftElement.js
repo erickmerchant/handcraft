@@ -1,6 +1,6 @@
-import {$, env} from "../dom.js";
-import {mutate} from "../reactivity.js";
-import {HandcraftNode} from "./HandcraftNode.js";
+import { $, env } from "../dom.js";
+import { mutate } from "../reactivity.js";
+import { HandcraftNode } from "./HandcraftNode.js";
 
 export class HandcraftElement extends HandcraftNode {
 	root() {
@@ -19,7 +19,7 @@ export class HandcraftElement extends HandcraftNode {
 			(element, value) => {
 				env.attr(element, key, value);
 			},
-			value
+			value,
 		);
 
 		return this;

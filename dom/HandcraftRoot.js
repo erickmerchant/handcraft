@@ -1,3 +1,3 @@
-import {HandcraftNode} from "./HandcraftNode.js";
+import { HandcraftNode } from "./HandcraftNode.js";
 
 export class HandcraftRoot extends HandcraftNode {}

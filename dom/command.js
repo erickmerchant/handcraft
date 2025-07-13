@@ -1,4 +1,4 @@
-import {HandcraftEventTarget} from "./HandcraftEventTarget.js";
+import { HandcraftEventTarget } from "./HandcraftEventTarget.js";
 
 export function command(commands, handler, options = {}) {
 	commands = commands.split(/\s+/);
@@ -10,7 +10,7 @@ export function command(commands, handler, options = {}) {
 				return handler.call(this, e);
 			}
 		},
-		options
+		options,
 	);
 }
 

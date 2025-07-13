@@ -1,5 +1,5 @@
-import {env, browser} from "../dom.js";
-import {HandcraftEventTarget} from "./HandcraftEventTarget.js";
+import { browser, env } from "../dom.js";
+import { HandcraftEventTarget } from "./HandcraftEventTarget.js";
 
 browser.on = (element, event, handler, options) => {
 	element.addEventListener(event, handler, options);

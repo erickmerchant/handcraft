@@ -1,6 +1,6 @@
-import {HandcraftElement} from "./dom/HandcraftElement.js";
-import {HandcraftEventTarget} from "./dom/HandcraftEventTarget.js";
-import {HandcraftRoot} from "./dom/HandcraftRoot.js";
+import { HandcraftElement } from "./dom/HandcraftElement.js";
+import { HandcraftEventTarget } from "./dom/HandcraftEventTarget.js";
+import { HandcraftRoot } from "./dom/HandcraftRoot.js";
 
 export let namespaces = {
 	html: "http://www.w3.org/1999/xhtml",
@@ -97,7 +97,7 @@ function factory(namespace) {
 					},
 				});
 			},
-		}
+		},
 	);
 }
 

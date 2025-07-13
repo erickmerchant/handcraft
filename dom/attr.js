@@ -1,6 +1,6 @@
-import {env} from "../dom.js";
-import {HandcraftNode} from "./HandcraftNode.js";
-import {inEffect, watch} from "../reactivity.js";
+import { env } from "../dom.js";
+import { HandcraftNode } from "./HandcraftNode.js";
+import { inEffect, watch } from "../reactivity.js";
 
 let states = new WeakMap();
 let observer;
@@ -24,18 +24,18 @@ export function attr(key) {
 					if (state) {
 						state[record.attributeName] = env.observer.attr(
 							record.target,
-							record.attributeName
+							record.attributeName,
 						);
 					}
 				}
 			}
 		});
 
-		state = watch({[key]: value});
+		state = watch({ [key]: value });
 
 		states.set(el, state);
 
-		observer.observe(el, {attributes: true});
+		observer.observe(el, { attributes: true });
 	} else if (state[key] == null) {
 		state[key] = value;
 	}

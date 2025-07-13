@@ -1,4 +1,4 @@
-import {browser} from "../dom.js";
+import { browser } from "../dom.js";
 
 browser.observer = {
 	create(cb) {

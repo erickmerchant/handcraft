@@ -1,4 +1,4 @@
-import {HandcraftElement} from "./HandcraftElement.js";
+import { HandcraftElement } from "./HandcraftElement.js";
 
 export function aria(attrs) {
 	for (let [key, value] of Object.entries(attrs)) {
