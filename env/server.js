@@ -1,6 +1,7 @@
 export * from "../prelude/all.js";
 
 import { $, setEnv } from "../dom.js";
+import { effect } from "../reactivity.js";
 import { HandcraftElement } from "../dom/HandcraftElement.js";
 import { HandcraftEventTarget } from "../dom/HandcraftEventTarget.js";
 import { HandcraftRoot } from "../dom/HandcraftRoot.js";
@@ -218,7 +219,7 @@ function escape(str) {
 	});
 }
 
-export function render(node) {
+function stringify(node) {
 	if (node.type === "comment") {
 		return "<!-- " + escape(node.content) + " -->";
 	}
@@ -278,7 +279,7 @@ export function render(node) {
 				"'>";
 
 			for (let child of node.shadow.children) {
-				result += render(child);
+				result += stringify(child);
 			}
 
 			result += "</template>";
@@ -287,7 +288,7 @@ export function render(node) {
 
 	if (node.children) {
 		for (let child of node.children) {
-			result += render(child);
+			result += stringify(child);
 		}
 	}
 
@@ -298,4 +299,14 @@ export function render(node) {
 	}
 
 	return result;
+}
+
+export function render(node) {
+	const { promise, resolve } = Promise.withResolvers();
+
+	effect(() => {
+		resolve(`<!doctype html>${stringify(node.deref())}`);
+	});
+
+	return promise;
 }
