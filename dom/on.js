@@ -21,6 +21,8 @@ export function on(events, handler, options = {}) {
 			env.on(el, event, h, options);
 		}
 	}
+
+	return this;
 }
 
 HandcraftEventTarget.prototype.on = on;

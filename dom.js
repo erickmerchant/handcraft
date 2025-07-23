@@ -57,7 +57,15 @@ export function $(el) {
 
 			if (key in element) {
 				return typeof element[key] === "function"
-					? (...args) => element[key](...args) ?? p
+					? (...args) => {
+						let result = element[key](...args);
+
+						if (result === element) {
+							return p;
+						}
+
+						return result;
+					}
 					: element[key];
 			}
 

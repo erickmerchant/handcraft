@@ -12,6 +12,8 @@ export function command(commands, handler, options = {}) {
 		},
 		options,
 	);
+
+	return this;
 }
 
 HandcraftEventTarget.prototype.command = command;

@@ -9,6 +9,8 @@ export function prop(key, value) {
 		},
 		value,
 	);
+
+	return this;
 }
 
 HandcraftNode.prototype.prop = prop;

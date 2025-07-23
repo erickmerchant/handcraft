@@ -147,6 +147,8 @@ export function nodes(children, pos = position.end) {
 			env.append(el, fragment);
 			break;
 	}
+
+	return this;
 }
 
 HandcraftNode.prototype.nodes = nodes;

@@ -16,6 +16,8 @@ export function styles(styles) {
 			value,
 		);
 	}
+
+	return this;
 }
 
 HandcraftElement.prototype.styles = styles;

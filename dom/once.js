@@ -7,6 +7,8 @@ export function once(events, handler, options = {}) {
 	}
 
 	on.call(this, events, handler, { ...options, once: true });
+
+	return this;
 }
 
 HandcraftEventTarget.prototype.once = once;
