@@ -4,9 +4,9 @@ export function each(list) {
 	let mapper;
 	let filterer = () => true;
 	let fallback = () => {};
-	let entries = [];
+	const entries = [];
 	let current;
-	let show = () => {
+	const show = () => {
 		return mapper(current.value, current.index);
 	};
 
@@ -36,7 +36,7 @@ export function each(list) {
 				yield fallback;
 			}
 
-			for (let [index, value] of list.entries()) {
+			for (const [index, value] of list.entries()) {
 				if (
 					!filterer(
 						new Proxy(() => value, {
@@ -55,7 +55,7 @@ export function each(list) {
 				current = entries[i];
 
 				if (!current) {
-					let store = watch({
+					const store = watch({
 						value: null,
 						index,
 					});

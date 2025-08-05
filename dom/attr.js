@@ -2,12 +2,12 @@ import { env } from "../dom.js";
 import { HandcraftNode } from "./HandcraftNode.js";
 import { inEffect, watch } from "../reactivity.js";
 
-let states = new WeakMap();
+const states = new WeakMap();
 let observer;
 
 export function attr(key) {
-	let el = this.element.deref();
-	let value = env.observer.attr(el, key);
+	const el = this.element.deref();
+	const value = env.observer.attr(el, key);
 
 	if (!inEffect()) {
 		return value;
@@ -17,9 +17,9 @@ export function attr(key) {
 
 	if (!state) {
 		observer ??= env.observer.create((records) => {
-			for (let record of records) {
+			for (const record of records) {
 				if (record.type === "attributes") {
-					let state = states.get(record.target);
+					const state = states.get(record.target);
 
 					if (state) {
 						state[record.attributeName] = env.observer.attr(

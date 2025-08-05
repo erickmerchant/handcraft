@@ -2,14 +2,14 @@ import { $, env } from "../dom.js";
 import { HandcraftNode } from "./HandcraftNode.js";
 import { inEffect, watch } from "../reactivity.js";
 
-let queries = new WeakMap();
+const queries = new WeakMap();
 let observer;
 
 export function find(selector) {
 	selector = `:scope ${selector}`;
 
-	let el = this.element.deref();
-	let result = [...env.observer.query(el, selector)];
+	const el = this.element.deref();
+	const result = [...env.observer.query(el, selector)];
 
 	if (!inEffect()) {
 		return result.map((r) => $(r));
@@ -19,13 +19,15 @@ export function find(selector) {
 
 	if (!results) {
 		observer ??= env.observer.create((records) => {
-			for (let record of records) {
+			for (const record of records) {
 				if (record.type === "childList") {
-					let results = queries.get(record.target);
+					const results = queries.get(record.target);
 
 					if (results) {
-						for (let selector of Object.keys(results)) {
-							for (let result of env.observer.query(record.target, selector)) {
+						for (const selector of Object.keys(results)) {
+							for (
+								const result of env.observer.query(record.target, selector)
+							) {
 								if ([...record.addedNodes].includes(result)) {
 									results[selector] = [...results[selector], result];
 								}

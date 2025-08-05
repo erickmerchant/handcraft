@@ -6,9 +6,9 @@ import { HandcraftElement } from "../dom/HandcraftElement.js";
 import { HandcraftEventTarget } from "../dom/HandcraftEventTarget.js";
 import { HandcraftRoot } from "../dom/HandcraftRoot.js";
 
-let parents = new WeakMap();
-let customElements = new Map();
-let server = {};
+const parents = new WeakMap();
+const customElements = new Map();
+const server = {};
 
 setEnv(server);
 
@@ -33,9 +33,8 @@ server.define = (options) => {
 };
 
 server.create = (tag) => {
-	let element = { type: "element", tag };
-
-	let customFn = customElements.get(tag);
+	const element = { type: "element", tag };
+	const customFn = customElements.get(tag);
 
 	if (customFn) {
 		customFn(element);
@@ -113,30 +112,30 @@ server.style = (element, key, value) => {
 };
 
 server.next = (element) => {
-	let parent = parents.get(element);
+	const parent = parents.get(element);
 
 	if (parent) {
-		let index = parent.children.findIndex((v) => v === element);
+		const index = parent.children.findIndex((v) => v === element);
 
 		return parent.children[index + 1];
 	}
 };
 
 server.remove = (element) => {
-	let parent = parents.get(element);
+	const parent = parents.get(element);
 
 	if (parent) {
-		let index = parent.children.findIndex((v) => v === element);
+		const index = parent.children.findIndex((v) => v === element);
 
 		parent.children.splice(index, 1);
 	}
 };
 
 server.replace = (current, next) => {
-	let parent = parents.get(current);
+	const parent = parents.get(current);
 
 	if (parent) {
-		let index = parent.children.findIndex((v) => v === current);
+		const index = parent.children.findIndex((v) => v === current);
 
 		parent.children.splice(index, 1, next);
 	}
@@ -145,12 +144,12 @@ server.replace = (current, next) => {
 };
 
 server.before = (element, ...children) => {
-	let parent = parents.get(element);
+	const parent = parents.get(element);
 
 	children = reduceChildren(element, children);
 
 	if (parent) {
-		let index = parent.children.findIndex((v) => v === element);
+		const index = parent.children.findIndex((v) => v === element);
 
 		parent.children.splice(index, 1, ...children, element);
 	}
@@ -234,7 +233,7 @@ function stringify(node) {
 		result += "<" + node.tag;
 
 		if (node.attrs) {
-			for (let [key, value] of Object.entries(node.attrs)) {
+			for (const [key, value] of Object.entries(node.attrs)) {
 				if (value === true) {
 					result += " " + escape(key);
 				} else if (value !== false && value != null) {
@@ -263,7 +262,7 @@ function stringify(node) {
 		result += ">";
 
 		if (node.stylesheets) {
-			for (let stylesheet of stylesheets) {
+			for (const stylesheet of stylesheets) {
 				result += "<style";
 
 				if (stylesheet.media) {
@@ -278,7 +277,7 @@ function stringify(node) {
 			result += "<template shadowrootmode='" + (node.shadow.mode ?? "open") +
 				"'>";
 
-			for (let child of node.shadow.children) {
+			for (const child of node.shadow.children) {
 				result += stringify(child);
 			}
 
@@ -287,7 +286,7 @@ function stringify(node) {
 	}
 
 	if (node.children) {
-		for (let child of node.children) {
+		for (const child of node.children) {
 			result += stringify(child);
 		}
 	}

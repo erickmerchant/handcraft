@@ -10,10 +10,10 @@ browser.shadow = (element, options) => {
 };
 
 export function shadow(options = { mode: "open" }) {
-	let el = this.element.deref();
+	const el = this.element.deref();
 
 	if (el) {
-		let shadowRoot = env.shadow(el, options);
+		const shadowRoot = env.shadow(el, options);
 
 		return $(shadowRoot);
 	}

@@ -7,7 +7,7 @@ browser.style = (element, key, value) => {
 };
 
 export function styles(styles) {
-	for (let [key, value] of Object.entries(styles)) {
+	for (const [key, value] of Object.entries(styles)) {
 		mutate(
 			this.element,
 			(element, value) => {

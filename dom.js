@@ -2,13 +2,13 @@ import { HandcraftElement } from "./dom/HandcraftElement.js";
 import { HandcraftEventTarget } from "./dom/HandcraftEventTarget.js";
 import { HandcraftRoot } from "./dom/HandcraftRoot.js";
 
-export let namespaces = {
+export const namespaces = {
 	html: "http://www.w3.org/1999/xhtml",
 	svg: "http://www.w3.org/2000/svg",
 	math: "http://www.w3.org/1998/Math/MathML",
 };
 
-export let browser = {
+export const browser = {
 	wrap(node) {
 		if (node instanceof Element) {
 			return new HandcraftElement(node);
@@ -42,9 +42,9 @@ export function setEnv(current) {
 }
 
 export function $(el) {
-	let element = env.wrap(el);
+	const element = env.wrap(el);
 
-	let p = new Proxy(() => {}, {
+	const p = new Proxy(() => {}, {
 		apply(_, __, children) {
 			element.nodes?.(children);
 
@@ -58,7 +58,7 @@ export function $(el) {
 			if (key in element) {
 				return typeof element[key] === "function"
 					? (...args) => {
-						let result = element[key](...args);
+						const result = element[key](...args);
 
 						if (result === element) {
 							return p;
@@ -94,12 +94,12 @@ function factory(namespace) {
 			get(_, tag) {
 				return new Proxy(() => {}, {
 					apply(_, __, args) {
-						let el = $(env.create(tag, namespace));
+						const el = $(env.create(tag, namespace));
 
 						return el(...args);
 					},
 					get(_, key) {
-						let el = $(env.create(tag, namespace));
+						const el = $(env.create(tag, namespace));
 
 						return el[key];
 					},
@@ -109,7 +109,7 @@ function factory(namespace) {
 	);
 }
 
-export let h = {
+export const h = {
 	html: factory(namespaces.html),
 	svg: factory(namespaces.svg),
 	math: factory(namespaces.math),

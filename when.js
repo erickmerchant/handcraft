@@ -17,7 +17,7 @@ export function when(cb) {
 		},
 
 		*[Symbol.iterator]() {
-			let current = cb(previous);
+			const current = cb(previous);
 
 			yield current ? show : fallback;
 

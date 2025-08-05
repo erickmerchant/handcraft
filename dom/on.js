@@ -6,18 +6,18 @@ browser.on = (element, event, handler, options) => {
 };
 
 export function on(events, handler, options = {}) {
-	let el = this.element.deref();
+	const el = this.element.deref();
 
 	if (el) {
-		let h = (e, ...args) => {
-			let el = this.element.deref();
+		const h = (e, ...args) => {
+			const el = this.element.deref();
 
 			if (el) {
 				return handler.call(e.currentTarget, e, ...args);
 			}
 		};
 
-		for (let event of events.split(/\s+/)) {
+		for (const event of events.split(/\s+/)) {
 			env.on(el, event, h, options);
 		}
 	}

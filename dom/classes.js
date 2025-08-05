@@ -14,11 +14,11 @@ export function classes(...classes) {
 			c = { [c]: true };
 		}
 
-		for (let [key, value] of Object.entries(c)) {
+		for (const [key, value] of Object.entries(c)) {
 			mutate(
 				this.element,
 				(element, value) => {
-					for (let k of key.split(" ")) {
+					for (const k of key.split(" ")) {
 						env.class(element, k, value);
 					}
 				},

@@ -3,7 +3,7 @@ import { mutate } from "../reactivity.js";
 import { HandcraftNode } from "./HandcraftNode.js";
 import { registered } from "../reactivity.js";
 
-export let position = {
+export const position = {
 	start: Symbol("start"),
 	end: Symbol("end"),
 };
@@ -53,9 +53,9 @@ browser.before = (element, child) => {
 };
 
 export function nodes(children, pos = position.end) {
-	let el = this.element.deref();
-	let nodeToCallback = new WeakMap();
-	let fragment = env.fragment();
+	const el = this.element.deref();
+	const nodeToCallback = new WeakMap();
+	const fragment = env.fragment();
 
 	children = children.flat(Infinity);
 
@@ -74,15 +74,15 @@ export function nodes(children, pos = position.end) {
 			bounds = bounds.map((c) => new WeakRef(c));
 
 			mutate(this.element, () => {
-				let [start, end] = bounds.map((b) => b.deref());
+				const [start, end] = bounds.map((b) => b.deref());
 				let currentChild = start && env.next(start) !== end
 					? env.next(start)
 					: null;
-				let fragment = env.fragment();
+				const fragment = env.fragment();
 
-				for (let item of child) {
-					let create = !currentChild;
-					let replace = !create && nodeToCallback.get(currentChild) !== item;
+				for (const item of child) {
+					const create = !currentChild;
+					const replace = !create && nodeToCallback.get(currentChild) !== item;
 
 					if (create || replace) {
 						let result = item();
@@ -123,7 +123,7 @@ export function nodes(children, pos = position.end) {
 				(_, child) => {
 					child = deref(child);
 
-					let p = prev.deref();
+					const p = prev.deref();
 
 					if (p) {
 						prev = new WeakRef(env.replace(p, child ?? env.comment()));
@@ -159,7 +159,7 @@ function deref(val) {
 
 function truncate(currentChild, end) {
 	while (currentChild && currentChild !== end) {
-		let nextChild = env.next(currentChild);
+		const nextChild = env.next(currentChild);
 
 		env.remove(currentChild);
 

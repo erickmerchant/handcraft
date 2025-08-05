@@ -20,7 +20,7 @@ browser.define = (options) => {
 };
 
 export function define(name) {
-	let options = {
+	const options = {
 		name,
 		setup: () => {},
 		teardown: () => {},
@@ -30,8 +30,8 @@ export function define(name) {
 		env.define(options);
 	});
 
-	let tag = h.html[name];
-	let factory = {
+	const tag = h.html[name];
+	const factory = {
 		setup: (cb) => {
 			options.setup = cb;
 
@@ -48,7 +48,7 @@ export function define(name) {
 			return proxy;
 		},
 	};
-	let proxy = new Proxy(() => {}, {
+	const proxy = new Proxy(() => {}, {
 		apply(_, __, children) {
 			return tag(children);
 		},

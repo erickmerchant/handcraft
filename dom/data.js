@@ -7,7 +7,7 @@ browser.data = (element, key, value) => {
 };
 
 export function data(data) {
-	for (let [key, value] of Object.entries(data)) {
+	for (const [key, value] of Object.entries(data)) {
 		mutate(
 			this.element,
 			(element, value) => {

@@ -19,9 +19,9 @@ browser.stylesheet = {
 };
 
 export function css(css, options = {}) {
-	let stylesheet = env.stylesheet.create();
+	const stylesheet = env.stylesheet.create();
 
-	for (let prop of ["media"]) {
+	for (const prop of ["media"]) {
 		if (options[prop]) {
 			mutate(
 				this.element,
@@ -33,7 +33,7 @@ export function css(css, options = {}) {
 		}
 	}
 
-	let el = this.element.deref();
+	const el = this.element.deref();
 
 	env.stylesheet.adopt(el, stylesheet);
 

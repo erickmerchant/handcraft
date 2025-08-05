@@ -4,7 +4,7 @@ import { HandcraftNode } from "./HandcraftNode.js";
 
 export class HandcraftElement extends HandcraftNode {
 	root() {
-		let el = this.element.deref();
+		const el = this.element.deref();
 
 		if (!el) {
 			return;

@@ -1,9 +1,9 @@
 let current;
-let queue = [];
-let reads = new WeakMap();
+const queue = [];
+const reads = new WeakMap();
 let scheduled = false;
 
-export let registered = new WeakSet();
+export const registered = new WeakSet();
 
 function getProperty(o, key, r) {
 	if (current) {
@@ -21,10 +21,10 @@ function getProperty(o, key, r) {
 }
 
 function modifyProperty(o, key) {
-	let callbacks = reads.get(o).get(key);
+	const callbacks = reads.get(o).get(key);
 
 	if (callbacks != null && callbacks.size) {
-		for (let cb of callbacks) {
+		for (const cb of callbacks) {
 			if (cb === current) continue;
 
 			effect(cb);
@@ -56,10 +56,10 @@ export function effect(callback) {
 			setTimeout(() => {
 				scheduled = false;
 
-				let callbacks = queue.splice(0, Infinity);
-				let prev = current;
+				const callbacks = queue.splice(0, Infinity);
+				const prev = current;
 
-				for (let cb of callbacks) {
+				for (const cb of callbacks) {
 					current = cb;
 
 					cb();
@@ -86,7 +86,7 @@ export function watch(object) {
 }
 
 export function mutate(element, callback, value = () => {}) {
-	let el = element.deref();
+	const el = element.deref();
 
 	if (el) {
 		registered.add(el);
@@ -96,7 +96,7 @@ export function mutate(element, callback, value = () => {}) {
 		callback(el, value);
 	} else {
 		effect(() => {
-			let el = element.deref();
+			const el = element.deref();
 
 			if (el && registered.has(el)) {
 				callback(el, value());
