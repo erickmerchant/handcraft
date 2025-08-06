@@ -3,21 +3,21 @@ import { HandcraftElement } from "./HandcraftElement.js";
 import { mutate } from "../reactivity.js";
 
 browser.style = (element, key, value) => {
-	element.style.setProperty(key, value);
+  element.style.setProperty(key, value);
 };
 
 export function styles(styles) {
-	for (const [key, value] of Object.entries(styles)) {
-		mutate(
-			this.element,
-			(element, value) => {
-				env.style(element, key, value);
-			},
-			value,
-		);
-	}
+  for (const [key, value] of Object.entries(styles)) {
+    mutate(
+      this.element,
+      (element, value) => {
+        env.style(element, key, value);
+      },
+      value,
+    );
+  }
 
-	return this;
+  return this;
 }
 
 HandcraftElement.prototype.styles = styles;

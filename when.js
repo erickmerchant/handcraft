@@ -1,27 +1,27 @@
 export function when(cb) {
-	let show;
-	let fallback = () => {};
-	let previous;
+  let show;
+  let fallback = () => {};
+  let previous;
 
-	return {
-		show(cb) {
-			show = cb;
+  return {
+    show(cb) {
+      show = cb;
 
-			return this;
-		},
+      return this;
+    },
 
-		fallback(cb) {
-			fallback = cb;
+    fallback(cb) {
+      fallback = cb;
 
-			return this;
-		},
+      return this;
+    },
 
-		*[Symbol.iterator]() {
-			const current = cb(previous);
+    *[Symbol.iterator]() {
+      const current = cb(previous);
 
-			yield current ? show : fallback;
+      yield current ? show : fallback;
 
-			previous = current;
-		},
-	};
+      previous = current;
+    },
+  };
 }

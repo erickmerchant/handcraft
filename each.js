@@ -1,108 +1,108 @@
 import { watch } from "./reactivity.js";
 
 export function each(list) {
-	let mapper;
-	let filterer = () => true;
-	let fallback = () => {};
-	const entries = [];
-	let current;
-	const show = () => {
-		return mapper(current.value, current.index);
-	};
+  let mapper;
+  let filterer = () => true;
+  let fallback = () => {};
+  const entries = [];
+  let current;
+  const show = () => {
+    return mapper(current.value, current.index);
+  };
 
-	return {
-		map(cb) {
-			mapper = cb;
+  return {
+    map(cb) {
+      mapper = cb;
 
-			return this;
-		},
+      return this;
+    },
 
-		filter(cb) {
-			filterer = cb;
+    filter(cb) {
+      filterer = cb;
 
-			return this;
-		},
+      return this;
+    },
 
-		fallback(cb) {
-			fallback = cb;
+    fallback(cb) {
+      fallback = cb;
 
-			return this;
-		},
+      return this;
+    },
 
-		*[Symbol.iterator]() {
-			let i = 0;
+    *[Symbol.iterator]() {
+      let i = 0;
 
-			if (!list.length) {
-				yield fallback;
-			}
+      if (!list.length) {
+        yield fallback;
+      }
 
-			for (const [index, value] of list.entries()) {
-				if (
-					!filterer(
-						new Proxy(() => value, {
-							get(_, p) {
-								return typeof value === "object"
-									? Reflect.get(value, p)
-									: undefined;
-							},
-						}),
-						() => index,
-					)
-				) {
-					continue;
-				}
+      for (const [index, value] of list.entries()) {
+        if (
+          !filterer(
+            new Proxy(() => value, {
+              get(_, p) {
+                return typeof value === "object"
+                  ? Reflect.get(value, p)
+                  : undefined;
+              },
+            }),
+            () => index,
+          )
+        ) {
+          continue;
+        }
 
-				current = entries[i];
+        current = entries[i];
 
-				if (!current) {
-					const store = watch({
-						value: null,
-						index,
-					});
+        if (!current) {
+          const store = watch({
+            value: null,
+            index,
+          });
 
-					current = {
-						store,
-						value: new Proxy(() => store.value, {
-							get(_, p) {
-								return typeof store.value === "object"
-									? Reflect.get(store.value, p)
-									: undefined;
-							},
-							set(_, p, newValue) {
-								if (typeof store.value !== "object") {
-									return false;
-								}
+          current = {
+            store,
+            value: new Proxy(() => store.value, {
+              get(_, p) {
+                return typeof store.value === "object"
+                  ? Reflect.get(store.value, p)
+                  : undefined;
+              },
+              set(_, p, newValue) {
+                if (typeof store.value !== "object") {
+                  return false;
+                }
 
-								return Reflect.set(store.value, p, newValue);
-							},
-							deleteProperty(_, p) {
-								if (typeof store.value !== "object") {
-									return false;
-								}
+                return Reflect.set(store.value, p, newValue);
+              },
+              deleteProperty(_, p) {
+                if (typeof store.value !== "object") {
+                  return false;
+                }
 
-								return Reflect.deleteProperty(store.value, p);
-							},
-						}),
-						index() {
-							return store.index;
-						},
-					};
+                return Reflect.deleteProperty(store.value, p);
+              },
+            }),
+            index() {
+              return store.index;
+            },
+          };
 
-					entries.push(current);
-				}
+          entries.push(current);
+        }
 
-				if (value !== current.store.value) {
-					current.store.value = value;
-				}
+        if (value !== current.store.value) {
+          current.store.value = value;
+        }
 
-				current.store.index = index;
+        current.store.index = index;
 
-				yield show;
+        yield show;
 
-				i++;
-			}
+        i++;
+      }
 
-			entries.splice(i, Infinity);
-		},
-	};
+      entries.splice(i, Infinity);
+    },
+  };
 }

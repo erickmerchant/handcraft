@@ -1,9 +1,9 @@
 export class HandcraftEventTarget {
-	constructor(element) {
-		this.element = new WeakRef(element);
-	}
+  constructor(element) {
+    this.element = new WeakRef(element);
+  }
 
-	deref() {
-		return this.element.deref();
-	}
+  deref() {
+    return this.element.deref();
+  }
 }
