@@ -1,171 +1,171 @@
-export * from "../prelude/all.js";
-
-import { $, setEnv } from "../dom.js";
 import { effect } from "../reactivity.js";
-import { HandcraftElement } from "../dom/HandcraftElement.js";
-import { HandcraftEventTarget } from "../dom/HandcraftEventTarget.js";
-import { HandcraftRoot } from "../dom/HandcraftRoot.js";
+import { dom } from "../dom.js";
 
 const parents = new WeakMap();
 const customElements = new Map();
-const server = {};
 
-setEnv(server);
+function env($) {
+  $.kind = (node) => {
+    if (node.type === "element") {
+      return "element";
+    }
 
-server.wrap = (node) => {
-  if (node.type === "element") {
-    return new HandcraftElement(node);
-  }
+    if (node.type === "shadow") {
+      return "root";
+    }
 
-  if (node.type === "shadow") {
-    return new HandcraftRoot(node);
-  }
+    return null;
+  };
 
-  return new HandcraftEventTarget(node);
-};
+  $.define = (options) => {
+    customElements.set(options.name, (element) => {
+      options.setup($(element));
+    });
+  };
 
-server.define = (options) => {
-  customElements.set(options.name, (element) => {
-    this.element = $(element);
+  $.create = (tag) => {
+    const element = { type: "element", tag };
+    const customFn = customElements.get(tag);
 
-    options.setup(this.element);
-  });
-};
+    if (customFn) {
+      customFn(element);
+    }
 
-server.create = (tag) => {
-  const element = { type: "element", tag };
-  const customFn = customElements.get(tag);
+    return element;
+  };
 
-  if (customFn) {
-    customFn(element);
-  }
+  $.comment = (content = "") => {
+    return { type: "comment", content };
+  };
 
-  return element;
-};
+  $.fragment = () => {
+    return { type: "fragment", children: [] };
+  };
 
-server.comment = (content = "") => {
-  return { type: "comment", content };
-};
+  $.stylesheet = {
+    create() {
+      return { stylesheet: true, css: "" };
+    },
+    adopt(element, stylesheet) {
+      element.stylesheets.push(stylesheet);
+    },
+    css(stylesheet, css) {
+      stylesheet.css = css;
+    },
+  };
 
-server.fragment = () => {
-  return { type: "fragment", children: [] };
-};
+  $.append = (element, ...children) => {
+    element.children ??= [];
 
-server.stylesheet = {
-  create() {
-    return { stylesheet: true, css: "" };
-  },
-  adopt(element, stylesheet) {
-    element.stylesheets.push(stylesheet);
-  },
-  css(stylesheet, css) {
-    stylesheet.css = css;
-  },
-};
+    children = reduceChildren(element, children);
 
-server.append = (element, ...children) => {
-  element.children ??= [];
+    element.children.push(...children);
+  };
 
-  children = reduceChildren(element, children);
+  $.root = () => {
+    return {};
+  };
 
-  element.children.push(...children);
-};
+  $.attr = (element, key, value) => {
+    element.attrs ??= {};
 
-server.root = () => {
-  return {};
-};
+    if (value == null) {
+      delete element.attrs[key];
+    } else {
+      element.attrs[key] = value;
+    }
+  };
 
-server.attr = (element, key, value) => {
-  element.attrs ??= {};
+  $.class = (element, key, value) => {
+    element.classes ??= {};
 
-  if (value == null) {
-    delete element.attrs[key];
-  } else {
-    element.attrs[key] = value;
-  }
-};
+    element.classes[key] = value;
+  };
 
-server.class = (element, key, value) => {
-  element.classes ??= {};
+  $.data = (element, key, value) => {
+    element.attrs[`data-${key}`] = value;
+  };
 
-  element.classes[key] = value;
-};
+  $.on = () => {};
 
-server.data = (element, key, value) => {
-  element.attrs[`data-${key}`] = value;
-};
+  $.shadow = (element, options) => {
+    if (!element.shadow) {
+      element.shadow = { ...options, type: "shadow", children: [] };
+    }
 
-server.on = () => {};
+    return element.shadow;
+  };
 
-server.shadow = (element, options) => {
-  if (!element.shadow) {
-    element.shadow = { ...options, type: "shadow", children: [] };
-  }
+  $.style = (element, key, value) => {
+    element.styles ??= {};
 
-  return element.shadow;
-};
+    element.styles[key] = value;
+  };
 
-server.style = (element, key, value) => {
-  element.styles ??= {};
+  $.next = (element) => {
+    const parent = parents.get(element);
 
-  element.styles[key] = value;
-};
+    if (parent) {
+      const index = parent.children.findIndex((v) => v === element);
 
-server.next = (element) => {
-  const parent = parents.get(element);
+      return parent.children[index + 1];
+    }
+  };
 
-  if (parent) {
-    const index = parent.children.findIndex((v) => v === element);
+  $.remove = (element) => {
+    const parent = parents.get(element);
 
-    return parent.children[index + 1];
-  }
-};
+    if (parent) {
+      const index = parent.children.findIndex((v) => v === element);
 
-server.remove = (element) => {
-  const parent = parents.get(element);
+      parent.children.splice(index, 1);
+    }
+  };
 
-  if (parent) {
-    const index = parent.children.findIndex((v) => v === element);
+  $.replace = (current, next) => {
+    const parent = parents.get(current);
 
-    parent.children.splice(index, 1);
-  }
-};
+    if (parent) {
+      const index = parent.children.findIndex((v) => v === current);
 
-server.replace = (current, next) => {
-  const parent = parents.get(current);
+      parent.children.splice(index, 1, next);
+    }
 
-  if (parent) {
-    const index = parent.children.findIndex((v) => v === current);
+    return next;
+  };
 
-    parent.children.splice(index, 1, next);
-  }
+  $.before = (element, ...children) => {
+    const parent = parents.get(element);
 
-  return next;
-};
+    children = reduceChildren(element, children);
 
-server.before = (element, ...children) => {
-  const parent = parents.get(element);
+    if (parent) {
+      const index = parent.children.findIndex((v) => v === element);
 
-  children = reduceChildren(element, children);
+      parent.children.splice(index, 1, ...children, element);
+    }
+  };
 
-  if (parent) {
-    const index = parent.children.findIndex((v) => v === element);
+  $.observer = {
+    create() {
+      return { observe() {} };
+    },
+    attr(element, key) {
+      return element?.attrs?.[key];
+    },
+    query() {
+      return [];
+    },
+  };
+}
 
-    parent.children.splice(index, 1, ...children, element);
-  }
-};
+const { $, h, define } = dom(env);
 
-server.observer = {
-  create() {
-    return { observe() {} };
-  },
-  attr(element, key) {
-    return element?.attrs?.[key];
-  },
-  query() {
-    return [];
-  },
-};
+export { $, define, h };
+
+export * from "../reactivity.js";
+export * from "../each.js";
+export * from "../when.js";
 
 function reduceChildren(element, children) {
   return children
