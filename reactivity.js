@@ -3,8 +3,6 @@ const queue = [];
 const reads = new WeakMap();
 let scheduled = false;
 
-export const registered = new WeakSet();
-
 function getProperty(o, key, r) {
   if (current) {
     let callbacks = reads.get(o).get(key);
@@ -83,24 +81,4 @@ export function watch(object) {
     get: getProperty,
     deleteProperty,
   });
-}
-
-export function mutate(element, callback, value = () => {}) {
-  const el = element.deref();
-
-  if (el) {
-    registered.add(el);
-  }
-
-  if (typeof value !== "function") {
-    callback(el, value);
-  } else {
-    effect(() => {
-      const el = element.deref();
-
-      if (el && registered.has(el)) {
-        callback(el, value());
-      }
-    });
-  }
 }

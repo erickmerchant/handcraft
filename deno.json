@@ -1,0 +1,12 @@
+{
+  "name": "handcraft",
+  "version": "0.20.0",
+  "license": "MIT",
+  "exports": {
+    ".": "./mod.js"
+  },
+  "imports": {},
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable"]
+  }
+}
