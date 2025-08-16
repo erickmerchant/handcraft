@@ -29,57 +29,58 @@ function escape(str: { toString: () => string }): string {
   });
 }
 
-export function render(node: HandcraftElement | string | null) {
+export function render(node: HandcraftElementChild) {
   if (node == null) return "";
 
   if (typeof node !== "function") {
     return escape(node);
   }
 
-  if (node.deref == null) {
+  if (node.value == null) {
     return "";
   }
 
-  const anode = node.deref();
+  const value = node.value;
 
   let result = "";
   let css = "";
 
-  if (anode.tag === "html" && anode.namespace === "html") {
+  if (value.tag === "html" && value.namespace === "html") {
     result += "<!doctype html>";
   }
 
-  if (anode.tag != null) {
-    result += "<" + anode.tag;
+  if (value.tag != null) {
+    result += "<" + value.tag;
 
-    if (anode.namespace !== "html" && anode.tag === anode.namespace) {
-      result += ' xmlns="' + namespaces[anode.namespace] + '"';
+    if (value.namespace !== "html" && value.tag === value.namespace) {
+      result += ' xmlns="' + namespaces[value.namespace] + '"';
     }
   } else {
-    result += `<template shadowrootmode="${anode.options?.mode ?? "open"}"`;
+    result += `<template shadowrootmode="${value.options?.mode ?? "open"}"`;
   }
 
   const children = [];
 
-  for (const child of anode.children.flat(Infinity)) {
+  for (const child of value.children.flat(Infinity)) {
     if (!child) continue;
 
     if (
-      child != null && typeof child === "object" &&
-      child[Symbol.iterator] != null
+      child != null
     ) {
-      for (const c of child) {
-        children.push(render(c()));
+      if (typeof child === "object" && Symbol.iterator in child) {
+        for (const c of child) {
+          children.push(render(c()));
+        }
+      } else {
+        children.push(render(typeof child === "function" ? child() : child));
       }
-    } else {
-      children.push(render(child));
     }
   }
 
-  for (const { method, args } of anode.props) {
+  for (const { method, args } of value.props) {
     if (["on", "once", "command", "prop", "effect"].includes(method)) continue;
 
-    if (method === "aria") {
+    if (method === "aria" && args[0] != null && typeof args[0] == "object") {
       for (const [key, value] of Object.entries(args[0])) {
         result += getAttr(`aria-${key}`, value);
       }
@@ -87,9 +88,11 @@ export function render(node: HandcraftElement | string | null) {
       continue;
     }
 
-    if (method === "data") {
+    if (method === "data" && args[0] != null && typeof args[0] == "object") {
       for (const [key, value] of Object.entries(args[0])) {
-        result += ` data-${key}="${escape(getValue(value))}"`;
+        if (typeof value === "string" || typeof value === "function") {
+          result += ` data-${key}="${escape({ toString: () => `${value}` })}"`;
+        }
       }
 
       continue;
@@ -100,14 +103,16 @@ export function render(node: HandcraftElement | string | null) {
       const list = [];
 
       for (let c of classes) {
-        if (typeof c !== "object") {
+        if (typeof c === "string") {
           c = { [c]: true };
         }
 
-        for (const [key, value] of Object.entries(c)) {
-          for (const k of key.split(" ")) {
-            if (value) {
-              list.push(k);
+        if (c != null && typeof c == "object") {
+          for (const [key, value] of Object.entries(c)) {
+            for (const k of key.split(" ")) {
+              if (value) {
+                list.push(k);
+              }
             }
           }
         }
@@ -118,7 +123,7 @@ export function render(node: HandcraftElement | string | null) {
       continue;
     }
 
-    if (method === "style") {
+    if (method === "style" && args[0] != null && typeof args[0] == "object") {
       const styles = [];
 
       for (const [key, value] of Object.entries(args[0])) {
@@ -133,21 +138,26 @@ export function render(node: HandcraftElement | string | null) {
     }
 
     if (method === "css") {
-      if (anode.tag == null) {
+      if (
+        value.tag == null &&
+        (typeof args[0] === "string" || typeof args[0] === "function")
+      ) {
         css += getValue(args[0]);
       }
 
       continue;
     }
 
-    result += getAttr(method, args[0]);
+    if (typeof args[0] === "string" || typeof args[0] === "function") {
+      result += getAttr(method, args[0]);
+    }
   }
 
   result += ">";
 
-  if (anode.tag != null) {
-    if (!VOID_ELEMENTS.includes(anode.tag)) {
-      result += children.join("") + "</" + anode.tag + ">";
+  if (value.tag != null) {
+    if (!VOID_ELEMENTS.includes(value.tag)) {
+      result += children.join("") + "</" + value.tag + ">";
     }
   } else {
     if (css) {
@@ -160,11 +170,14 @@ export function render(node: HandcraftElement | string | null) {
   return result;
 }
 
-function getValue(value) {
+function getValue(value: HandcraftMethodValue) {
   return typeof value === "function" ? value() : value;
 }
 
-function getAttr(key, value) {
+function getAttr(
+  key: string,
+  value: string | number | boolean | null | (() => HandcraftMethodValue),
+) {
   const v = getValue(value);
 
   if (v != null && v !== false && v !== true) {

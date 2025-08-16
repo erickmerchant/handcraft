@@ -22,13 +22,15 @@ function replace(parent: Element, current: Node, next: Node | string) {
   return next;
 }
 
-function deref(parent, element) {
-  if (element?.deref != null) {
-    const result = element.deref();
+function deref(parent: Element, element: HandcraftElementChild) {
+  if (
+    element != null && typeof element === "function" && element.value != null
+  ) {
+    const result = element.value;
 
     if (result instanceof Node) return result;
 
-    if (result.tag != null) {
+    if (result.tag != null && result.namespace != null) {
       const el = document.createElementNS(
         namespaces[result.namespace],
         result.tag,
@@ -39,11 +41,13 @@ function deref(parent, element) {
       return el;
     } else {
       const el = parent.shadowRoot ??
-        parent.attachShadow(result.options ?? { mode: "open" });
+        parent.attachShadow(
+          { mode: result.options?.mode ?? "open" } as ShadowRootInit,
+        );
 
       patch(el, result.props, result.children);
 
-      return;
+      return el;
     }
   }
 
@@ -159,7 +163,7 @@ function nodes(element, children, pos = position.end) {
   }
 }
 
-function attr(element, key, value) {
+function attr(element: Element, key: string, value: HandcraftMethodValue) {
   mutate(
     element,
     (element, value) => {
@@ -174,20 +178,31 @@ function attr(element, key, value) {
 }
 
 const methods = {
-  on(element, events, handler, options = {}) {
+  on(
+    element: Element,
+    events: string,
+    handler: EventListener,
+    options: EventListenerOptions | boolean = {},
+  ) {
     for (const event of events.split(/\s+/)) {
       element.addEventListener(event, handler, options);
     }
   },
 
-  command(element, commands, handler, options = {}) {
-    commands = commands.split(/\s+/);
+  command(
+    element: Element,
+    commands: string,
+    handler: EventListener,
+    options: EventListenerOptions | boolean = {},
+  ) {
+    const splitCommands = commands.split(/\s+/);
 
     methods.on(
       element,
       "command",
       (e, ...args) => {
-        if (commands.includes(e.command)) {
+        // @ts-ignore type is wrong
+        if (splitCommands.includes(e.command)) {
           handler.call(e.currentTarget, e, ...args);
         }
       },
@@ -195,7 +210,12 @@ const methods = {
     );
   },
 
-  once(element, events, handler, options = {}) {
+  once(
+    element: Element,
+    events: string,
+    handler: EventListener,
+    options: EventListenerOptions | boolean = {},
+  ) {
     if (options === true || options === false) {
       options = { capture: options };
     }
@@ -203,7 +223,7 @@ const methods = {
     methods.on(element, events, handler, { ...options, once: true });
   },
 
-  effect(element, cb) {
+  effect(element: Element, cb: () => void) {
     mutate(element, cb);
   },
 
@@ -413,25 +433,29 @@ export function $(element: Element) {
 
   const proxy = new Proxy(() => {}, {
     apply(_, __, args) {
-      el.children.push([null, ...args]);
+      el.children.push(...args);
 
       return proxy;
     },
-    get(_, method) {
-      if (method === "then") {
+    get(_, key) {
+      if (key === "then") {
         return undefined;
       }
 
-      if (method === "toJSON" || method === "deref") {
+      if (key === "toJSON") {
         return () => element;
       }
 
-      if (method in observeMethods) {
-        return observeMethods[method].bind(null, element);
+      if (key === "value") {
+        return element;
+      }
+
+      if (key in observeMethods) {
+        return observeMethods[key].bind(null, element);
       }
 
       return (...args) => {
-        el.props.push({ method, args });
+        el.props.push({ method: key, args });
 
         return proxy;
       };
@@ -445,7 +469,11 @@ export function $(element: Element) {
   return proxy;
 }
 
-function mutate(element, callback, value = () => {}) {
+function mutate(
+  element: Element,
+  callback: (element: Element, value?: HandcraftMethodValue) => void,
+  value?: HandcraftMethodValue,
+) {
   if (typeof value !== "function") {
     callback(element, value);
   } else {

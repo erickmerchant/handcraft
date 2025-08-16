@@ -10,13 +10,18 @@ type HandcraftMethodRecordValue = Record<
   string | number | boolean | null | (() => HandcraftMethodValue)
 >;
 
+type HandcraftElementChild = HandcraftElement | string | null;
+
+type HandcraftElementFactory = () => HandcraftElementChild;
+
 type HandcraftMethodChild =
-  | HandcraftAbstractNode
+  | HandcraftElement
+  | IterableIterator<HandcraftElementFactory>
   | string
   | null
-  | (() => HandcraftAbstractNode | string | null);
+  | HandcraftElementFactory;
 
-type HandcraftAbstractNode = {
+type HandcraftElementValue = {
   tag?: string;
   namespace?: string;
   options?: Record<string, string>;
@@ -31,7 +36,7 @@ type HandcraftElement = {
   (
     ...children: Array<HandcraftMethodChild>
   ): HandcraftElement;
-  deref: () => HandcraftAbstractNode;
+  value: HandcraftElementValue;
   on: (
     events: string,
     handler: EventListener,

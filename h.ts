@@ -11,7 +11,7 @@ function create(
   namespace?: string,
   options?: Record<string, string>,
 ) {
-  const el: HandcraftAbstractNode = {
+  const value: HandcraftElementValue = {
     tag,
     namespace,
     options,
@@ -21,23 +21,27 @@ function create(
 
   const proxy = new Proxy(() => {}, {
     apply(_, __, args: Array<HandcraftMethodChild>) {
-      el.children.push(...args);
+      value.children.push(...args);
 
       return proxy;
     },
-    get(_, method: string) {
-      if (method === "then") {
+    get(_, key: string) {
+      if (key === "then") {
         return undefined;
       }
 
-      if (method === "toJSON" || method === "deref") {
-        return () => el;
+      if (key === "toJSON") {
+        return () => value;
+      }
+
+      if (key === "value") {
+        return value;
       }
 
       return (
         ...args: Array<HandcraftMethodValue | HandcraftMethodRecordValue>
       ) => {
-        el.props.push({ method, args });
+        value.props.push({ method: key, args });
 
         return proxy;
       };
