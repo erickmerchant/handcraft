@@ -1,5 +1,5 @@
-import { effect, inEffect, watch } from "./reactivity.js";
-import { namespaces } from "./mod.js";
+import { effect, inEffect, watch } from "./reactivity.ts";
+import { namespaces } from "./mod.ts";
 
 const position = {
   start: Symbol("start"),
@@ -12,18 +12,12 @@ let treeObserver;
 const states = new WeakMap();
 let attrObserver;
 
-function replace(current, next) {
-  if (!(next instanceof Element)) {
-    if (current.nodeType === 3) {
-      current.textContent = next;
-
-      return current;
-    }
-
+function replace(parent: Element, current: Node, next: Node | string) {
+  if (!(next instanceof Node)) {
     next = document.createTextNode(next);
   }
 
-  current.replaceWith(next);
+  parent.replaceChild(next, current);
 
   return next;
 }
@@ -40,14 +34,14 @@ function deref(parent, element) {
         result.tag,
       );
 
-      patch(el, result.records);
+      patch(el, result.props, result.children);
 
       return el;
     } else {
       const el = parent.shadowRoot ??
         parent.attachShadow(result.options ?? { mode: "open" });
 
-      patch(el, result.records);
+      patch(el, result.props, result.children);
 
       return;
     }
@@ -99,7 +93,7 @@ function nodes(element, children, pos = position.end) {
               if (mode === 1) {
                 fragment.append(result);
               } else {
-                currentChild = replace(currentChild, result);
+                currentChild = replace(element, currentChild, result);
               }
 
               nodeToCallback.set(result, item);
@@ -140,7 +134,7 @@ function nodes(element, children, pos = position.end) {
 
             if (p) {
               prev = new WeakRef(
-                replace(p, child ?? document.createComment("")),
+                replace(element, p, child ?? document.createComment("")),
               );
             }
           }
@@ -391,60 +385,61 @@ const observeMethods = {
   },
 };
 
-function patch(element, records) {
+function patch(element, props, children) {
   let i = 0;
-  mutate(element, (element) => {
-    const children = [];
+  let j = 0;
 
-    for (const [key, ...args] of records.slice(i)) {
-      i++;
-      if (key == null) {
-        for (const child of args.flat(Infinity)) {
-          children.push(child);
-        }
-      } else if (methods[key]) {
-        methods[key](element, ...args);
+  mutate(element, (element) => {
+    for (const { method, args } of props.slice(i)) {
+      if (methods[method]) {
+        methods[method](element, ...args);
       } else {
-        attr(element, key, ...args);
+        attr(element, method, ...args);
       }
     }
 
-    nodes(element, children, position.end);
+    nodes(element, children.slice(j), position.end);
+
+    i = props.length;
+    j = children.length;
   });
 }
 
-export function $(element) {
-  const records = watch([]);
+export function $(element: Element) {
+  const el = {
+    props: watch([]),
+    children: watch([]),
+  };
 
   const proxy = new Proxy(() => {}, {
     apply(_, __, args) {
-      records.push([null, ...args]);
+      el.children.push([null, ...args]);
 
       return proxy;
     },
-    get(_, key) {
-      if (key === "then") {
+    get(_, method) {
+      if (method === "then") {
         return undefined;
       }
 
-      if (key === "toJSON" || key === "deref") {
+      if (method === "toJSON" || method === "deref") {
         return () => element;
       }
 
-      if (key in observeMethods) {
-        return observeMethods[key].bind(null, element);
+      if (method in observeMethods) {
+        return observeMethods[method].bind(null, element);
       }
 
       return (...args) => {
-        records.push([key, ...args]);
+        el.props.push({ method, args });
 
         return proxy;
       };
     },
-  });
+  }) as HandcraftElement;
 
   queueMicrotask(() => {
-    patch(element, records);
+    patch(element, el.props, el.children);
   });
 
   return proxy;

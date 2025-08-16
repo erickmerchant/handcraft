@@ -1,9 +1,9 @@
-let current;
-const queue = [];
+let current: () => void;
+const queue: Array<() => void> = [];
 const reads = new WeakMap();
 let scheduled = false;
 
-function getProperty(o, key, r) {
+function getProperty<T extends object>(o: T, key: string | symbol, r: T) {
   if (current) {
     let callbacks = reads.get(o).get(key);
 
@@ -18,7 +18,7 @@ function getProperty(o, key, r) {
   return Reflect.get(o, key, r);
 }
 
-function modifyProperty(o, key) {
+function modifyProperty<T extends object>(o: T, key: string | symbol) {
   const callbacks = reads.get(o).get(key);
 
   if (callbacks != null && callbacks.size) {
@@ -32,19 +32,24 @@ function modifyProperty(o, key) {
   }
 }
 
-function setProperty(o, key, value, r) {
+function setProperty<T extends object>(
+  o: T,
+  key: string | symbol,
+  value: any,
+  r: T,
+) {
   modifyProperty(o, key);
 
   return Reflect.set(o, key, value, r);
 }
 
-function deleteProperty(o, key) {
+function deleteProperty<T extends object>(o: T, key: string | symbol) {
   modifyProperty(o, key);
 
   return Reflect.deleteProperty(o, key);
 }
 
-export function effect(callback) {
+export function effect(callback: () => void) {
   if (!queue.includes(callback)) {
     queue.push(callback);
 
@@ -73,10 +78,10 @@ export function inEffect() {
   return current != null;
 }
 
-export function watch(object) {
+export function watch<T extends object>(object: T) {
   reads.set(object, new Map());
 
-  return new Proxy(object, {
+  return new Proxy<T>(object, {
     set: setProperty,
     get: getProperty,
     deleteProperty,

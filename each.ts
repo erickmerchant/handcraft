@@ -1,29 +1,46 @@
-import { watch } from "./reactivity.js";
+import { watch } from "./reactivity.ts";
 
-export function each(list) {
-  let mapper;
-  let filterer = () => true;
-  let fallback = () => {};
-  const entries = [];
-  let current;
+export function each<T>(list: Array<T>) {
+  type Index = () => number;
+  type Store = {
+    value: T | null;
+    index: number;
+  };
+  type Current = {
+    store: Store;
+    value: (() => T) & T;
+    index: Index;
+  };
+  type FilterCurrent = {
+    (): T;
+  } & T;
+  type Mapper = (current: () => T, index: Index) => HandcraftElement | void;
+  type Filterer = (current: FilterCurrent, index: Index) => boolean;
+  type Fallback = () => HandcraftElement | void;
+
+  let mapper: Mapper;
+  let filterer: Filterer = () => true;
+  let fallback: Fallback = () => {};
+  const entries: Array<Current> = [];
+  let current: Current;
   const show = () => {
     return mapper(current.value, current.index);
   };
 
   return {
-    map(cb) {
+    map(cb: Mapper) {
       mapper = cb;
 
       return this;
     },
 
-    filter(cb) {
+    filter(cb: Filterer) {
       filterer = cb;
 
       return this;
     },
 
-    fallback(cb) {
+    fallback(cb: Fallback) {
       fallback = cb;
 
       return this;
@@ -41,11 +58,11 @@ export function each(list) {
           !filterer(
             new Proxy(() => value, {
               get(_, p) {
-                return typeof value === "object"
+                return value != null && typeof value === "object"
                   ? Reflect.get(value, p)
                   : undefined;
               },
-            }),
+            }) as FilterCurrent,
             () => index,
           )
         ) {
@@ -55,7 +72,7 @@ export function each(list) {
         current = entries[i];
 
         if (!current) {
-          const store = watch({
+          const store: Store = watch({
             value: null,
             index,
           });
@@ -64,19 +81,19 @@ export function each(list) {
             store,
             value: new Proxy(() => store.value, {
               get(_, p) {
-                return typeof store.value === "object"
+                return store.value != null && typeof store.value === "object"
                   ? Reflect.get(store.value, p)
                   : undefined;
               },
               set(_, p, newValue) {
-                if (typeof store.value !== "object") {
+                if (store.value == null || typeof store.value !== "object") {
                   return false;
                 }
 
                 return Reflect.set(store.value, p, newValue);
               },
               deleteProperty(_, p) {
-                if (typeof store.value !== "object") {
+                if (store.value == null || typeof store.value !== "object") {
                   return false;
                 }
 
@@ -86,7 +103,7 @@ export function each(list) {
             index() {
               return store.index;
             },
-          };
+          } as Current;
 
           entries.push(current);
         }

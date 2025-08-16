@@ -3,10 +3,15 @@
   "version": "0.20.0",
   "license": "MIT",
   "exports": {
-    ".": "./mod.js"
+    ".": "./mod.ts"
   },
   "imports": {},
   "compilerOptions": {
-    "lib": ["dom", "dom.iterable"]
+    "lib": ["dom", "dom.iterable", "es2023"]
+  },
+  "lint": {
+    "rules": {
+      "exclude": ["no-explicit-any"]
+    }
   }
 }
