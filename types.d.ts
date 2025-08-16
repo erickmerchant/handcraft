@@ -3,11 +3,15 @@ type HandcraftMethodValue =
   | number
   | boolean
   | null
-  | (() => HandcraftMethodValue);
+  | (() =>
+    | string
+    | number
+    | boolean
+    | null);
 
 type HandcraftMethodRecordValue = Record<
   string,
-  string | number | boolean | null | (() => HandcraftMethodValue)
+  HandcraftMethodValue
 >;
 
 type HandcraftElementChild = HandcraftElement | string | null;

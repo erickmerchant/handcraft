@@ -168,9 +168,9 @@ function attr(element: Element, key: string, value: HandcraftMethodValue) {
     element,
     (element, value) => {
       if (value === true || value === false || value == null) {
-        element.toggleAttribute(key, !!value);
+        (element as Element).toggleAttribute(key, !!value);
       } else {
-        element.setAttribute(key, value);
+        (element as Element).setAttribute(key, value as string);
       }
     },
     value,
@@ -220,36 +220,46 @@ const methods = {
       options = { capture: options };
     }
 
-    methods.on(element, events, handler, { ...options, once: true });
+    methods.on(
+      element,
+      events,
+      handler,
+      { ...options, once: true } as EventListenerOptions,
+    );
   },
 
   effect(element: Element, cb: () => void) {
     mutate(element, cb);
   },
 
-  prop(element, key, value) {
+  prop(element: Element, key: string, value?: HandcraftMethodValue) {
     mutate(
       element,
       (element, value) => {
-        element[key] = value;
+        if (key in element) {
+          // @ts-ignore don't care if it's writable
+          element[key as keyof typeof element] = value;
+        }
       },
       value,
     );
   },
 
-  css(element, css, options = {}) {
+  css(
+    element: Document,
+    css: string | (() => string),
+    options: { media?: string | (() => string) } = {},
+  ) {
     const stylesheet = new CSSStyleSheet();
 
-    for (const prop of ["media"]) {
-      if (options[prop]) {
-        mutate(
-          element,
-          (stylesheet, val) => {
-            stylesheet[prop] = val;
-          },
-          options[prop],
-        );
-      }
+    if ("media" in options) {
+      mutate(
+        element,
+        (_element, val) => {
+          stylesheet.media = val as string;
+        },
+        options.media,
+      );
     }
 
     element.adoptedStyleSheets.splice(
@@ -261,19 +271,22 @@ const methods = {
     mutate(
       element,
       (_element, css) => {
-        stylesheet.replaceSync(css);
+        stylesheet.replaceSync(css as string);
       },
       css,
     );
   },
 
-  aria(element, attrs) {
+  aria(element: Element, attrs: HandcraftMethodRecordValue) {
     for (const [key, value] of Object.entries(attrs)) {
       attr(element, `aria-${key}`, value);
     }
   },
 
-  class(element, ...classes) {
+  class(
+    element: Element,
+    ...classes: Array<string | Record<string, boolean | (() => boolean)>>
+  ) {
     classes = classes.flat(Infinity);
 
     for (let c of classes) {
@@ -286,7 +299,7 @@ const methods = {
           element,
           (element, value) => {
             for (const k of key.split(" ")) {
-              element.classList.toggle(k, value);
+              (element as Element).classList.toggle(k, value as boolean);
             }
           },
           value,
@@ -295,24 +308,27 @@ const methods = {
     }
   },
 
-  data(element, data) {
+  data(element: HTMLElement, data: HandcraftMethodRecordValue) {
     for (const [key, value] of Object.entries(data)) {
       mutate(
         element,
         (element, value) => {
-          element.dataset[key] = value;
+          (element as HTMLElement).dataset[key] = value as (string | undefined);
         },
         value,
       );
     }
   },
 
-  style(element, styles) {
+  style(element: HTMLElement, styles: HandcraftMethodRecordValue) {
     for (const [key, value] of Object.entries(styles)) {
       mutate(
         element,
         (element, value) => {
-          element.style.setProperty(key, value);
+          (element as HTMLElement).style.setProperty(
+            key,
+            value as (string | null),
+          );
         },
         value,
       );
@@ -470,13 +486,20 @@ export function $(element: Element) {
 }
 
 function mutate(
-  element: Element,
-  callback: (element: Element, value?: HandcraftMethodValue) => void,
-  value?: HandcraftMethodValue,
+  element: Node,
+  callback: (
+    element: Node,
+    value:
+      | string
+      | number
+      | boolean
+      | null,
+  ) => void,
+  value: HandcraftMethodValue = (() => null),
 ) {
   if (typeof value !== "function") {
     callback(element, value);
-  } else {
+  } else if (typeof value === "function") {
     const el = new WeakRef(element);
 
     effect(() => {
