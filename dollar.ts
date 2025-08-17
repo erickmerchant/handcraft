@@ -22,16 +22,18 @@ function replace(parent: Node, current: Node, next: Node | string) {
   return next;
 }
 
-function deref(
+function node(
   parent: Node,
-  element: HandcraftElementChild | (() => HandcraftElementChild | string | null),
+  element:
+    | HandcraftElementChild
+    | (() => HandcraftElementChild | string | null),
 ): Element | string | null | void {
   if (
     element != null && typeof element === "function"
   ) {
-  	if ((element as HandcraftElement).value == null) {
-   element = element()
-   }
+    if ((element as HandcraftElement).value == null) {
+      element = element();
+    }
 
     if ((element as HandcraftElement).value != null) {
       const result = (element as HandcraftElement).value;
@@ -55,39 +57,20 @@ function deref(
             { mode: result.options?.mode ?? "open" } as ShadowRootInit,
           );
 
-        let i = 0;
-        let j = 0;
-
-        mutate<ShadowRoot>(el, (element) => {
-          for (const { method, args } of result.props.slice(i)) {
-            if (method in methods) {
-              // @ts-ignore ignore silly error
-              methods[method as keyof typeof methods](element, ...args);
-            } else {
-              // @ts-ignore ignore silly error
-              attr(element, method, ...args);
-            }
-          }
-
-          nodes(element, result.children.slice(j), position.end);
-
-          i = result.props.length;
-          j = result.children.length;
-        });
+        patch<DocumentFragment>(el, result.props, result.children);
       }
-
 
       return;
     }
 
-    return element as (string | null)
+    return element as (string | null);
   }
 
   return element;
 }
 
-function nodes(
-  element: Element | DocumentFragment,
+function nodes<T extends Node = Element>(
+  element: T,
   children: Array<HandcraftMethodChild>,
   pos = position.end,
 ) {
@@ -125,7 +108,7 @@ function nodes(
           ) {
             const result = item();
 
-            const derefed = deref(element, result);
+            const derefed = node(element, result);
 
             if (derefed != null) {
               if (currentChild == null) {
@@ -167,7 +150,7 @@ function nodes(
       mutateWithCallback<HandcraftElementChild | HandcraftElementFactory, Node>(
         element,
         (_, child) => {
-          const c = deref(element, child as HandcraftElementChild);
+          const c = node(element, child as HandcraftElementChild);
 
           if (c != null) {
             const p = weakPrev.deref();
@@ -182,7 +165,7 @@ function nodes(
         () => child,
       );
     } else if (typeof child === "string") {
-      const result = deref(element, child);
+      const result = node(element, child);
 
       if (result != null) fragment.append(result);
     }
@@ -190,11 +173,11 @@ function nodes(
 
   switch (pos) {
     case position.start:
-      element.append(fragment);
+      element.appendChild(fragment);
       break;
 
     case position.end:
-      element.append(fragment);
+      element.appendChild(fragment);
       break;
   }
 }
@@ -464,8 +447,8 @@ const observeMethods = {
   },
 };
 
-function patch(
-  element: Element,
+function patch<T extends Node = Element>(
+  element: T,
   props: Array<{
     method: string;
     args: Array<HandcraftMethodValue | HandcraftMethodRecordValue>;
@@ -475,7 +458,7 @@ function patch(
   let i = 0;
   let j = 0;
 
-  mutate<Element>(element, (element) => {
+  mutate<T>(element, (element) => {
     for (const { method, args } of props.slice(i)) {
       if (method in methods) {
         // @ts-ignore ignore silly error
@@ -486,7 +469,7 @@ function patch(
       }
     }
 
-    nodes(element, children.slice(j), position.end);
+    nodes<T>(element, children.slice(j), position.end);
 
     i = props.length;
     j = children.length;
@@ -548,7 +531,7 @@ export function $(element: Element) {
   return proxy;
 }
 
-function mutateWithCallback<Result, T extends object = Element>(
+function mutateWithCallback<Result, T extends Node = Element>(
   element: T,
   callback: (
     element: T,
@@ -567,7 +550,7 @@ function mutateWithCallback<Result, T extends object = Element>(
   });
 }
 
-function mutate<T extends object = Element>(
+function mutate<T extends Node = Element>(
   element: T,
   callback: (
     element: T,

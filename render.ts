@@ -148,7 +148,10 @@ export function render(node: HandcraftElementChild) {
       continue;
     }
 
-    if (typeof args[0] === "string" || typeof args[0] === "number" || args[0] == null || typeof args[0] === "function") {
+    if (
+      typeof args[0] === "string" || typeof args[0] === "number" ||
+      args[0] == null || typeof args[0] === "function"
+    ) {
       result += getAttr(method, args[0]);
     }
   }
