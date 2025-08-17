@@ -24,11 +24,15 @@ function replace(parent: Node, current: Node, next: Node | string) {
 
 function deref(
   parent: Node,
-  element: HandcraftElementChild | (() => string | null),
+  element: HandcraftElementChild | (() => HandcraftElementChild | string | null),
 ): Element | string | null | void {
   if (
     element != null && typeof element === "function"
   ) {
+  	if ((element as HandcraftElement).value == null) {
+   element = element()
+   }
+
     if ((element as HandcraftElement).value != null) {
       const result = (element as HandcraftElement).value;
 
@@ -51,19 +55,32 @@ function deref(
             { mode: result.options?.mode ?? "open" } as ShadowRootInit,
           );
 
+        let i = 0;
         let j = 0;
 
         mutate<ShadowRoot>(el, (element) => {
+          for (const { method, args } of result.props.slice(i)) {
+            if (method in methods) {
+              // @ts-ignore ignore silly error
+              methods[method as keyof typeof methods](element, ...args);
+            } else {
+              // @ts-ignore ignore silly error
+              attr(element, method, ...args);
+            }
+          }
+
           nodes(element, result.children.slice(j), position.end);
 
+          i = result.props.length;
           j = result.children.length;
         });
       }
 
+
       return;
     }
 
-    return element() as (string | null);
+    return element as (string | null)
   }
 
   return element;
