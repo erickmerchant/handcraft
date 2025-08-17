@@ -12,7 +12,7 @@ let treeObserver;
 const states = new WeakMap();
 let attrObserver;
 
-function replace(parent: Element, current: Node, next: Node | string) {
+function replace(parent: Node, current: Node, next: Node | string) {
   if (!(next instanceof Node)) {
     next = document.createTextNode(next);
   }
@@ -22,45 +22,64 @@ function replace(parent: Element, current: Node, next: Node | string) {
   return next;
 }
 
-function deref(parent: Element, element: HandcraftElementChild) {
+function deref(
+  parent: Node,
+  element: HandcraftElementChild | (() => string | null),
+): Element | string | null | void {
   if (
-    element != null && typeof element === "function" && element.value != null
+    element != null && typeof element === "function"
   ) {
-    const result = element.value;
+    if ((element as HandcraftElement).value != null) {
+      const result = (element as HandcraftElement).value;
 
-    if (result instanceof Node) return result;
+      if (result instanceof Element) return result;
 
-    if (result.tag != null && result.namespace != null) {
-      const el = document.createElementNS(
-        namespaces[result.namespace],
-        result.tag,
-      );
-
-      patch(el, result.props, result.children);
-
-      return el;
-    } else {
-      const el = parent.shadowRoot ??
-        parent.attachShadow(
-          { mode: result.options?.mode ?? "open" } as ShadowRootInit,
+      if (result.tag != null && result.namespace != null) {
+        const el = document.createElementNS(
+          namespaces[result.namespace],
+          result.tag,
         );
 
-      patch(el, result.props, result.children);
+        patch(el, result.props, result.children);
 
-      return el;
+        return el;
+      }
+
+      if (parent instanceof Element) {
+        const el = parent.shadowRoot ??
+          parent.attachShadow(
+            { mode: result.options?.mode ?? "open" } as ShadowRootInit,
+          );
+
+        let j = 0;
+
+        mutate<ShadowRoot>(el, (element) => {
+          nodes(element, result.children.slice(j), position.end);
+
+          j = result.children.length;
+        });
+      }
+
+      return;
     }
+
+    return element() as (string | null);
   }
 
   return element;
 }
 
-function nodes(element, children, pos = position.end) {
-  const nodeToCallback = new WeakMap();
+function nodes(
+  element: Element | DocumentFragment,
+  children: Array<HandcraftMethodChild>,
+  pos = position.end,
+) {
+  const nodeToCallback = new WeakMap<Node, () => void>();
   const fragment = new DocumentFragment();
 
   children = children.flat(Infinity);
 
-  for (let child of children) {
+  for (const child of children) {
     if (!child) continue;
 
     if (
@@ -68,87 +87,87 @@ function nodes(element, children, pos = position.end) {
       typeof child === "object" &&
       child[Symbol.iterator] != null
     ) {
-      let bounds = [document.createComment(""), document.createComment("")];
+      const bounds = [document.createComment(""), document.createComment("")];
 
       fragment.append(...bounds);
 
-      bounds = bounds.map((c) => new WeakRef(c));
+      const weakBounds = bounds.map((c) => new WeakRef(c));
 
       mutate(element, () => {
-        const [start, end] = bounds.map((b) => b.deref());
-        let currentChild = start && start?.nextSibling !== end
+        const [start, end] = weakBounds.map((b) => b.deref());
+        let currentChild: Node | null = start && start?.nextSibling !== end
           ? start?.nextSibling
           : null;
         const fragment = new DocumentFragment();
 
+        if (child == null) return;
+
         for (const item of child) {
-          const mode = !currentChild
-            ? 1
-            : nodeToCallback.get(currentChild) !== item
-            ? 2
-            : 0;
+          if (
+            currentChild == null || nodeToCallback.get(currentChild) !== item
+          ) {
+            const result = item();
 
-          if (mode !== 0) {
-            let result = item();
+            const derefed = deref(element, result);
 
-            result = deref(element, result);
-
-            if (result != null) {
-              if (mode === 1) {
-                fragment.append(result);
+            if (derefed != null) {
+              if (currentChild == null) {
+                fragment.append(derefed);
               } else {
-                currentChild = replace(element, currentChild, result);
+                currentChild = replace(element, currentChild, derefed);
               }
 
-              nodeToCallback.set(result, item);
-            } else if (mode === 2) {
+              if (typeof derefed !== "string") {
+                nodeToCallback.set(derefed, item);
+              }
+            } else {
               continue;
             }
           }
 
           currentChild = currentChild?.nextSibling !== end
-            ? currentChild?.nextSibling
+            ? (currentChild?.nextSibling ?? null)
             : null;
         }
 
-        end.before(fragment);
+        end?.before?.(fragment);
 
         while (currentChild && currentChild !== end) {
           const nextChild = currentChild?.nextSibling;
 
-          currentChild.remove();
+          element.removeChild(currentChild);
 
           currentChild = nextChild;
         }
       });
     } else if (child != null && typeof child === "function") {
-      let prev = document.createComment("");
+      const prev = document.createComment("");
 
       fragment.append(prev);
 
-      prev = new WeakRef(prev);
+      let weakPrev = new WeakRef<Comment | Node>(prev);
 
-      mutate(
+      mutateWithCallback<HandcraftElementChild | HandcraftElementFactory, Node>(
         element,
         (_, child) => {
-          child = deref(element, child);
+          const c = deref(element, child as HandcraftElementChild);
 
-          if (child != null) {
-            const p = prev.deref();
+          if (c != null) {
+            const p = weakPrev.deref();
 
             if (p) {
-              prev = new WeakRef(
-                replace(element, p, child ?? document.createComment("")),
+              weakPrev = new WeakRef(
+                replace(element, p, c ?? document.createComment("")),
               );
             }
           }
         },
-        child,
+        () => child,
       );
-    } else {
-      child = deref(element, child);
+    } else if (typeof child === "string") {
+      const result = deref(element, child);
 
-      if (child != null) fragment.append(child);
+      if (result != null) fragment.append(result);
     }
   }
 
@@ -164,16 +183,16 @@ function nodes(element, children, pos = position.end) {
 }
 
 function attr(element: Element, key: string, value: HandcraftMethodValue) {
-  mutate(
+  mutateWithCallback<HandcraftValue>(
     element,
     (element, value) => {
       if (value === true || value === false || value == null) {
-        (element as Element).toggleAttribute(key, !!value);
+        element.toggleAttribute(key, !!value);
       } else {
-        (element as Element).setAttribute(key, value as string);
+        element.setAttribute(key, value as string);
       }
     },
-    value,
+    typeof value === "function" ? value : () => value,
   );
 }
 
@@ -232,8 +251,8 @@ const methods = {
     mutate(element, cb);
   },
 
-  prop(element: Element, key: string, value?: HandcraftMethodValue) {
-    mutate(
+  prop(element: Element, key: string, value: HandcraftMethodValue) {
+    mutateWithCallback<HandcraftMethodValue>(
       element,
       (element, value) => {
         if (key in element) {
@@ -241,7 +260,7 @@ const methods = {
           element[key as keyof typeof element] = value;
         }
       },
-      value,
+      typeof value === "function" ? value : () => value,
     );
   },
 
@@ -253,12 +272,14 @@ const methods = {
     const stylesheet = new CSSStyleSheet();
 
     if ("media" in options) {
-      mutate(
+      mutateWithCallback<string, Document>(
         element,
         (_element, val) => {
-          stylesheet.media = val as string;
+          stylesheet.media = val;
         },
-        options.media,
+        options.media != null && typeof options?.media === "function"
+          ? options.media
+          : (() => options.media ?? "all") as () => string,
       );
     }
 
@@ -268,12 +289,12 @@ const methods = {
       stylesheet,
     );
 
-    mutate(
+    mutateWithCallback<string, Document>(
       element,
       (_element, css) => {
-        stylesheet.replaceSync(css as string);
+        stylesheet.replaceSync(css);
       },
-      css,
+      typeof css === "function" ? css : () => css,
     );
   },
 
@@ -295,14 +316,14 @@ const methods = {
       }
 
       for (const [key, value] of Object.entries(c)) {
-        mutate(
+        mutateWithCallback<boolean>(
           element,
           (element, value) => {
             for (const k of key.split(" ")) {
-              (element as Element).classList.toggle(k, value as boolean);
+              element.classList.toggle(k, value);
             }
           },
-          value,
+          typeof value === "function" ? value : () => value,
         );
       }
     }
@@ -310,19 +331,19 @@ const methods = {
 
   data(element: HTMLElement, data: HandcraftMethodRecordValue) {
     for (const [key, value] of Object.entries(data)) {
-      mutate(
+      mutateWithCallback<HandcraftValue>(
         element,
         (element, value) => {
           (element as HTMLElement).dataset[key] = value as (string | undefined);
         },
-        value,
+        typeof value === "function" ? value : () => value,
       );
     }
   },
 
   style(element: HTMLElement, styles: HandcraftMethodRecordValue) {
     for (const [key, value] of Object.entries(styles)) {
-      mutate(
+      mutateWithCallback<HandcraftValue>(
         element,
         (element, value) => {
           (element as HTMLElement).style.setProperty(
@@ -330,7 +351,7 @@ const methods = {
             value as (string | null),
           );
         },
-        value,
+        typeof value === "function" ? value : () => value,
       );
     }
 
@@ -339,7 +360,7 @@ const methods = {
 };
 
 const observeMethods = {
-  attr(element, key) {
+  attr(element: Element, key: string) {
     const value = element.getAttribute(key);
 
     if (!inEffect()) {
@@ -355,9 +376,12 @@ const observeMethods = {
             const state = states.get(record.target);
 
             if (state) {
-              state[record.attributeName] = record.target.getAttribute(
-                record.attributeName,
-              );
+              if (record.target instanceof Element) {
+                state[record.attributeName as string] = record.target
+                  .getAttribute(
+                    record.attributeName as string,
+                  );
+              }
             }
           }
         }
@@ -374,7 +398,7 @@ const observeMethods = {
 
     return state[key];
   },
-  find(element, selector) {
+  find(element: Element, selector: string) {
     selector = `:scope ${selector}`;
 
     const result = [...element.querySelectorAll(selector)];
@@ -393,13 +417,15 @@ const observeMethods = {
 
             if (results) {
               for (const selector of Object.keys(results)) {
-                for (
-                  const result of record.target.querySelectorAll(
-                    selector,
-                  )
-                ) {
-                  if ([...record.addedNodes].includes(result)) {
-                    results[selector] = [...results[selector], result];
+                if (record.target instanceof Element) {
+                  for (
+                    const result of record.target.querySelectorAll(
+                      selector,
+                    )
+                  ) {
+                    if ([...record.addedNodes].includes(result)) {
+                      results[selector] = [...results[selector], result];
+                    }
                   }
                 }
               }
@@ -417,19 +443,28 @@ const observeMethods = {
       results[selector] = result;
     }
 
-    return results[selector].splice(0, Infinity).map((r) => $(r));
+    return results[selector].splice(0, Infinity).map((r: Element) => $(r));
   },
 };
 
-function patch(element, props, children) {
+function patch(
+  element: Element,
+  props: Array<{
+    method: string;
+    args: Array<HandcraftMethodValue | HandcraftMethodRecordValue>;
+  }>,
+  children: Array<HandcraftMethodChild>,
+) {
   let i = 0;
   let j = 0;
 
-  mutate(element, (element) => {
+  mutate<Element>(element, (element) => {
     for (const { method, args } of props.slice(i)) {
-      if (methods[method]) {
-        methods[method](element, ...args);
+      if (method in methods) {
+        // @ts-ignore ignore silly error
+        methods[method as keyof typeof methods](element, ...args);
       } else {
+        // @ts-ignore ignore silly error
         attr(element, method, ...args);
       }
     }
@@ -442,18 +477,24 @@ function patch(element, props, children) {
 }
 
 export function $(element: Element) {
-  const el = {
+  const el: {
+    props: Array<{
+      method: string;
+      args: Array<HandcraftMethodValue | HandcraftMethodRecordValue>;
+    }>;
+    children: Array<HandcraftMethodChild>;
+  } = {
     props: watch([]),
     children: watch([]),
   };
 
   const proxy = new Proxy(() => {}, {
-    apply(_, __, args) {
+    apply(_, __, args: Array<HandcraftMethodChild>) {
       el.children.push(...args);
 
       return proxy;
     },
-    get(_, key) {
+    get(_, key: string) {
       if (key === "then") {
         return undefined;
       }
@@ -467,10 +508,15 @@ export function $(element: Element) {
       }
 
       if (key in observeMethods) {
-        return observeMethods[key].bind(null, element);
+        return observeMethods[key as keyof typeof observeMethods].bind(
+          null,
+          element,
+        );
       }
 
-      return (...args) => {
+      return (
+        ...args: Array<HandcraftMethodValue | HandcraftMethodRecordValue>
+      ) => {
         el.props.push({ method: key, args });
 
         return proxy;
@@ -485,29 +531,38 @@ export function $(element: Element) {
   return proxy;
 }
 
-function mutate(
-  element: Node,
+function mutateWithCallback<Result, T extends object = Element>(
+  element: T,
   callback: (
-    element: Node,
-    value:
-      | string
-      | number
-      | boolean
-      | null,
+    element: T,
+    value: Result,
   ) => void,
-  value: HandcraftMethodValue = (() => null),
+  value: () => Result,
 ) {
-  if (typeof value !== "function") {
-    callback(element, value);
-  } else if (typeof value === "function") {
-    const el = new WeakRef(element);
+  const el = new WeakRef(element);
 
-    effect(() => {
-      const e = el.deref();
+  effect(() => {
+    const e = el.deref();
 
-      if (e && e.isConnected) {
-        callback(e, value());
-      }
-    });
-  }
+    if (e && "isConnected" in e && e.isConnected) {
+      callback(e, value());
+    }
+  });
+}
+
+function mutate<T extends object = Element>(
+  element: T,
+  callback: (
+    element: T,
+  ) => void,
+) {
+  const el = new WeakRef(element);
+
+  effect(() => {
+    const e = el.deref();
+
+    if (e && "isConnected" in e && e.isConnected) {
+      callback(e);
+    }
+  });
 }

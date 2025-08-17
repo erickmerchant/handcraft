@@ -176,7 +176,12 @@ function getValue(value: HandcraftMethodValue) {
 
 function getAttr(
   key: string,
-  value: string | number | boolean | null | (() => HandcraftMethodValue),
+  value:
+    | string
+    | number
+    | boolean
+    | null
+    | (() => string | number | boolean | null),
 ) {
   const v = getValue(value);
 

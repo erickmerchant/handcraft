@@ -1,13 +1,12 @@
-type HandcraftMethodValue =
+type HandcraftValue =
   | string
   | number
   | boolean
-  | null
-  | (() =>
-    | string
-    | number
-    | boolean
-    | null);
+  | null;
+
+type HandcraftMethodValue =
+  | HandcraftValue
+  | (() => HandcraftValue);
 
 type HandcraftMethodRecordValue = Record<
   string,
@@ -19,11 +18,11 @@ type HandcraftElementChild = HandcraftElement | string | null;
 type HandcraftElementFactory = () => HandcraftElementChild;
 
 type HandcraftMethodChild =
-  | HandcraftElement
-  | IterableIterator<HandcraftElementFactory>
-  | string
-  | null
-  | HandcraftElementFactory;
+  | HandcraftElementChild
+  | (
+    | Iterable<HandcraftElementFactory>
+    | HandcraftElementFactory
+  );
 
 type HandcraftElementValue = {
   tag?: string;
