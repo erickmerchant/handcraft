@@ -29,7 +29,7 @@ function escape(str: { toString: () => string }): string {
   });
 }
 
-export function render(node: HandcraftElementChild) : string {
+export function render(node: HandcraftElementChild): string {
   if (node == null) return "";
 
   if (typeof node !== "function") {

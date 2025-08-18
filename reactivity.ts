@@ -74,11 +74,11 @@ export function effect(callback: () => void) {
   }
 }
 
-export function inEffect() : boolean {
+export function inEffect(): boolean {
   return current != null;
 }
 
-export function watch<T extends object>(object: T) : T {
+export function watch<T extends object>(object: T): T {
   reads.set(object, new Map());
 
   return new Proxy<T>(object, {

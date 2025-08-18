@@ -10,7 +10,7 @@ function create(
   tag?: string,
   namespace?: string,
   options?: Record<string, string>,
-) : HandcraftElement {
+): HandcraftElement {
   const value: HandcraftElementValue = {
     tag,
     namespace,
@@ -73,12 +73,15 @@ function factory(namespace: string): Record<string, HandcraftElement> {
   ) as Record<string, HandcraftElement>;
 }
 
-export const h : Record<"html" | "svg" | "math", Record<string, HandcraftElement>> = {
+export const h: Record<
+  "html" | "svg" | "math",
+  Record<string, HandcraftElement>
+> = {
   html: factory("html"),
   svg: factory("svg"),
   math: factory("math"),
 };
 
-export function shadow(options: Record<string, string>) : HandcraftElement {
+export function shadow(options: Record<string, string>): HandcraftElement {
   return create(undefined, undefined, options);
 }

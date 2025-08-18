@@ -80,7 +80,7 @@ type HandcraftDefineFactory = {
 };
 type HandcraftDefineAPI = HandcraftElement & HandcraftDefineFactory;
 
-type HandcraftControlCallback = () => HandcraftElement | void
+type HandcraftControlCallback = () => HandcraftElement | void;
 
 type HandcraftEachIndex = () => number;
 type HandcraftEachStore<T> = {
@@ -110,6 +110,6 @@ type HandcraftEachAPI<T> = {
 } & Iterable<HandcraftControlCallback>;
 
 type HandcraftWhenAPI = {
-	show(cb: HandcraftControlCallback): HandcraftWhenAPI,
-  fallback(cb: HandcraftControlCallback) : HandcraftWhenAPI,
-} & Iterable<HandcraftControlCallback>
+  show(cb: HandcraftControlCallback): HandcraftWhenAPI;
+  fallback(cb: HandcraftControlCallback): HandcraftWhenAPI;
+} & Iterable<HandcraftControlCallback>;
