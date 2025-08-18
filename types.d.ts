@@ -79,3 +79,37 @@ type HandcraftDefineFactory = {
   teardown: (cb: HandcraftDefineLifeCycleCallback) => HandcraftDefineAPI;
 };
 type HandcraftDefineAPI = HandcraftElement & HandcraftDefineFactory;
+
+type HandcraftControlCallback = () => HandcraftElement | void
+
+type HandcraftEachIndex = () => number;
+type HandcraftEachStore<T> = {
+  value: T | null;
+  index: number;
+};
+type HandcraftEachCurrent<T> = {
+  store: HandcraftEachStore<T>;
+  value: (() => T) & T;
+  index: HandcraftEachIndex;
+};
+type HandcraftEachFilterCurrent<T> = {
+  (): T;
+} & T;
+type HandcraftEachMapper<T> = (
+  current: () => T,
+  index: HandcraftEachIndex,
+) => HandcraftElement | void;
+type HandcraftEachFilterer<T> = (
+  current: HandcraftEachFilterCurrent<T>,
+  index: HandcraftEachIndex,
+) => boolean;
+type HandcraftEachAPI<T> = {
+  map(cb: HandcraftEachMapper<T>): HandcraftEachAPI<T>;
+  filter(cb: HandcraftEachFilterer<T>): HandcraftEachAPI<T>;
+  fallback(cb: HandcraftControlCallback): HandcraftEachAPI<T>;
+} & Iterable<HandcraftControlCallback>;
+
+type HandcraftWhenAPI = {
+	show(cb: HandcraftControlCallback): HandcraftWhenAPI,
+  fallback(cb: HandcraftControlCallback) : HandcraftWhenAPI,
+} & Iterable<HandcraftControlCallback>

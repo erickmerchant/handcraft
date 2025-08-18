@@ -31,12 +31,12 @@ function node(
   if (
     element != null && typeof element === "function"
   ) {
-    if ((element as HandcraftElement).value == null) {
+    if ((element as HandcraftElement).value == null) { // fix
       element = element();
     }
 
-    if ((element as HandcraftElement).value != null) {
-      const result = (element as HandcraftElement).value;
+    if ((element as HandcraftElement).value != null) { // fix
+      const result = (element as HandcraftElement).value; // fix
 
       if (result instanceof Element) return result;
 
@@ -150,7 +150,7 @@ function nodes<T extends Node = Element>(
       mutateWithCallback<HandcraftElementChild | HandcraftElementFactory, Node>(
         element,
         (_, child) => {
-          const c = node(element, child as HandcraftElementChild);
+          const c = node(element, child);
 
           if (c != null) {
             const p = weakPrev.deref();
@@ -334,7 +334,7 @@ const methods = {
       mutateWithCallback<HandcraftValue>(
         element,
         (element, value) => {
-          (element as HTMLElement).dataset[key] = value as (string | undefined);
+          (element as HTMLElement).dataset[key] = value as (string | undefined); // fix
         },
         typeof value === "function" ? value : () => value,
       );
@@ -349,7 +349,7 @@ const methods = {
           (element as HTMLElement).style.setProperty(
             key,
             value as (string | null),
-          );
+          ); // fix
         },
         typeof value === "function" ? value : () => value,
       );
@@ -476,7 +476,7 @@ function patch<T extends Node = Element>(
   });
 }
 
-export function $(element: Element) {
+export function $(element: Element): HandcraftElement {
   const el: {
     props: Array<{
       method: string;

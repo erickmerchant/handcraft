@@ -1,46 +1,29 @@
 import { watch } from "./reactivity.ts";
 
-export function each<T>(list: Array<T>) {
-  type Index = () => number;
-  type Store = {
-    value: T | null;
-    index: number;
-  };
-  type Current = {
-    store: Store;
-    value: (() => T) & T;
-    index: Index;
-  };
-  type FilterCurrent = {
-    (): T;
-  } & T;
-  type Mapper = (current: () => T, index: Index) => HandcraftElement | void;
-  type Filterer = (current: FilterCurrent, index: Index) => boolean;
-  type Fallback = () => HandcraftElement | void;
-
-  let mapper: Mapper;
-  let filterer: Filterer = () => true;
-  let fallback: Fallback = () => {};
-  const entries: Array<Current> = [];
-  let current: Current;
-  const show = () => {
+export function each<T>(list: Array<T>): HandcraftEachAPI<T> {
+  let mapper: HandcraftEachMapper<T>;
+  let filterer: HandcraftEachFilterer<T> = () => true;
+  let fallback: HandcraftControlCallback = () => {};
+  const entries: Array<HandcraftEachCurrent<T>> = [];
+  let current: HandcraftEachCurrent<T>;
+  const show: HandcraftControlCallback = () => {
     return mapper(current.value, current.index);
   };
 
   return {
-    map(cb: Mapper) {
+    map(cb: HandcraftEachMapper<T>) {
       mapper = cb;
 
       return this;
     },
 
-    filter(cb: Filterer) {
+    filter(cb: HandcraftEachFilterer<T>) {
       filterer = cb;
 
       return this;
     },
 
-    fallback(cb: Fallback) {
+    fallback(cb: HandcraftControlCallback) {
       fallback = cb;
 
       return this;
@@ -62,7 +45,7 @@ export function each<T>(list: Array<T>) {
                   ? Reflect.get(value, p)
                   : undefined;
               },
-            }) as FilterCurrent,
+            }) as HandcraftEachFilterCurrent<T>,
             () => index,
           )
         ) {
@@ -72,7 +55,7 @@ export function each<T>(list: Array<T>) {
         current = entries[i];
 
         if (!current) {
-          const store: Store = watch({
+          const store: HandcraftEachStore<T> = watch({
             value: null,
             index,
           });
@@ -103,7 +86,7 @@ export function each<T>(list: Array<T>) {
             index() {
               return store.index;
             },
-          } as Current;
+          } as HandcraftEachCurrent<T>;
 
           entries.push(current);
         }

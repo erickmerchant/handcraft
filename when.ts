@@ -1,16 +1,16 @@
-export function when<T>(cb: (prev: boolean | void) => boolean) {
-  let show: () => HandcraftElement | void;
-  let fallback: () => HandcraftElement | void = () => {};
+export function when<T>(cb: (prev: boolean | void) => boolean) : HandcraftWhenAPI {
+  let show: HandcraftControlCallback;
+  let fallback: HandcraftControlCallback = () => {};
   let previous: boolean | void;
 
   return {
-    show(cb: () => HandcraftElement | void) {
+    show(cb: HandcraftControlCallback) {
       show = cb;
 
       return this;
     },
 
-    fallback(cb: () => HandcraftElement | void) {
+    fallback(cb: HandcraftControlCallback) {
       fallback = cb;
 
       return this;

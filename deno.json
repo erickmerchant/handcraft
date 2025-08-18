@@ -1,5 +1,5 @@
 {
-  "name": "handcraft",
+  "name": "@handcraft/framework",
   "version": "0.20.0",
   "license": "MIT",
   "exports": {
@@ -7,6 +7,7 @@
   },
   "imports": {},
   "compilerOptions": {
+    "types": ["./types.d.ts"],
     "lib": ["dom", "dom.iterable", "es2023"]
   },
   "lint": {
