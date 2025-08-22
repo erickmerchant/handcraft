@@ -1,13 +1,12 @@
 {
   "name": "@handcraft/lib",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "license": "MIT",
   "exports": {
     ".": "./mod.ts"
   },
   "imports": {},
   "compilerOptions": {
-    "types": ["./types.d.ts"],
     "lib": ["dom", "dom.iterable", "es2023"]
   },
   "lint": {

@@ -1,5 +1,15 @@
 import { effect, inEffect, watch } from "./reactivity.ts";
 import { namespaces } from "./mod.ts";
+import type {
+  HandcraftChildArg,
+  HandcraftElement,
+  HandcraftNode,
+  HandcraftObservedElement,
+  HandcraftValue,
+  HandcraftValueArg,
+  HandcraftValueRecordArg,
+  HandcraftNodeFactory
+} from "./types.ts";
 
 const position = {
   start: Symbol("start"),

@@ -1,3 +1,10 @@
+import type {
+  HandcraftChildArg,
+  HandcraftElement,
+  HandcraftElementValue,
+  HandcraftValueArg,
+  HandcraftValueRecordArg,
+} from "./types.ts";
 import { watch } from "./reactivity.ts";
 
 export const namespaces: Record<string, string> = {

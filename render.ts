@@ -1,3 +1,4 @@
+import type {HandcraftNode, HandcraftElement, HandcraftValueArg} from "./types.ts"
 import { namespaces } from "./h.ts";
 
 const VOID_ELEMENTS = [

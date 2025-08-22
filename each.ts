@@ -1,3 +1,13 @@
+import type {
+  HandcraftControlCallback,
+  HandcraftEachAPI,
+  HandcraftEachCurrent,
+  HandcraftEachFilterCurrent,
+  HandcraftEachFilterer,
+  HandcraftEachMapper,
+  HandcraftEachStore,
+} from "./types.ts";
+
 import { watch } from "./reactivity.ts";
 
 export function each<T>(list: Array<T>): HandcraftEachAPI<T> {

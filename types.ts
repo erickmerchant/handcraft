@@ -1,28 +1,28 @@
-type HandcraftValue =
+export type HandcraftValue =
   | string
   | number
   | boolean
   | null;
 
-type HandcraftValueArg =
+export type HandcraftValueArg =
   | HandcraftValue
   | (() => HandcraftValue);
 
-type HandcraftValueRecordArg = Record<
+export type HandcraftValueRecordArg = Record<
   string,
   HandcraftValueArg
 >;
 
-type HandcraftNode = HandcraftElement | string | null;
+export type HandcraftNode = HandcraftElement | string | null;
 
-type HandcraftNodeFactory = () => HandcraftNode;
+export type HandcraftNodeFactory = () => HandcraftNode;
 
-type HandcraftChildArg =
+export type HandcraftChildArg =
   | HandcraftNode
   | Iterable<HandcraftControlCallback>
   | HandcraftNodeFactory;
 
-type HandcraftElementValue = {
+export type HandcraftElementValue = {
   tag?: string;
   namespace?: string;
   options?: Record<string, string>;
@@ -33,7 +33,7 @@ type HandcraftElementValue = {
   children: Array<HandcraftChildArg>;
 };
 
-type HandcraftElement =
+export type HandcraftElement =
   & {
     (
       ...children: Array<HandcraftChildArg>
@@ -85,56 +85,58 @@ type HandcraftElement =
     ) => HandcraftElement)
   >;
 
-type HandcraftObservedElement = {
+export type HandcraftObservedElement = {
   attr(key: string): string | null;
   find(selector: string): Array<HandcraftObservedElement>;
 } & HandcraftElement;
 
-type HandcraftDefineLifeCycleCallback = (el: HandcraftObservedElement) => void;
+export type HandcraftDefineLifeCycleCallback = (
+  el: HandcraftObservedElement,
+) => void;
 
-type HandcraftDefineFactory = {
+export type HandcraftDefineFactory = {
   setup: (cb: HandcraftDefineLifeCycleCallback) => HandcraftDefineAPI;
   teardown: (cb: HandcraftDefineLifeCycleCallback) => HandcraftDefineAPI;
 };
 
-type HandcraftDefineAPI = HandcraftElement & HandcraftDefineFactory;
+export type HandcraftDefineAPI = HandcraftElement & HandcraftDefineFactory;
 
-type HandcraftControlCallback = () => HandcraftElement | void;
+export type HandcraftControlCallback = () => HandcraftElement | void;
 
-type HandcraftEachIndex = () => number;
+export type HandcraftEachIndex = () => number;
 
-type HandcraftEachStore<T> = {
+export type HandcraftEachStore<T> = {
   value: T | null;
   index: number;
 };
 
-type HandcraftEachCurrent<T> = {
+export type HandcraftEachCurrent<T> = {
   store: HandcraftEachStore<T>;
   value: (() => T) & T;
   index: HandcraftEachIndex;
 };
 
-type HandcraftEachFilterCurrent<T> = {
+export type HandcraftEachFilterCurrent<T> = {
   (): T;
 } & T;
 
-type HandcraftEachMapper<T> = (
+export type HandcraftEachMapper<T> = (
   current: (() => T) & T,
   index: HandcraftEachIndex,
 ) => HandcraftElement | void;
 
-type HandcraftEachFilterer<T> = (
+export type HandcraftEachFilterer<T> = (
   current: HandcraftEachFilterCurrent<T>,
   index: HandcraftEachIndex,
 ) => boolean;
 
-type HandcraftEachAPI<T> = {
+export type HandcraftEachAPI<T> = {
   map(cb: HandcraftEachMapper<T>): HandcraftEachAPI<T>;
   filter(cb: HandcraftEachFilterer<T>): HandcraftEachAPI<T>;
   fallback(cb: HandcraftControlCallback): HandcraftEachAPI<T>;
 } & Iterable<HandcraftControlCallback>;
 
-type HandcraftWhenAPI = {
+export type HandcraftWhenAPI = {
   show(cb: HandcraftControlCallback): HandcraftWhenAPI;
   fallback(cb: HandcraftControlCallback): HandcraftWhenAPI;
 } & Iterable<HandcraftControlCallback>;

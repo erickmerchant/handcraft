@@ -1,3 +1,9 @@
+import type {
+  HandcraftChildArg,
+  HandcraftDefineAPI,
+  HandcraftDefineFactory,
+  HandcraftDefineLifeCycleCallback,
+} from "./mod.ts";
 import { h } from "./mod.ts";
 import { $ } from "./dollar.ts";
 
