@@ -29,7 +29,7 @@ function escape(str: { toString: () => string }): string {
   });
 }
 
-export function render(node: HandcraftElementChild): string {
+export function render(node: HandcraftNode): string {
   if (node == null) return "";
 
   if (typeof node !== "function") {
@@ -44,37 +44,20 @@ export function render(node: HandcraftElementChild): string {
 
   let result = "";
   let css = "";
+  let html = "";
 
   if (value.tag === "html" && value.namespace === "html") {
     result += "<!doctype html>";
   }
 
-  if (value.tag != null) {
+  if (value.namespace != null) {
     result += "<" + value.tag;
 
     if (value.namespace !== "html" && value.tag === value.namespace) {
       result += ' xmlns="' + namespaces[value.namespace] + '"';
     }
-  } else {
+  } else if (value.tag === "shadow") {
     result += `<template shadowrootmode="${value.options?.mode ?? "open"}"`;
-  }
-
-  const children = [];
-
-  for (const child of value.children.flat(Infinity)) {
-    if (!child) continue;
-
-    if (
-      child != null
-    ) {
-      if (typeof child === "object" && Symbol.iterator in child) {
-        for (const c of child) {
-          children.push(render(c()));
-        }
-      } else {
-        children.push(render(typeof child === "function" ? child() : child));
-      }
-    }
   }
 
   for (const { method, args } of value.props) {
@@ -139,10 +122,20 @@ export function render(node: HandcraftElementChild): string {
 
     if (method === "css") {
       if (
-        value.tag == null &&
+        value.tag === "shadow" &&
         (typeof args[0] === "string" || typeof args[0] === "function")
       ) {
         css += getValue(args[0]);
+      }
+
+      continue;
+    }
+
+    if (method === "html") {
+      if (
+        (typeof args[0] === "string" || typeof args[0] === "function")
+      ) {
+        html += getValue(args[0]);
       }
 
       continue;
@@ -156,24 +149,55 @@ export function render(node: HandcraftElementChild): string {
     }
   }
 
-  result += ">";
+  if (value.tag !== "fragment") result += ">";
 
-  if (value.tag != null) {
-    if (!VOID_ELEMENTS.includes(value.tag)) {
-      result += children.join("") + "</" + value.tag + ">";
-    }
-  } else {
+  if (value.tag === "shadow") {
     if (css) {
       result += `<style>${escape(css)}</style>`;
     }
+  }
 
-    result += children.join("") + `</template>`;
+  if (html) {
+    result += html;
+  } else {
+    for (const child of value.children.flat(Infinity)) {
+      if (!child) continue;
+
+      if (
+        child != null
+      ) {
+        if (typeof child === "object" && Symbol.iterator in child) {
+          for (const c of child) {
+            const r = c();
+
+            if (!r) continue;
+
+            result += render(r);
+          }
+        } else {
+          result += render(
+            (typeof child === "function" &&
+                (child as HandcraftElement).value == null
+              ? child()
+              : child) as HandcraftNode,
+          );
+        }
+      }
+    }
+  }
+
+  if (value.namespace != null && value.tag != null) {
+    if (!VOID_ELEMENTS.includes(value.tag)) {
+      result += "</" + value.tag + ">";
+    }
+  } else if (value.tag === "shadow") {
+    result += `</template>`;
   }
 
   return result;
 }
 
-function getValue(value: HandcraftMethodValue) {
+function getValue(value: HandcraftValueArg) {
   return typeof value === "function" ? value() : value;
 }
 

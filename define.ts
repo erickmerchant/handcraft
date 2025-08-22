@@ -41,7 +41,7 @@ export function define(name: string): HandcraftDefineFactory {
     },
   };
   const proxy = new Proxy(() => {}, {
-    apply(_, __, children: Array<HandcraftMethodChild>) {
+    apply(_, __, children: Array<HandcraftChildArg>) {
       return tag(...children);
     },
     get(_, key) {

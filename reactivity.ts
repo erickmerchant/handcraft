@@ -56,7 +56,7 @@ export function effect(callback: () => void) {
     if (!scheduled) {
       scheduled = true;
 
-      setTimeout(() => {
+      queueMicrotask(() => {
         scheduled = false;
 
         const callbacks = queue.splice(0, Infinity);
@@ -69,7 +69,7 @@ export function effect(callback: () => void) {
         }
 
         current = prev;
-      }, 0);
+      });
     }
   }
 }

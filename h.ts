@@ -20,7 +20,7 @@ function create(
   };
 
   const proxy = new Proxy(() => {}, {
-    apply(_, __, args: Array<HandcraftMethodChild>) {
+    apply(_, __, args: Array<HandcraftChildArg>) {
       value.children.push(...args);
 
       return proxy;
@@ -39,7 +39,7 @@ function create(
       }
 
       return (
-        ...args: Array<HandcraftMethodValue | HandcraftMethodRecordValue>
+        ...args: Array<HandcraftValueArg | HandcraftValueRecordArg>
       ) => {
         value.props.push({ method: key, args });
 
@@ -82,6 +82,10 @@ export const h: Record<
   math: factory("math"),
 };
 
-export function shadow(options: Record<string, string>): HandcraftElement {
-  return create(undefined, undefined, options);
+export function shadow(options?: Record<string, string>): HandcraftElement {
+  return create("shadow", undefined, options);
+}
+
+export function fragment(): HandcraftElement {
+  return create("fragment", undefined);
 }

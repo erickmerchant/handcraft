@@ -1,3 +1,4 @@
+import "./types.d.ts";
 export * from "./define.ts";
 export * from "./dollar.ts";
 export * from "./each.ts";
