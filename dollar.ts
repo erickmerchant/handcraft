@@ -4,11 +4,11 @@ import type {
   HandcraftChildArg,
   HandcraftElement,
   HandcraftNode,
+  HandcraftNodeFactory,
   HandcraftObservedElement,
   HandcraftValue,
   HandcraftValueArg,
   HandcraftValueRecordArg,
-  HandcraftNodeFactory
 } from "./types.ts";
 
 const position = {
