@@ -1,15 +1,15 @@
-import { effect, inEffect, watch } from "./reactivity.ts";
-import { namespaces } from "./mod.ts";
 import type {
   HandcraftChildArg,
-  HandcraftElement,
   HandcraftNode,
   HandcraftNodeFactory,
   HandcraftObservedElement,
   HandcraftValue,
   HandcraftValueArg,
   HandcraftValueRecordArg,
-} from "./types.ts";
+} from "./mod.ts";
+import { effect, inEffect, watch } from "./reactivity.ts";
+import { namespaces } from "./h.ts";
+import { isHandcraftElement, VNODE } from "./mod.ts";
 
 const position = {
   start: Symbol("start"),
@@ -77,8 +77,8 @@ const methods = {
     mutate(element, cb);
   },
 
-  prop(element: Element, key: string, value: HandcraftValueArg) {
-    mutateWithCallback<HandcraftValueArg>(
+  prop<T>(element: Element, key: string, value: HandcraftValueArg<T>) {
+    mutateWithCallback<T>(
       element,
       (element, value) => {
         if (key in element) {
@@ -86,7 +86,7 @@ const methods = {
           element[key as keyof typeof element] = value;
         }
       },
-      typeof value === "function" ? value : () => value,
+      (typeof value === "function" ? value : () => value) as (() => T),
     );
   },
 
@@ -157,25 +157,38 @@ const methods = {
 
   data(element: HTMLElement, data: HandcraftValueRecordArg) {
     for (const [key, value] of Object.entries(data)) {
-      mutateWithCallback<HandcraftValue>(
+      mutateWithCallback<HandcraftValue, HTMLElement>(
         element,
         (element, value) => {
-          (element as HTMLElement).dataset[key] = value as (string | undefined); // fix
+          if (value == null || value === false) {
+            delete element.dataset[key];
+          } else {
+            element.dataset[key] = value === true ? "" : `${value}`;
+          }
         },
         typeof value === "function" ? value : () => value,
       );
     }
   },
 
-  style(element: HTMLElement, styles: HandcraftValueRecordArg) {
+  style(
+    element: HTMLElement,
+    styles: HandcraftValueRecordArg<string | number | null>,
+  ) {
     for (const [key, value] of Object.entries(styles)) {
-      mutateWithCallback<HandcraftValue>(
+      mutateWithCallback<string | number | null, HTMLElement>(
         element,
         (element, value) => {
-          (element as HTMLElement).style.setProperty(
-            key,
-            value as (string | null),
-          ); // fix
+          if (value == null) {
+            element.style.removeProperty(
+              key,
+            );
+          } else {
+            element.style.setProperty(
+              key,
+              `${value}`,
+            );
+          }
         },
         typeof value === "function" ? value : () => value,
       );
@@ -304,7 +317,10 @@ export function $(element: Element): HandcraftObservedElement {
 
       return proxy;
     },
-    get(_, key: string) {
+    has(_target, key) {
+      return key === VNODE;
+    },
+    get(_, key: string | symbol) {
       if (key === "then") {
         return undefined;
       }
@@ -313,7 +329,7 @@ export function $(element: Element): HandcraftObservedElement {
         return () => element;
       }
 
-      if (key === "value") {
+      if (key === VNODE) {
         return element;
       }
 
@@ -327,7 +343,9 @@ export function $(element: Element): HandcraftObservedElement {
       return (
         ...args: Array<HandcraftValueArg | HandcraftValueRecordArg>
       ) => {
-        el.props.push({ method: key, args });
+        if (typeof key === "string") {
+          el.props.push({ method: key, args });
+        }
 
         return proxy;
       };
@@ -502,12 +520,12 @@ function node(
   if (
     element != null && typeof element === "function"
   ) {
-    if ((element as HandcraftElement).value == null) { // fix
+    if (!isHandcraftElement(element)) {
       element = element();
     }
 
-    if ((element as HandcraftElement).value != null) { // fix
-      const result = (element as HandcraftElement).value; // fix
+    if (isHandcraftElement(element)) {
+      const result = element[VNODE];
 
       if (result instanceof Element) return result;
 
@@ -557,7 +575,7 @@ function attr(element: Element, key: string, value: HandcraftValueArg) {
       if (value === true || value === false || value == null) {
         element.toggleAttribute(key, !!value);
       } else {
-        element.setAttribute(key, value as string);
+        element.setAttribute(key, `${value}`);
       }
     },
     typeof value === "function" ? value : () => value,

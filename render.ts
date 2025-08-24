@@ -1,8 +1,5 @@
-import type {
-  HandcraftElement,
-  HandcraftNode,
-  HandcraftValueArg,
-} from "./types.ts";
+import type { HandcraftNode, HandcraftValueArg } from "./mod.ts";
+import { isHandcraftElement, VNODE } from "./mod.ts";
 import { namespaces } from "./h.ts";
 
 const VOID_ELEMENTS = [
@@ -41,31 +38,31 @@ export function render(node: HandcraftNode): string {
     return escape(node);
   }
 
-  if (node.value == null) {
+  if (node[VNODE] == null) {
     return "";
   }
 
-  const value = node.value;
+  const vnode = node[VNODE];
 
   let result = "";
   let css = "";
   let html = "";
 
-  if (value.tag === "html" && value.namespace === "html") {
+  if (vnode.tag === "html" && vnode.namespace === "html") {
     result += "<!doctype html>";
   }
 
-  if (value.namespace != null) {
-    result += "<" + value.tag;
+  if (vnode.namespace != null) {
+    result += "<" + vnode.tag;
 
-    if (value.namespace !== "html" && value.tag === value.namespace) {
-      result += ' xmlns="' + namespaces[value.namespace] + '"';
+    if (vnode.namespace !== "html" && vnode.tag === vnode.namespace) {
+      result += ' xmlns="' + namespaces[vnode.namespace] + '"';
     }
-  } else if (value.tag === "shadow") {
-    result += `<template shadowrootmode="${value.options?.mode ?? "open"}"`;
+  } else if (vnode.tag === "shadow") {
+    result += `<template shadowrootmode="${vnode.options?.mode ?? "open"}"`;
   }
 
-  for (const { method, args } of value.props) {
+  for (const { method, args } of vnode.props) {
     if (["on", "once", "command", "prop", "effect"].includes(method)) continue;
 
     if (method === "aria" && args[0] != null && typeof args[0] == "object") {
@@ -127,7 +124,7 @@ export function render(node: HandcraftNode): string {
 
     if (method === "css") {
       if (
-        value.tag === "shadow" &&
+        vnode.tag === "shadow" &&
         (typeof args[0] === "string" || typeof args[0] === "function")
       ) {
         css += getValue(args[0]);
@@ -154,9 +151,9 @@ export function render(node: HandcraftNode): string {
     }
   }
 
-  if (value.tag !== "fragment") result += ">";
+  if (vnode.tag !== "fragment") result += ">";
 
-  if (value.tag === "shadow") {
+  if (vnode.tag === "shadow") {
     if (css) {
       result += `<style>${escape(css)}</style>`;
     }
@@ -165,7 +162,7 @@ export function render(node: HandcraftNode): string {
   if (html) {
     result += html;
   } else {
-    for (const child of value.children.flat(Infinity)) {
+    for (const child of vnode.children.flat(Infinity)) {
       if (!child) continue;
 
       if (
@@ -181,21 +178,21 @@ export function render(node: HandcraftNode): string {
           }
         } else {
           result += render(
-            (typeof child === "function" &&
-                (child as HandcraftElement).value == null
+            typeof child === "function" &&
+              !isHandcraftElement(child)
               ? child()
-              : child) as HandcraftNode,
+              : child,
           );
         }
       }
     }
   }
 
-  if (value.namespace != null && value.tag != null) {
-    if (!VOID_ELEMENTS.includes(value.tag)) {
-      result += "</" + value.tag + ">";
+  if (vnode.namespace != null && vnode.tag != null) {
+    if (!VOID_ELEMENTS.includes(vnode.tag)) {
+      result += "</" + vnode.tag + ">";
     }
-  } else if (value.tag === "shadow") {
+  } else if (vnode.tag === "shadow") {
     result += `</template>`;
   }
 

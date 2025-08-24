@@ -6,7 +6,7 @@ import type {
   HandcraftEachFilterer,
   HandcraftEachMapper,
   HandcraftEachStore,
-} from "./types.ts";
+} from "./mod.ts";
 
 import { watch } from "./reactivity.ts";
 

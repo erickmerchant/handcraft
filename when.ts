@@ -1,4 +1,4 @@
-import type { HandcraftControlCallback, HandcraftWhenAPI } from "./types.ts";
+import type { HandcraftControlCallback, HandcraftWhenAPI } from "./mod.ts";
 
 export function when<T>(
   cb: (prev: boolean | void) => boolean,

@@ -4,7 +4,8 @@ import type {
   HandcraftElementValue,
   HandcraftValueArg,
   HandcraftValueRecordArg,
-} from "./types.ts";
+} from "./mod.ts";
+import { VNODE } from "./mod.ts";
 import { watch } from "./reactivity.ts";
 
 export const namespaces: Record<string, string> = {
@@ -18,7 +19,7 @@ function create(
   namespace?: string,
   options?: Record<string, string>,
 ): HandcraftElement {
-  const value: HandcraftElementValue = {
+  const vnode: HandcraftElementValue = {
     tag,
     namespace,
     options,
@@ -28,27 +29,32 @@ function create(
 
   const proxy = new Proxy(() => {}, {
     apply(_, __, args: Array<HandcraftChildArg>) {
-      value.children.push(...args);
+      vnode.children.push(...args);
 
       return proxy;
     },
-    get(_, key: string) {
+    has(_target, key) {
+      return key === VNODE;
+    },
+    get(_, key: string | symbol) {
       if (key === "then") {
         return undefined;
       }
 
       if (key === "toJSON") {
-        return () => value;
+        return () => vnode;
       }
 
-      if (key === "value") {
-        return value;
+      if (key === VNODE) {
+        return vnode;
       }
 
       return (
         ...args: Array<HandcraftValueArg | HandcraftValueRecordArg>
       ) => {
-        value.props.push({ method: key, args });
+        if (typeof key === "string") {
+          vnode.props.push({ method: key, args });
+        }
 
         return proxy;
       };
