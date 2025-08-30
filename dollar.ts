@@ -77,6 +77,14 @@ const methods = {
     mutate(element, cb);
   },
 
+  attr(
+    element: Element,
+    key: string,
+    value: HandcraftValueArg<string | boolean>,
+  ) {
+    attr(element, key, value);
+  },
+
   prop<T>(element: Element, key: string, value: HandcraftValueArg<T>) {
     mutateWithCallback<T>(
       element,
@@ -193,8 +201,6 @@ const methods = {
         typeof value === "function" ? value : () => value,
       );
     }
-
-    return this;
   },
 
   html(
@@ -212,7 +218,7 @@ const methods = {
 };
 
 const observeMethods = {
-  attr(element: Element, key: string) {
+  get(element: Element, key: string) {
     const value = element.getAttribute(key);
 
     if (!inEffect()) {
@@ -250,7 +256,7 @@ const observeMethods = {
 
     return state[key];
   },
-  find(element: Element, selector: string) {
+  query(element: Element, selector: string) {
     selector = `:scope ${selector}`;
 
     const result = [...element.querySelectorAll(selector)];

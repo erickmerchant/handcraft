@@ -69,6 +69,10 @@ export type HandcraftElement =
       options?: EventListenerOptions,
     ) => HandcraftElement;
     effect: (cb: (el: HTMLElement) => void) => HandcraftElement;
+    attr: (
+      key: string,
+      value: HandcraftValueArg<string | boolean>,
+    ) => HandcraftElement;
     prop<T>(key: string, value: HandcraftValueArg<T>): HandcraftElement;
     css: (
       css: string | (() => string),
@@ -102,8 +106,8 @@ export type HandcraftElement =
   >;
 
 export type HandcraftObservedElement = {
-  attr(key: string): string | null;
-  find(selector: string): Array<HandcraftObservedElement>;
+  get(key: string): string | null;
+  query(selector: string): Array<HandcraftObservedElement>;
 } & HandcraftElement;
 
 export type HandcraftDefineLifeCycleCallback = (
