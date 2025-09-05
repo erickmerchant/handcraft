@@ -31,7 +31,7 @@ function escape(str: { toString: () => string }): string {
   });
 }
 
-export function render(node: HandcraftNode): string {
+export async function render(node: HandcraftNode): Promise<string> {
   if (node == null) return "";
 
   if (typeof node !== "function") {
@@ -170,14 +170,14 @@ export function render(node: HandcraftNode): string {
       ) {
         if (typeof child === "object" && Symbol.iterator in child) {
           for (const c of child) {
-            const r = c();
+            const r = await c();
 
             if (!r) continue;
 
-            result += render(r);
+            result += await render(r);
           }
         } else {
-          result += render(
+          result += await render(
             typeof child === "function" &&
               !isHandcraftElement(child)
               ? child()

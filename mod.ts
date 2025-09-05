@@ -121,7 +121,10 @@ export type HandcraftDefineFactory = {
 
 export type HandcraftDefineAPI = HandcraftElement & HandcraftDefineFactory;
 
-export type HandcraftControlCallback = () => HandcraftElement | void;
+export type HandcraftControlCallback = () =>
+  | HandcraftElement
+  | void
+  | Promise<HandcraftElement | void>;
 
 export type HandcraftEachIndex = () => number;
 
@@ -143,7 +146,7 @@ export type HandcraftEachFilterCurrent<T> = {
 export type HandcraftEachMapper<T> = (
   current: (() => T) & T,
   index: HandcraftEachIndex,
-) => HandcraftElement | void;
+) => HandcraftElement | void | Promise<HandcraftElement | void>;
 
 export type HandcraftEachFilterer<T> = (
   current: HandcraftEachFilterCurrent<T>,

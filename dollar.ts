@@ -428,12 +428,11 @@ function nodes<T extends Node = Element>(
 
       const weakBounds = bounds.map((c) => new WeakRef(c));
 
-      mutate(element, () => {
+      mutate(element, async () => {
         const [start, end] = weakBounds.map((b) => b.deref());
         let currentChild: Node | null = start && start?.nextSibling !== end
           ? start?.nextSibling
           : null;
-        const fragment = new DocumentFragment();
 
         if (child == null) return;
 
@@ -441,13 +440,13 @@ function nodes<T extends Node = Element>(
           if (
             currentChild == null || nodeToCallback.get(currentChild) !== item
           ) {
-            const result = item();
+            const result = await item(); // @todo take out of loop
 
             const derefed = result ? node(element, result) : result;
 
             if (derefed != null) {
               if (currentChild == null) {
-                fragment.append(derefed);
+                end?.before?.(derefed);
               } else {
                 currentChild = replace(element, currentChild, derefed);
               }
@@ -464,8 +463,6 @@ function nodes<T extends Node = Element>(
             ? (currentChild?.nextSibling ?? null)
             : null;
         }
-
-        end?.before?.(fragment);
 
         while (currentChild && currentChild !== end) {
           const nextChild = currentChild?.nextSibling;
