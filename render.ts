@@ -144,6 +144,15 @@ export async function render(node: HandcraftNode): Promise<string> {
     }
 
     if (
+      method === "attr" && typeof args[0] === "string" &&
+      (typeof args[1] === "string" || typeof args[1] === "function")
+    ) {
+      result += getAttr(args[0], args[1]);
+
+      continue;
+    }
+
+    if (
       typeof args[0] === "string" || typeof args[0] === "number" ||
       args[0] == null || typeof args[0] === "function"
     ) {
@@ -199,8 +208,8 @@ export async function render(node: HandcraftNode): Promise<string> {
   return result;
 }
 
-function getValue(value: HandcraftValueArg) {
-  return typeof value === "function" ? value() : value;
+function getValue<T = HandcraftValueArg>(value: T) {
+  return (typeof value === "function" ? value() : value);
 }
 
 function getAttr(

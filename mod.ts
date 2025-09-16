@@ -47,6 +47,8 @@ export type HandcraftElementValue = {
   children: Array<HandcraftChildArg>;
 };
 
+export type HandcraftEffectMethodCallback = (el: HTMLElement) => void;
+
 export type HandcraftElement =
   & {
     (
@@ -68,7 +70,7 @@ export type HandcraftElement =
       handler: EventListener,
       options?: EventListenerOptions,
     ) => HandcraftElement;
-    effect: (cb: (el: HTMLElement) => void) => HandcraftElement;
+    effect: (cb: HandcraftEffectMethodCallback) => HandcraftElement;
     attr: (
       key: string,
       value: HandcraftValueArg<string | boolean>,
