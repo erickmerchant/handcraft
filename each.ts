@@ -1,33 +1,58 @@
-import type {
-  HandcraftControlCallback,
-  HandcraftEachAPI,
-  HandcraftEachCurrent,
-  HandcraftEachFilterCurrent,
-  HandcraftEachFilterer,
-  HandcraftEachMapper,
-  HandcraftEachStore,
-} from "./mod.ts";
+import type { HandcraftControlCallback, HandcraftElement } from "./mod.ts";
+
+type EachIndex = () => number;
+
+type EachStore<T> = {
+  value: T | null;
+  index: number;
+};
+
+type EachCurrent<T> = {
+  store: EachStore<T>;
+  value: (() => T) & T;
+  index: EachIndex;
+};
+
+type EachFilterCurrent<T> = {
+  (): T;
+} & T;
+
+type EachMapper<T> = (
+  current: (() => T) & T,
+  index: EachIndex,
+) => HandcraftElement | void | Promise<HandcraftElement | void>;
+
+type EachFilterer<T> = (
+  current: EachFilterCurrent<T>,
+  index: EachIndex,
+) => boolean;
+
+type EachAPI<T> = {
+  map(cb: EachMapper<T>): EachAPI<T>;
+  filter(cb: EachFilterer<T>): EachAPI<T>;
+  fallback(cb: HandcraftControlCallback): EachAPI<T>;
+} & Iterable<HandcraftControlCallback>;
 
 import { watch } from "./reactivity.ts";
 
-export function each<T>(list: Array<T>): HandcraftEachAPI<T> {
-  let mapper: HandcraftEachMapper<T>;
-  let filterer: HandcraftEachFilterer<T> = () => true;
+export function each<T>(list: Array<T>): EachAPI<T> {
+  let mapper: EachMapper<T>;
+  let filterer: EachFilterer<T> = () => true;
   let fallback: HandcraftControlCallback = () => {};
-  const entries: Array<HandcraftEachCurrent<T>> = [];
-  let current: HandcraftEachCurrent<T>;
+  const entries: Array<EachCurrent<T>> = [];
+  let current: EachCurrent<T>;
   const show: HandcraftControlCallback = () => {
     return mapper(current.value, current.index);
   };
 
   return {
-    map(cb: HandcraftEachMapper<T>) {
+    map(cb: EachMapper<T>) {
       mapper = cb;
 
       return this;
     },
 
-    filter(cb: HandcraftEachFilterer<T>) {
+    filter(cb: EachFilterer<T>) {
       filterer = cb;
 
       return this;
@@ -55,7 +80,7 @@ export function each<T>(list: Array<T>): HandcraftEachAPI<T> {
                   ? Reflect.get(value, p)
                   : undefined;
               },
-            }) as HandcraftEachFilterCurrent<T>,
+            }) as EachFilterCurrent<T>,
             () => index,
           )
         ) {
@@ -65,7 +90,7 @@ export function each<T>(list: Array<T>): HandcraftEachAPI<T> {
         current = entries[i];
 
         if (!current) {
-          const store: HandcraftEachStore<T> = watch({
+          const store: EachStore<T> = watch({
             value: null,
             index,
           });
@@ -96,7 +121,7 @@ export function each<T>(list: Array<T>): HandcraftEachAPI<T> {
             index() {
               return store.index;
             },
-          } as HandcraftEachCurrent<T>;
+          } as EachCurrent<T>;
 
           entries.push(current);
         }

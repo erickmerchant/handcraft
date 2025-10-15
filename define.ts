@@ -1,17 +1,27 @@
 import type {
   HandcraftChildArg,
-  HandcraftDefineAPI,
-  HandcraftDefineFactory,
-  HandcraftDefineLifeCycleCallback,
+  HandcraftElement,
+  HandcraftObservedElement,
 } from "./mod.ts";
 import { h } from "./mod.ts";
 import { $ } from "./dollar.ts";
 
-export function define(name: string): HandcraftDefineFactory {
+type DefineLifeCycleCallback = (
+  el: HandcraftObservedElement,
+) => void;
+
+type DefineFactory = {
+  setup: (cb: DefineLifeCycleCallback) => DefineAPI;
+  teardown: (cb: DefineLifeCycleCallback) => DefineAPI;
+};
+
+type DefineAPI = HandcraftElement & DefineFactory;
+
+export function define(name: string): DefineFactory {
   const options: {
     name: string;
-    setup: HandcraftDefineLifeCycleCallback;
-    teardown: HandcraftDefineLifeCycleCallback;
+    setup: DefineLifeCycleCallback;
+    teardown: DefineLifeCycleCallback;
   } = {
     name,
     setup: () => {},
@@ -34,13 +44,13 @@ export function define(name: string): HandcraftDefineFactory {
   });
 
   const tag = h.html[name];
-  const factory: HandcraftDefineFactory = {
-    setup: (cb: HandcraftDefineLifeCycleCallback) => {
+  const factory: DefineFactory = {
+    setup: (cb: DefineLifeCycleCallback) => {
       options.setup = cb;
 
       return proxy;
     },
-    teardown: (cb: HandcraftDefineLifeCycleCallback) => {
+    teardown: (cb: DefineLifeCycleCallback) => {
       options.teardown = cb;
 
       return proxy;
@@ -61,7 +71,7 @@ export function define(name: string): HandcraftDefineFactory {
 
       return null;
     },
-  }) as HandcraftDefineAPI;
+  }) as DefineAPI;
 
   return proxy;
 }
