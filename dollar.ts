@@ -188,14 +188,9 @@ const methods = {
         element,
         (element, value) => {
           if (value == null) {
-            element.style.removeProperty(
-              key,
-            );
+            element.style.removeProperty(key);
           } else {
-            element.style.setProperty(
-              key,
-              `${value}`,
-            );
+            element.style.setProperty(key, `${value}`);
           }
         },
         typeof value === "function" ? value : () => value,
@@ -606,9 +601,7 @@ function mutateWithCallback<Result, T extends Node = Element>(
 
 function mutate<T extends Node = Element>(
   element: T,
-  callback: (
-    element: T,
-  ) => void,
+  callback: (element: T) => void,
 ) {
   const el = new WeakRef(element);
 

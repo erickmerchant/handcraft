@@ -112,9 +112,7 @@ export async function render(node: HandcraftNode): Promise<string> {
       const styles = [];
 
       for (const [key, value] of Object.entries(args[0])) {
-        styles.push(
-          `${key}: ${getValue(value)}`,
-        );
+        styles.push(`${key}: ${getValue(value)}`);
       }
 
       result += ' style="' + escape(styles.join("; ")) + '"';
@@ -134,9 +132,7 @@ export async function render(node: HandcraftNode): Promise<string> {
     }
 
     if (method === "html") {
-      if (
-        (typeof args[0] === "string" || typeof args[0] === "function")
-      ) {
+      if (typeof args[0] === "string" || typeof args[0] === "function") {
         html += getValue(args[0]);
       }
 
@@ -174,9 +170,7 @@ export async function render(node: HandcraftNode): Promise<string> {
     for (const child of vnode.children.flat(Infinity)) {
       if (!child) continue;
 
-      if (
-        child != null
-      ) {
+      if (child != null) {
         if (typeof child === "object" && Symbol.iterator in child) {
           for (const c of child) {
             const r = await c();

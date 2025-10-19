@@ -6,9 +6,7 @@ import type {
 import { h } from "./mod.ts";
 import { $ } from "./dollar.ts";
 
-type DefineLifeCycleCallback = (
-  el: HandcraftObservedElement,
-) => void;
+type DefineLifeCycleCallback = (el: HandcraftObservedElement) => void;
 
 type DefineFactory = {
   setup: (cb: DefineLifeCycleCallback) => DefineAPI;

@@ -95,16 +95,12 @@ export type HandcraftElement =
         HandcraftValueArg<string | number | null>
       >,
     ) => HandcraftElement;
-    html: (
-      html: string | (() => string | null),
-    ) => HandcraftElement;
+    html: (html: string | (() => string | null)) => HandcraftElement;
     name: (value: string | null | (() => string | null)) => HandcraftElement;
   }
   & Record<
     string,
-    ((
-      ...args: Array<HandcraftValueArg>
-    ) => HandcraftElement)
+    ((...args: Array<HandcraftValueArg>) => HandcraftElement)
   >;
 
 export type HandcraftObservedElement = {
