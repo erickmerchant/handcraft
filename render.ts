@@ -59,7 +59,7 @@ export async function render(node: HandcraftNode): Promise<string> {
       result += ' xmlns="' + namespaces[vnode.namespace] + '"';
     }
   } else if (vnode.tag === "shadow") {
-    result += `<template shadowrootmode="${vnode.options?.mode ?? "open"}"`;
+    result += `<template shadowrootmode="${vnode?.options?.mode ?? "open"}"`;
   }
 
   for (const { method, args } of vnode.props) {

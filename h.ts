@@ -17,12 +17,10 @@ export const namespaces: Record<string, string> = {
 function create(
   tag?: string,
   namespace?: string,
-  options?: Record<string, string>,
 ): HandcraftElement {
   const vnode: HandcraftElementValue = {
     tag,
     namespace,
-    options,
     props: watch([]),
     children: watch([]),
   };
@@ -53,7 +51,14 @@ function create(
         ...args: Array<HandcraftValueArg | HandcraftValueRecordArg>
       ) => {
         if (typeof key === "string") {
-          vnode.props.push({ method: key, args });
+          if (
+            args.length === 1 && key === "options" && args[0] &&
+            typeof args[0] === "object"
+          ) {
+            vnode.options = args[0];
+          } else {
+            vnode.props.push({ method: key, args });
+          }
         }
 
         return proxy;
@@ -95,10 +100,28 @@ export const h: Record<
   math: factory("math"),
 };
 
-export function shadow(options?: Record<string, string>): HandcraftElement {
-  return create("shadow", undefined, options);
-}
+export const shadow = new Proxy(() => {}, {
+  apply(_, __, args) {
+    const el = create("shadow", undefined);
 
-export function fragment(): HandcraftElement {
-  return create("fragment", undefined);
-}
+    return el(...args);
+  },
+  get(_, key: string) {
+    const el = create("shadow", undefined);
+
+    return el[key as keyof typeof el];
+  },
+}) as HandcraftElement;
+
+export const fragment = new Proxy(() => {}, {
+  apply(_, __, args) {
+    const el = create("fragment", undefined);
+
+    return el(...args);
+  },
+  get(_, key: string) {
+    const el = create("fragment", undefined);
+
+    return el[key as keyof typeof el];
+  },
+}) as HandcraftElement;

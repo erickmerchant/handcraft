@@ -39,7 +39,7 @@ export type HandcraftChildArg =
 export type HandcraftElementValue = {
   tag?: string;
   namespace?: string;
-  options?: Record<string, string>;
+  options?: HandcraftValueRecordArg;
   props: Array<{
     method: string;
     args: Array<HandcraftValueArg | HandcraftValueRecordArg>;

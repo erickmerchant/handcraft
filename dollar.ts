@@ -542,7 +542,7 @@ function node(
         if (parent instanceof Element) {
           const el = parent.shadowRoot ??
             parent.attachShadow(
-              { mode: result.options?.mode ?? "open" } as ShadowRootInit,
+              { mode: result?.options?.mode ?? "open" } as ShadowRootInit,
             );
 
           patch<DocumentFragment>(el, result.props, result.children);
