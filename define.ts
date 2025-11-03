@@ -8,7 +8,7 @@ import { $ } from "./dollar.ts";
 
 type DefineLifeCycleCallback = (el: HandcraftObservedElement) => void;
 
-type DefineFactory = {
+export type DefineFactory = {
   setup: (cb: DefineLifeCycleCallback) => DefineAPI;
   teardown: (cb: DefineLifeCycleCallback) => DefineAPI;
 };
