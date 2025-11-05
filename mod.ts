@@ -5,7 +5,6 @@ export * from "./h.ts";
 export * from "./reactivity.ts";
 export * from "./render.ts";
 export * from "./when.ts";
-export * from "./view.ts";
 
 export const VNODE = Symbol("vnode");
 
