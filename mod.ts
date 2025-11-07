@@ -49,64 +49,80 @@ export type HandcraftElementValue = {
 
 export type HandcraftEffectMethodCallback = (el: HTMLElement) => void;
 
+export type HandcraftElementMethods = {
+  on: (
+    events: string,
+    handler: EventListener,
+    options?: AddEventListenerOptions | boolean,
+  ) => void;
+  command: (
+    commands: string,
+    handler: EventListener,
+    options?: AddEventListenerOptions | boolean,
+  ) => void;
+  once: (
+    events: string,
+    handler: EventListener,
+    options?: AddEventListenerOptions | boolean,
+  ) => void;
+  effect: (cb: (...args: any[]) => void) => void;
+  attr: (
+    key: string,
+    value: HandcraftValueArg<string | boolean>,
+  ) => void;
+  prop<T>(key: string, value: HandcraftValueArg<T>): void;
+  css: (
+    css: string | (() => string),
+    options?: { media?: string },
+  ) => void;
+  aria: (
+    attrs: HandcraftValueRecordArg,
+  ) => void;
+  class: (
+    ...classes: Array<
+      string | Record<string, boolean | (() => boolean)>
+    >
+  ) => void;
+  data: (data: HandcraftValueRecordArg) => void;
+  style: (
+    attrs: Record<
+      string,
+      HandcraftValueArg<string | number | null>
+    >,
+  ) => void;
+  html: (html: string | (() => string)) => void;
+};
+
+type HandcraftChainableMethods<T> = {
+  [K in keyof T]: T[K] extends (...args: any[]) => any
+    ? (...args: Parameters<T[K]>) => HandcraftElement
+    : T[K];
+};
+
 export type HandcraftElement =
   & {
     (
       ...children: Array<HandcraftChildArg>
     ): HandcraftElement;
     [VNODE]: HandcraftElementValue;
-    on: (
-      events: string,
-      handler: EventListener,
-      options?: EventListenerOptions,
+    name: (
+      value: string | null | (() => string | null),
     ) => HandcraftElement;
-    command: (
-      commands: string,
-      handler: EventListener,
-      options?: EventListenerOptions,
-    ) => HandcraftElement;
-    once: (
-      events: string,
-      handler: EventListener,
-      options?: EventListenerOptions,
-    ) => HandcraftElement;
-    effect: (cb: HandcraftEffectMethodCallback) => HandcraftElement;
-    attr: (
-      key: string,
-      value: HandcraftValueArg<string | boolean>,
-    ) => HandcraftElement;
-    prop<T>(key: string, value: HandcraftValueArg<T>): HandcraftElement;
-    css: (
-      css: string | (() => string),
-      options?: { media?: string },
-    ) => HandcraftElement;
-    aria: (
-      attrs: HandcraftValueRecordArg,
-    ) => HandcraftElement;
-    class: (
-      ...classes: Array<
-        string | Record<string, boolean | null | (() => boolean | null)>
-      >
-    ) => HandcraftElement;
-    data: (data: HandcraftValueRecordArg) => HandcraftElement;
-    style: (
-      attrs: Record<
-        string,
-        HandcraftValueArg<string | number | null>
-      >,
-    ) => HandcraftElement;
-    html: (html: string | (() => string | null)) => HandcraftElement;
-    name: (value: string | null | (() => string | null)) => HandcraftElement;
   }
+  & HandcraftChainableMethods<HandcraftElementMethods>
   & Record<
     string,
     ((...args: Array<HandcraftValueArg>) => HandcraftElement)
   >;
 
-export type HandcraftObservedElement = {
+export type HandcraftObservedElementMethods = {
   get(key: string): string | null;
   query(selector: string): Array<HandcraftObservedElement>;
-} & HandcraftElement;
+};
+
+export type HandcraftObservedElement =
+  & HandcraftObservedElementMethods
+  & HandcraftElement;
 
 export type HandcraftControlCallback = () =>
   | HandcraftElement

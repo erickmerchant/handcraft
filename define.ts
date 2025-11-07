@@ -60,11 +60,11 @@ export function define(name: string): DefineFactory {
     },
     get(_, key) {
       if (typeof key === "string" && key in factory) {
-        return factory[key as keyof typeof factory];
+        return factory[key as keyof DefineFactory];
       }
 
       if (typeof key === "string" && key in tag) {
-        return tag[key as keyof typeof tag];
+        return tag[key as keyof HandcraftElement];
       }
 
       return null;

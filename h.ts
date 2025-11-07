@@ -83,7 +83,7 @@ function factory(namespace: string): Record<string, HandcraftElement> {
           get(_, key: string) {
             const el = create(tag, namespace);
 
-            return el[key as keyof typeof el];
+            return el[key as keyof HandcraftElement];
           },
         });
       },
@@ -109,7 +109,7 @@ export const shadow = new Proxy(() => {}, {
   get(_, key: string) {
     const el = create("shadow", undefined);
 
-    return el[key as keyof typeof el];
+    return el[key as keyof HandcraftElement];
   },
 }) as HandcraftElement;
 
@@ -122,6 +122,6 @@ export const fragment = new Proxy(() => {}, {
   get(_, key: string) {
     const el = create("fragment", undefined);
 
-    return el[key as keyof typeof el];
+    return el[key as keyof HandcraftElement];
   },
 }) as HandcraftElement;

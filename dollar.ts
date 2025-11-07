@@ -1,9 +1,9 @@
 import type {
   HandcraftChildArg,
+  HandcraftElementMethods,
   HandcraftNode,
-  HandcraftNodeFactory,
   HandcraftObservedElement,
-  HandcraftValue,
+  HandcraftObservedElementMethods,
   HandcraftValueArg,
   HandcraftValueRecordArg,
 } from "./mod.ts";
@@ -11,136 +11,132 @@ import { effect, inEffect, watch } from "./reactivity.ts";
 import { namespaces } from "./h.ts";
 import { isHandcraftElement, VNODE } from "./mod.ts";
 
-const position = {
-  start: Symbol("start"),
-  end: Symbol("end"),
-};
-
 const queries = new WeakMap();
 let treeObserver;
 
 const states = new WeakMap();
 let attrObserver;
 
-const methods = {
+const methods: HandcraftElementMethods = {
   on(
-    element: Element,
+    this: EventTarget,
     events: string,
     handler: EventListener,
-    options: EventListenerOptions | boolean = {},
+    options?: AddEventListenerOptions | boolean,
   ) {
     for (const event of events.split(/\s+/)) {
-      element.addEventListener(event, handler, options);
+      this.addEventListener(event, handler, options);
     }
   },
 
   command(
-    element: Element,
+    this: EventTarget,
     commands: string,
     handler: EventListener,
-    options: EventListenerOptions | boolean = {},
+    options?: AddEventListenerOptions | boolean,
   ) {
     const splitCommands = commands.split(/\s+/);
 
-    methods.on(
-      element,
-      "command",
-      (e, ...args) => {
-        // @ts-ignore type is wrong
-        if (splitCommands.includes(e.command)) {
-          handler.call(e.currentTarget, e, ...args);
-        }
-      },
-      options,
-    );
+    methods.on.call(this, "command", (e, ...args) => {
+      // @ts-ignore type is wrong
+      if (splitCommands.includes(e.command)) {
+        handler.call(e.currentTarget, e, ...args);
+      }
+    }, options);
   },
 
   once(
-    element: Element,
+    this: EventTarget,
     events: string,
     handler: EventListener,
-    options: EventListenerOptions | boolean = {},
+    options?: AddEventListenerOptions | boolean,
   ) {
     if (options === true || options === false) {
       options = { capture: options };
     }
 
-    methods.on(
-      element,
+    methods.on.call(
+      this,
       events,
       handler,
       { ...options, once: true } as EventListenerOptions,
     );
   },
 
-  effect(element: Element, cb: () => void) {
-    mutate(element, cb);
+  effect<T extends Node = Element>(this: T, cb: (...args: any[]) => void) {
+    mutate<T>(this, cb);
   },
 
   attr(
-    element: Element,
+    this: Element,
     key: string,
     value: HandcraftValueArg<string | boolean>,
   ) {
-    attr(element, key, value);
+    attr(this, key, value);
   },
 
-  prop<T>(element: Element, key: string, value: HandcraftValueArg<T>) {
-    mutateWithCallback<T>(
-      element,
-      (element, value) => {
+  prop<V, T extends Node = Element>(
+    this: T,
+    key: string,
+    value: HandcraftValueArg<V>,
+  ) {
+    mutate<T>(
+      this,
+      (element) => {
         if (key in element) {
           // @ts-ignore don't care if it's writable
-          element[key as keyof typeof element] = value;
+          element[key as keyof T] = typeof value === "function"
+            ? (value as CallableFunction)()
+            : value;
         }
       },
-      (typeof value === "function" ? value : () => value) as (() => T),
     );
   },
 
   css(
-    element: Document,
+    this: DocumentOrShadowRoot,
     css: string | (() => string),
     options: { media?: string | (() => string) } = {},
   ) {
     const stylesheet = new CSSStyleSheet();
 
     if ("media" in options) {
-      mutateWithCallback<string, Document>(
-        element,
-        (_element, val) => {
-          stylesheet.media = val;
+      mutate<CSSStyleSheet>(
+        stylesheet,
+        (stylesheet) => {
+          stylesheet.media =
+            options.media != null && typeof options.media === "function"
+              ? options.media()
+              : options.media ?? "all";
         },
-        options.media != null && typeof options?.media === "function"
-          ? options.media
-          : (() => options.media ?? "all") as () => string,
       );
     }
 
-    element.adoptedStyleSheets.splice(
-      element.adoptedStyleSheets.length,
+    this.adoptedStyleSheets.splice(
+      this.adoptedStyleSheets.length,
       1,
       stylesheet,
     );
 
-    mutateWithCallback<string, Document>(
-      element,
-      (_element, css) => {
-        stylesheet.replaceSync(css);
+    mutate<CSSStyleSheet>(
+      stylesheet,
+      (stylesheet) => {
+        stylesheet.replaceSync(typeof css === "function" ? css() : css);
       },
-      typeof css === "function" ? css : () => css,
     );
   },
 
-  aria(element: Element, attrs: HandcraftValueRecordArg) {
+  aria(this: Element, attrs: HandcraftValueRecordArg) {
     for (const [key, value] of Object.entries(attrs)) {
-      attr(element, `aria-${key}`, value);
+      attr(this, `aria-${key}`, value);
     }
   },
 
   class(
-    element: Element,
-    ...classes: Array<string | Record<string, boolean | (() => boolean)>>
+    this: Element,
+    ...classes: Array<
+      string | Record<string, boolean | (() => boolean)>
+    >
   ) {
     classes = classes.flat(Infinity);
 
@@ -150,77 +146,80 @@ const methods = {
       }
 
       for (const [key, value] of Object.entries(c)) {
-        mutateWithCallback<boolean>(
-          element,
-          (element, value) => {
+        mutate<Element>(
+          this,
+          (element) => {
             for (const k of key.split(" ")) {
-              element.classList.toggle(k, value);
+              element.classList.toggle(
+                k,
+                typeof value === "function" ? value() : value,
+              );
             }
           },
-          typeof value === "function" ? value : () => value,
         );
       }
     }
   },
 
-  data(element: HTMLElement, data: HandcraftValueRecordArg) {
+  data(this: HTMLElement, data: HandcraftValueRecordArg) {
     for (const [key, value] of Object.entries(data)) {
-      mutateWithCallback<HandcraftValue, HTMLElement>(
-        element,
-        (element, value) => {
-          if (value == null || value === false) {
+      mutate<HTMLElement>(
+        this,
+        (element) => {
+          const v = typeof value === "function" ? value() : value;
+
+          if (v == null || v === false) {
             delete element.dataset[key];
           } else {
-            element.dataset[key] = value === true ? "" : `${value}`;
+            element.dataset[key] = v === true ? "" : `${v}`;
           }
         },
-        typeof value === "function" ? value : () => value,
       );
     }
   },
 
   style(
-    element: HTMLElement,
+    this: HTMLElement,
     styles: HandcraftValueRecordArg<string | number | null>,
   ) {
     for (const [key, value] of Object.entries(styles)) {
-      mutateWithCallback<string | number | null, HTMLElement>(
-        element,
-        (element, value) => {
-          if (value == null) {
+      mutate<HTMLElement>(
+        this,
+        (element) => {
+          const v = typeof value === "function" ? value() : value;
+
+          if (v == null) {
             element.style.removeProperty(key);
           } else {
-            element.style.setProperty(key, `${value}`);
+            element.style.setProperty(key, `${v}`);
           }
         },
-        typeof value === "function" ? value : () => value,
       );
     }
   },
 
   html(
-    element: Element,
+    this: Element,
     html: string | (() => string),
   ) {
-    mutateWithCallback<string, Element>(
-      element,
-      (element, html) => {
-        element.setHTMLUnsafe(html);
+    mutate<Element>(
+      this,
+      (element) => {
+        element.setHTMLUnsafe(typeof html === "function" ? html() : html);
       },
-      typeof html === "function" ? html : () => html,
     );
   },
 };
 
-const observeMethods = {
-  get(element: Element, key: string) {
-    const value = element.getAttribute(key);
+const observeMethods: HandcraftObservedElementMethods = {
+  get(this: Element, key: string) {
+    const value = this.getAttribute(key);
 
     if (!inEffect()) {
       return value;
     }
 
-    let state = states.get(element);
+    let state = states.get(this);
 
     if (!state) {
       attrObserver ??= new MutationObserver((records) => {
@@ -242,25 +241,25 @@ const observeMethods = {
 
       state = watch({ [key]: value });
 
-      states.set(element, state);
+      states.set(this, state);
 
-      attrObserver.observe(element, { attributes: true });
+      attrObserver.observe(this, { attributes: true });
     } else if (state[key] == null) {
       state[key] = value;
     }
 
     return state[key];
   },
-  query(element: Element, selector: string) {
+  query(this: Element, selector: string) {
     selector = `:scope ${selector}`;
 
-    const result = [...element.querySelectorAll(selector)];
+    const result = [...this.querySelectorAll(selector)];
 
     if (!inEffect()) {
       return result.map((r) => $(r));
     }
 
-    let results = queries.get(element);
+    let results = queries.get(this);
 
     if (!results) {
       treeObserver ??= new MutationObserver((records) => {
@@ -289,9 +288,9 @@ const observeMethods = {
 
       results = watch({ [selector]: result });
 
-      queries.set(element, results);
+      queries.set(this, results);
 
-      treeObserver.observe(element, { childList: true, subtree: true });
+      treeObserver.observe(this, { childList: true, subtree: true });
     } else if (results[selector] == null) {
       results[selector] = result;
     }
@@ -336,7 +335,6 @@ export function $(element: Element): HandcraftObservedElement {
 
       if (key in observeMethods) {
         return observeMethods[key as keyof typeof observeMethods].bind(
-          null,
           element,
         );
       }
@@ -375,14 +373,14 @@ function patch<T extends Node = Element>(
     for (const { method, args } of props.slice(i)) {
       if (method in methods) {
         // @ts-ignore ignore silly error
-        methods[method as keyof typeof methods](element, ...args);
+        methods[method as keyof typeof methods].call(element, ...args);
       } else {
         // @ts-ignore ignore silly error
         attr(element, method, ...args);
       }
     }
 
-    nodes<T>(element, children.slice(j), position.end);
+    nodes<T>(element, children.slice(j));
 
     i = props.length;
     j = children.length;
@@ -402,7 +400,6 @@ function replace(parent: Node, current: Node, next: Node | string) {
 function nodes<T extends Node = Element>(
   element: T,
   children: Array<HandcraftChildArg>,
-  pos = position.end,
 ) {
   const nodeToCallback = new WeakMap<Node, () => void>();
   const fragment = new DocumentFragment();
@@ -474,9 +471,9 @@ function nodes<T extends Node = Element>(
 
       let weakPrev = new WeakRef<Comment | Node>(prev);
 
-      mutateWithCallback<HandcraftNode | HandcraftNodeFactory, Node>(
+      mutate<Node>(
         element,
-        (_, child) => {
+        (element) => {
           const c = node(element, child);
 
           if (c != null) {
@@ -489,7 +486,6 @@ function nodes<T extends Node = Element>(
             }
           }
         },
-        () => child,
       );
     } else if (typeof child === "string") {
       const result = node(element, child);
@@ -498,15 +494,7 @@ function nodes<T extends Node = Element>(
     }
   }
 
-  switch (pos) {
-    case position.start:
-      element.appendChild(fragment);
-      break;
-
-    case position.end:
-      element.appendChild(fragment);
-      break;
-  }
+  element.appendChild(fragment);
 }
 
 function node(
@@ -567,48 +555,32 @@ function node(
 }
 
 function attr(element: Element, key: string, value: HandcraftValueArg) {
-  mutateWithCallback<HandcraftValue>(
+  mutate<Element>(
     element,
-    (element, value) => {
-      if (value === true || value === false || value == null) {
-        element.toggleAttribute(key, !!value);
+    (element) => {
+      const v = typeof value === "function" ? value() : value;
+
+      if (v === true || v === false || v == null) {
+        element.toggleAttribute(key, !!v);
       } else {
-        element.setAttribute(key, `${value}`);
+        element.setAttribute(key, `${v}`);
       }
     },
-    typeof value === "function" ? value : () => value,
   );
 }
 
-function mutateWithCallback<Result, T extends Node = Element>(
+function mutate<T extends object>(
   element: T,
   callback: (
     element: T,
-    value: Result,
   ) => void,
-  value: () => Result,
 ) {
   const el = new WeakRef(element);
 
   effect(() => {
     const e = el.deref();
 
-    if (e && "isConnected" in e && e.isConnected) {
-      callback(e, value());
-    }
-  });
-}
-
-function mutate<T extends Node = Element>(
-  element: T,
-  callback: (element: T) => void,
-) {
-  const el = new WeakRef(element);
-
-  effect(() => {
-    const e = el.deref();
-
-    if (e && "isConnected" in e && e.isConnected) {
+    if (e && (!("isConnected" in e) || e.isConnected)) {
       callback(e);
     }
   });
