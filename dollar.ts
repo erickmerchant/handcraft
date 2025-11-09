@@ -11,6 +11,10 @@ import { effect, inEffect, watch } from "./reactivity.ts";
 import { namespaces } from "./h.ts";
 import { isHandcraftElement, VNODE } from "./mod.ts";
 
+function fnValue<T>(value: T | (() => T)) {
+  return typeof value === "function" ? (value as CallableFunction)() : value;
+}
+
 const queries = new WeakMap();
 let treeObserver;
 
@@ -85,9 +89,7 @@ const methods: HandcraftElementMethods = {
       (element) => {
         if (key in element) {
           // @ts-ignore don't care if it's writable
-          element[key as keyof T] = typeof value === "function"
-            ? (value as CallableFunction)()
-            : value;
+          element[key as keyof T] = fnValue(value);
         }
       },
     );
@@ -104,10 +106,7 @@ const methods: HandcraftElementMethods = {
       mutate<CSSStyleSheet>(
         stylesheet,
         (stylesheet) => {
-          stylesheet.media =
-            options.media != null && typeof options.media === "function"
-              ? options.media()
-              : options.media ?? "all";
+          stylesheet.media = fnValue(options.media) ?? "all";
         },
       );
     }
@@ -121,7 +120,7 @@ const methods: HandcraftElementMethods = {
     mutate<CSSStyleSheet>(
       stylesheet,
       (stylesheet) => {
-        stylesheet.replaceSync(typeof css === "function" ? css() : css);
+        stylesheet.replaceSync(fnValue(css));
       },
     );
   },
@@ -152,7 +151,7 @@ const methods: HandcraftElementMethods = {
             for (const k of key.split(" ")) {
               element.classList.toggle(
                 k,
-                typeof value === "function" ? value() : value,
+                fnValue(value),
               );
             }
           },
@@ -166,7 +165,7 @@ const methods: HandcraftElementMethods = {
       mutate<HTMLElement>(
         this,
         (element) => {
-          const v = typeof value === "function" ? value() : value;
+          const v = fnValue(value);
 
           if (v == null || v === false) {
             delete element.dataset[key];
@@ -186,7 +185,7 @@ const methods: HandcraftElementMethods = {
       mutate<HTMLElement>(
         this,
         (element) => {
-          const v = typeof value === "function" ? value() : value;
+          const v = fnValue(value);
 
           if (v == null) {
             element.style.removeProperty(key);
@@ -205,7 +204,7 @@ const methods: HandcraftElementMethods = {
     mutate<Element>(
       this,
       (element) => {
-        element.setHTMLUnsafe(typeof html === "function" ? html() : html);
+        element.setHTMLUnsafe(fnValue(html));
       },
     );
   },
@@ -334,9 +333,10 @@ export function $(element: Element): HandcraftObservedElement {
       }
 
       if (key in observeMethods) {
-        return observeMethods[key as keyof typeof observeMethods].bind(
-          element,
-        );
+        return observeMethods[key as keyof HandcraftObservedElementMethods]
+          .bind(
+            element,
+          );
       }
 
       return (
@@ -373,7 +373,7 @@ function patch<T extends Node = Element>(
     for (const { method, args } of props.slice(i)) {
       if (method in methods) {
         // @ts-ignore ignore silly error
-        methods[method as keyof typeof methods].call(element, ...args);
+        methods[method as keyof HandcraftElementMethods].call(element, ...args);
       } else {
         // @ts-ignore ignore silly error
         attr(element, method, ...args);
@@ -558,7 +558,7 @@ function attr(element: Element, key: string, value: HandcraftValueArg) {
   mutate<Element>(
     element,
     (element) => {
-      const v = typeof value === "function" ? value() : value;
+      const v = fnValue(value);
 
       if (v === true || v === false || v == null) {
         element.toggleAttribute(key, !!v);
