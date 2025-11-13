@@ -69,23 +69,27 @@ function create(
   return proxy;
 }
 
-function factory(namespace: string): Record<string, HandcraftElement> {
+function factory(tag: string, namespace?: string) {
+  return new Proxy(() => {}, {
+    apply(_, __, args) {
+      const el = create(tag, namespace);
+
+      return el(...args);
+    },
+    get(_, key: string) {
+      const el = create(tag, namespace);
+
+      return el[key as keyof HandcraftElement];
+    },
+  }) as HandcraftElement;
+}
+
+function factoryNS(namespace: string): Record<string, HandcraftElement> {
   return new Proxy(
     {},
     {
       get(_, tag: string) {
-        return new Proxy(() => {}, {
-          apply(_, __, args) {
-            const el = create(tag, namespace);
-
-            return el(...args);
-          },
-          get(_, key: string) {
-            const el = create(tag, namespace);
-
-            return el[key as keyof HandcraftElement];
-          },
-        });
+        return factory(tag, namespace);
       },
     },
   ) as Record<string, HandcraftElement>;
@@ -95,33 +99,11 @@ export const h: Record<
   "html" | "svg" | "math",
   Record<string, HandcraftElement>
 > = {
-  html: factory("html"),
-  svg: factory("svg"),
-  math: factory("math"),
+  html: factoryNS("html"),
+  svg: factoryNS("svg"),
+  math: factoryNS("math"),
 };
 
-export const shadow = new Proxy(() => {}, {
-  apply(_, __, args) {
-    const el = create("shadow", undefined);
+export const shadow = factory("shadow") as HandcraftElement;
 
-    return el(...args);
-  },
-  get(_, key: string) {
-    const el = create("shadow", undefined);
-
-    return el[key as keyof HandcraftElement];
-  },
-}) as HandcraftElement;
-
-export const fragment = new Proxy(() => {}, {
-  apply(_, __, args) {
-    const el = create("fragment", undefined);
-
-    return el(...args);
-  },
-  get(_, key: string) {
-    const el = create("fragment", undefined);
-
-    return el[key as keyof HandcraftElement];
-  },
-}) as HandcraftElement;
+export const fragment = factory("fragment") as HandcraftElement;
