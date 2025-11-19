@@ -14,7 +14,7 @@ export const namespaces: Record<string, string> = {
   math: "http://www.w3.org/1998/Math/MathML",
 };
 
-function create(
+export function create(
   tag?: string,
   namespace?: string,
 ): HandcraftElement {

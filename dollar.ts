@@ -1,5 +1,6 @@
 import type {
   HandcraftChildArg,
+  HandcraftElement,
   HandcraftElementMethods,
   HandcraftNode,
   HandcraftObservedElement,
@@ -8,18 +9,12 @@ import type {
   HandcraftValueRecordArg,
 } from "./mod.ts";
 import { effect, inEffect, watch } from "./reactivity.ts";
-import { namespaces } from "./h.ts";
+import { create, namespaces } from "./h.ts";
 import { isHandcraftElement, VNODE } from "./mod.ts";
 
 function fnValue<T>(value: T | (() => T)) {
   return typeof value === "function" ? (value as CallableFunction)() : value;
 }
-
-const queries = new WeakMap();
-let treeObserver;
-
-const states = new WeakMap();
-let attrObserver;
 
 const methods: HandcraftElementMethods = {
   on(
@@ -210,91 +205,80 @@ const methods: HandcraftElementMethods = {
   },
 };
 
-const observeMethods: HandcraftObservedElementMethods = {
-  get(this: Element, key: string) {
-    const value = this.getAttribute(key);
+const observerCache: WeakMap<
+  Node,
+  Record<string, any>
+> = new WeakMap();
 
-    if (!inEffect()) {
-      return value;
-    }
+let observer: MutationObserver;
 
-    let state = states.get(this);
+function observe<T>(el: Node, key: string, value: () => T) {
+  observer ??= new MutationObserver((records) => {
+    for (const record of records) {
+      const results = observerCache.get(record.target);
 
-    if (!state) {
-      attrObserver ??= new MutationObserver((records) => {
-        for (const record of records) {
-          if (record.type === "attributes") {
-            const state = states.get(record.target);
+      if (results && record.target instanceof Element) {
+        if (record.type === "attributes") {
+          results[`[${record.attributeName as string}]`] = record.target
+            .getAttribute(
+              record.attributeName as string,
+            );
+        }
 
-            if (state) {
-              if (record.target instanceof Element) {
-                state[record.attributeName as string] = record.target
-                  .getAttribute(
-                    record.attributeName as string,
-                  );
-              }
+        for (const selector of Object.keys(results)) {
+          if (!selector.startsWith(":scope")) continue;
+
+          for (
+            const result of record.target.querySelectorAll(
+              selector,
+            )
+          ) {
+            if ([...record.addedNodes].includes(result)) {
+              results[selector] = [
+                ...results[selector],
+                result,
+              ];
             }
           }
         }
-      });
-
-      state = watch({ [key]: value });
-
-      states.set(this, state);
-
-      attrObserver.observe(this, { attributes: true });
-    } else if (state[key] == null) {
-      state[key] = value;
+      }
     }
+  });
 
-    return state[key];
+  if (!inEffect()) {
+    return value();
+  }
+
+  let cache = observerCache.get(el);
+
+  if (!cache) {
+    cache = watch({});
+
+    observerCache.set(el, cache);
+
+    observer.observe(el, { attributes: true, subtree: true, childList: true });
+  }
+
+  if (!cache[key]) {
+    cache[key] = value();
+  }
+
+  return cache[key] as T;
+}
+
+const observeMethods: HandcraftObservedElementMethods = {
+  get(this: Element, key: string) {
+    const value = () => this.getAttribute(key);
+
+    return observe(this, `[${key}]`, value);
   },
   query(this: Element, selector: string) {
     selector = `:scope ${selector}`;
 
-    const result = [...this.querySelectorAll(selector)];
+    const value = () => [...this.querySelectorAll(selector)];
+    const observed = observe<Array<Element>>(this, selector, value);
 
-    if (!inEffect()) {
-      return result.map((r) => $(r));
-    }
-
-    let results = queries.get(this);
-
-    if (!results) {
-      treeObserver ??= new MutationObserver((records) => {
-        for (const record of records) {
-          if (record.type === "childList") {
-            const results = queries.get(record.target);
-
-            if (results) {
-              for (const selector of Object.keys(results)) {
-                if (record.target instanceof Element) {
-                  for (
-                    const result of record.target.querySelectorAll(
-                      selector,
-                    )
-                  ) {
-                    if ([...record.addedNodes].includes(result)) {
-                      results[selector] = [...results[selector], result];
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      });
-
-      results = watch({ [selector]: result });
-
-      queries.set(this, results);
-
-      treeObserver.observe(this, { childList: true, subtree: true });
-    } else if (results[selector] == null) {
-      results[selector] = result;
-    }
-
-    return results[selector].splice(0, Infinity).map((r: Element) => $(r));
+    return observed.splice(0, Infinity).map((r: Element) => $(r));
   },
 };
 
@@ -402,7 +386,7 @@ function nodes<T extends Node = Element>(
   children: Array<HandcraftChildArg>,
 ) {
   const nodeToCallback = new WeakMap<Node, () => void>();
-  const fragment = new DocumentFragment();
+  const fragment = document.createDocumentFragment();
 
   children = children.flat(Infinity);
 
