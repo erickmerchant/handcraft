@@ -2,6 +2,7 @@ export * from "./define.ts";
 export * from "./dollar.ts";
 export * from "./each.ts";
 export * from "./h.ts";
+export * from "./observe.ts";
 export * from "./reactivity.ts";
 export * from "./render.ts";
 export * from "./when.ts";
@@ -55,16 +56,7 @@ export type HandcraftElementMethods = {
     handler: EventListener,
     options?: AddEventListenerOptions | boolean,
   ) => void;
-  command: (
-    commands: string,
-    handler: EventListener,
-    options?: AddEventListenerOptions | boolean,
-  ) => void;
-  once: (
-    events: string,
-    handler: EventListener,
-    options?: AddEventListenerOptions | boolean,
-  ) => void;
+
   effect: (cb: (...args: any[]) => void) => void;
   attr: (
     key: string,
@@ -83,7 +75,6 @@ export type HandcraftElementMethods = {
       string | Record<string, boolean | (() => boolean)>
     >
   ) => void;
-  data: (data: HandcraftValueRecordArg) => void;
   style: (
     attrs: Record<
       string,
@@ -114,15 +105,6 @@ export type HandcraftElement =
     string,
     ((...args: Array<HandcraftValueArg>) => HandcraftElement)
   >;
-
-export type HandcraftObservedElementMethods = {
-  get(key: string): string | null;
-  query(selector: string): Array<HandcraftObservedElement>;
-};
-
-export type HandcraftObservedElement =
-  & HandcraftObservedElementMethods
-  & HandcraftElement;
 
 export type HandcraftControlCallback = () =>
   | HandcraftElement

@@ -1,12 +1,8 @@
-import type {
-  HandcraftChildArg,
-  HandcraftElement,
-  HandcraftObservedElement,
-} from "./mod.ts";
+import type { HandcraftChildArg, HandcraftElement } from "./mod.ts";
 import { h } from "./mod.ts";
 import { $ } from "./dollar.ts";
 
-type DefineLifeCycleCallback = (el: HandcraftObservedElement) => void;
+type DefineLifeCycleCallback = (el: HandcraftElement) => void;
 
 export type DefineFactory = {
   setup: (cb: DefineLifeCycleCallback) => DefineAPI;
@@ -27,7 +23,7 @@ export function define(name: string): DefineFactory {
   };
 
   queueMicrotask(() => {
-    customElements.define(
+    globalThis.customElements?.define?.(
       options.name,
       class extends HTMLElement {
         connectedCallback() {

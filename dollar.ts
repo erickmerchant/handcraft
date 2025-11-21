@@ -3,12 +3,10 @@ import type {
   HandcraftElement,
   HandcraftElementMethods,
   HandcraftNode,
-  HandcraftObservedElement,
-  HandcraftObservedElementMethods,
   HandcraftValueArg,
   HandcraftValueRecordArg,
 } from "./mod.ts";
-import { effect, inEffect, watch } from "./reactivity.ts";
+import { effect } from "./reactivity.ts";
 import { create, namespaces } from "./h.ts";
 import { isHandcraftElement, VNODE } from "./mod.ts";
 
@@ -26,40 +24,6 @@ const methods: HandcraftElementMethods = {
     for (const event of events.split(/\s+/)) {
       this.addEventListener(event, handler, options);
     }
-  },
-
-  command(
-    this: EventTarget,
-    commands: string,
-    handler: EventListener,
-    options?: AddEventListenerOptions | boolean,
-  ) {
-    const splitCommands = commands.split(/\s+/);
-
-    methods.on.call(this, "command", (e, ...args) => {
-      // @ts-ignore type is wrong
-      if (splitCommands.includes(e.command)) {
-        handler.call(e.currentTarget, e, ...args);
-      }
-    }, options);
-  },
-
-  once(
-    this: EventTarget,
-    events: string,
-    handler: EventListener,
-    options?: AddEventListenerOptions | boolean,
-  ) {
-    if (options === true || options === false) {
-      options = { capture: options };
-    }
-
-    methods.on.call(
-      this,
-      events,
-      handler,
-      { ...options, once: true } as EventListenerOptions,
-    );
   },
 
   effect<T extends Node = Element>(this: T, cb: (...args: any[]) => void) {
@@ -155,23 +119,6 @@ const methods: HandcraftElementMethods = {
     }
   },
 
-  data(this: HTMLElement, data: HandcraftValueRecordArg) {
-    for (const [key, value] of Object.entries(data)) {
-      mutate<HTMLElement>(
-        this,
-        (element) => {
-          const v = fnValue(value);
-
-          if (v == null || v === false) {
-            delete element.dataset[key];
-          } else {
-            element.dataset[key] = v === true ? "" : `${v}`;
-          }
-        },
-      );
-    }
-  },
-
   style(
     this: HTMLElement,
     styles: HandcraftValueRecordArg<string | number | null>,
@@ -205,141 +152,26 @@ const methods: HandcraftElementMethods = {
   },
 };
 
-const observerCache: WeakMap<
-  Node,
-  Record<string, any>
-> = new WeakMap();
+const elementRefs: WeakMap<HandcraftElement, Element> = new WeakMap();
 
-let observer: MutationObserver;
-
-function observe<T>(el: Node, key: string, value: () => T) {
-  observer ??= new MutationObserver((records) => {
-    for (const record of records) {
-      const results = observerCache.get(record.target);
-
-      if (results && record.target instanceof Element) {
-        if (record.type === "attributes") {
-          results[`[${record.attributeName as string}]`] = record.target
-            .getAttribute(
-              record.attributeName as string,
-            );
-        }
-
-        for (const selector of Object.keys(results)) {
-          if (!selector.startsWith(":scope")) continue;
-
-          for (
-            const result of record.target.querySelectorAll(
-              selector,
-            )
-          ) {
-            if ([...record.addedNodes].includes(result)) {
-              results[selector] = [
-                ...results[selector],
-                result,
-              ];
-            }
-          }
-        }
-      }
-    }
-  });
-
-  if (!inEffect()) {
-    return value();
-  }
-
-  let cache = observerCache.get(el);
-
-  if (!cache) {
-    cache = watch({});
-
-    observerCache.set(el, cache);
-
-    observer.observe(el, { attributes: true, subtree: true, childList: true });
-  }
-
-  if (!cache[key]) {
-    cache[key] = value();
-  }
-
-  return cache[key] as T;
+export function deref(el: HandcraftElement): Element | undefined {
+  return elementRefs.get(el);
 }
 
-const observeMethods: HandcraftObservedElementMethods = {
-  get(this: Element, key: string) {
-    const value = () => this.getAttribute(key);
+export function $(element: Element): HandcraftElement {
+  const el = create("fragment");
+  const ref = new WeakRef(element);
 
-    return observe(this, `[${key}]`, value);
-  },
-  query(this: Element, selector: string) {
-    selector = `:scope ${selector}`;
-
-    const value = () => [...this.querySelectorAll(selector)];
-    const observed = observe<Array<Element>>(this, selector, value);
-
-    return observed.splice(0, Infinity).map((r: Element) => $(r));
-  },
-};
-
-export function $(element: Element): HandcraftObservedElement {
-  const el: {
-    props: Array<{
-      method: string;
-      args: Array<HandcraftValueArg | HandcraftValueRecordArg>;
-    }>;
-    children: Array<HandcraftChildArg>;
-  } = {
-    props: watch([]),
-    children: watch([]),
-  };
-
-  const proxy = new Proxy(() => {}, {
-    apply(_, __, args: Array<HandcraftChildArg>) {
-      el.children.push(...args);
-
-      return proxy;
-    },
-    has(_target, key) {
-      return key === VNODE;
-    },
-    get(_, key: string | symbol) {
-      if (key === "then") {
-        return undefined;
-      }
-
-      if (key === "toJSON") {
-        return () => element;
-      }
-
-      if (key === VNODE) {
-        return element;
-      }
-
-      if (key in observeMethods) {
-        return observeMethods[key as keyof HandcraftObservedElementMethods]
-          .bind(
-            element,
-          );
-      }
-
-      return (
-        ...args: Array<HandcraftValueArg | HandcraftValueRecordArg>
-      ) => {
-        if (typeof key === "string") {
-          el.props.push({ method: key, args });
-        }
-
-        return proxy;
-      };
-    },
-  }) as HandcraftObservedElement;
+  elementRefs.set(el, element);
 
   queueMicrotask(() => {
-    patch(element, el.props, el.children);
+    const vnode = el[VNODE];
+    const element = ref.deref();
+
+    if (element) patch(element, vnode.props, vnode.children);
   });
 
-  return proxy;
+  return el;
 }
 
 function patch<T extends Node = Element>(
