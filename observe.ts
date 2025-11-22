@@ -50,7 +50,7 @@ export function observe(element: HandcraftElement): ObserveAPI {
 
   let cache = el ? observerCache.get(el) : {};
 
-  function read<T>(key: string, value: () => T): T {
+  function observe<T>(key: string, value: () => T): T {
     if (!inEffect() || !el) {
       return value();
     }
@@ -81,7 +81,7 @@ export function observe(element: HandcraftElement): ObserveAPI {
       const selector = selectors.map((s) => `:scope ${s}`).join();
 
       const value = () => [...el.querySelectorAll(selector)];
-      const observed = read<Array<Element>>(selector, value);
+      const observed = observe<Array<Element>>(selector, value);
 
       return observed.splice(0, Infinity).map((r: Element) => $(r));
     },
@@ -92,7 +92,28 @@ export function observe(element: HandcraftElement): ObserveAPI {
 
       const value = () => el.getAttribute(key);
 
-      return read<string | null>(`[${key}]`, value);
+      return observe<string | null>(`[${key}]`, value);
+    },
+  }) as ObserveAPI;
+}
+
+export function read(element: HandcraftElement): ObserveAPI {
+  const el = deref(element);
+
+  return new Proxy(() => {}, {
+    apply(_, __, selectors: Array<string>) {
+      if (!el) return [];
+
+      const selector = selectors.map((s) => `:scope ${s}`).join();
+
+      return [...el.querySelectorAll(selector)].map((r: Element) => $(r));
+    },
+    get(_, key) {
+      if (!el) return;
+
+      if (typeof key !== "string") return;
+
+      return el.getAttribute(key);
     },
   }) as ObserveAPI;
 }
