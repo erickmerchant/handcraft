@@ -2,13 +2,14 @@ import type {
   HandcraftChildArg,
   HandcraftElement,
   HandcraftElementValue,
+  HandcraftNamespaces,
   HandcraftValueArg,
   HandcraftValueRecordArg,
 } from "./mod.ts";
 import { VNODE } from "./mod.ts";
 import { watch } from "./reactivity.ts";
 
-export const namespaces: Record<string, string> = {
+export const namespaces: HandcraftNamespaces = {
   html: "http://www.w3.org/1999/xhtml",
   svg: "http://www.w3.org/2000/svg",
   math: "http://www.w3.org/1998/Math/MathML",
@@ -16,7 +17,7 @@ export const namespaces: Record<string, string> = {
 
 export function create(
   tag?: string,
-  namespace?: string,
+  namespace?: keyof HandcraftNamespaces,
 ): HandcraftElement {
   const vnode: HandcraftElementValue = {
     tag,
@@ -69,7 +70,7 @@ export function create(
   return proxy;
 }
 
-function factory(tag: string, namespace?: string) {
+function factory(tag: string, namespace?: keyof HandcraftNamespaces) {
   return new Proxy(() => {}, {
     apply(_, __, args) {
       const el = create(tag, namespace);
@@ -84,7 +85,9 @@ function factory(tag: string, namespace?: string) {
   }) as HandcraftElement;
 }
 
-function factoryNS(namespace: string): Record<string, HandcraftElement> {
+function factoryNS(
+  namespace: keyof HandcraftNamespaces,
+): Record<string, HandcraftElement> {
   return new Proxy(
     {},
     {
@@ -95,10 +98,9 @@ function factoryNS(namespace: string): Record<string, HandcraftElement> {
   ) as Record<string, HandcraftElement>;
 }
 
-export const h: Record<
-  "html" | "svg" | "math",
-  Record<string, HandcraftElement>
-> = {
+export const h: {
+  [K in keyof HandcraftNamespaces]: Record<string, HandcraftElement>;
+} = {
   html: factoryNS("html"),
   svg: factoryNS("svg"),
   math: factoryNS("math"),

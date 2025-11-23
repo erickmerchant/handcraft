@@ -13,6 +13,12 @@ export function isHandcraftElement(x: unknown): x is HandcraftElement {
   return x != null && typeof x === "function" && VNODE in x;
 }
 
+export type HandcraftNamespaces = {
+  html: string;
+  svg: string;
+  math: string;
+};
+
 export type HandcraftValue =
   | string
   | number
@@ -39,7 +45,7 @@ export type HandcraftChildArg =
 
 export type HandcraftElementValue = {
   tag?: string;
-  namespace?: string;
+  namespace?: keyof HandcraftNamespaces;
   options?: HandcraftValueRecordArg;
   props: Array<{
     method: string;

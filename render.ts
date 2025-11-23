@@ -63,21 +63,11 @@ export async function render(node: HandcraftNode): Promise<string> {
   }
 
   for (const { method, args } of vnode.props) {
-    if (["on", "once", "command", "prop", "effect"].includes(method)) continue;
+    if (["on", "prop", "effect"].includes(method)) continue;
 
     if (method === "aria" && args[0] != null && typeof args[0] == "object") {
       for (const [key, value] of Object.entries(args[0])) {
         result += getAttr(`aria-${key}`, value);
-      }
-
-      continue;
-    }
-
-    if (method === "data" && args[0] != null && typeof args[0] == "object") {
-      for (const [key, value] of Object.entries(args[0])) {
-        if (typeof value === "string" || typeof value === "function") {
-          result += ` data-${key}="${escape({ toString: () => `${value}` })}"`;
-        }
       }
 
       continue;
