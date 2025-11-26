@@ -1,6 +1,5 @@
 import type { HandcraftNode, HandcraftValueArg } from "./mod.ts";
 import { isHandcraftElement, VNODE } from "./mod.ts";
-import { namespaces } from "./h.ts";
 
 const VOID_ELEMENTS = [
   "area",
@@ -45,18 +44,20 @@ export async function render(node: HandcraftNode): Promise<string> {
   const vnode = node[VNODE];
 
   let result = "";
-  let css = "";
   let html = "";
 
-  if (vnode.tag === "html" && vnode.namespace === "html") {
+  if (vnode.tag === "html" && vnode.namespace === "1999/xhtml") {
     result += "<!doctype html>";
   }
 
   if (vnode.namespace != null) {
     result += "<" + vnode.tag;
 
-    if (vnode.namespace !== "html" && vnode.tag === vnode.namespace) {
-      result += ' xmlns="' + namespaces[vnode.namespace] + '"';
+    if (
+      (vnode.tag === "svg" && vnode.namespace === "2000/svg") ||
+      (vnode.tag === "math" && vnode.namespace === "1998/Math/MathML")
+    ) {
+      result += ' xmlns="http://www.w3.org/' + vnode.namespace + '"';
     }
   } else if (vnode.tag === "shadow") {
     result += `<template shadowrootmode="${vnode?.options?.mode ?? "open"}"`;
@@ -110,17 +111,6 @@ export async function render(node: HandcraftNode): Promise<string> {
       continue;
     }
 
-    if (method === "css") {
-      if (
-        vnode.tag === "shadow" &&
-        (typeof args[0] === "string" || typeof args[0] === "function")
-      ) {
-        css += getValue(args[0]);
-      }
-
-      continue;
-    }
-
     if (method === "html") {
       if (typeof args[0] === "string" || typeof args[0] === "function") {
         html += getValue(args[0]);
@@ -148,16 +138,10 @@ export async function render(node: HandcraftNode): Promise<string> {
 
   if (vnode.tag !== "fragment") result += ">";
 
-  if (vnode.tag === "shadow") {
-    if (css) {
-      result += `<style>${escape(css)}</style>`;
-    }
-  }
-
   if (html) {
     result += html;
   } else {
-    for (const child of vnode.children.flat(Infinity)) {
+    for (const child of vnode.children) {
       if (!child) continue;
 
       if (child != null) {

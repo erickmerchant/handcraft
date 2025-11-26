@@ -13,12 +13,6 @@ export function isHandcraftElement(x: unknown): x is HandcraftElement {
   return x != null && typeof x === "function" && VNODE in x;
 }
 
-export type HandcraftNamespaces = {
-  html: string;
-  svg: string;
-  math: string;
-};
-
 export type HandcraftValue =
   | string
   | number
@@ -38,14 +32,15 @@ export type HandcraftNode = HandcraftElement | string | null;
 
 export type HandcraftNodeFactory = () => HandcraftNode;
 
+export type HandcraftNodeOrNodeFactory = HandcraftNode | HandcraftNodeFactory;
+
 export type HandcraftChildArg =
-  | HandcraftNode
-  | Iterable<HandcraftControlCallback>
-  | HandcraftNodeFactory;
+  | HandcraftNodeOrNodeFactory
+  | Iterable<HandcraftControlCallback>;
 
 export type HandcraftElementValue = {
   tag?: string;
-  namespace?: keyof HandcraftNamespaces;
+  namespace?: string;
   options?: HandcraftValueRecordArg;
   props: Array<{
     method: string;
@@ -69,10 +64,6 @@ export type HandcraftElementMethods = {
     value: HandcraftValueArg<string | boolean>,
   ) => void;
   prop<T>(key: string, value: HandcraftValueArg<T>): void;
-  css: (
-    css: string | (() => string),
-    options?: { media?: string },
-  ) => void;
   aria: (
     attrs: HandcraftValueRecordArg,
   ) => void;
@@ -116,3 +107,5 @@ export type HandcraftControlCallback = () =>
   | HandcraftElement
   | void
   | Promise<HandcraftElement | void>;
+
+export type HandcraftElementFactoryNS = Record<string, HandcraftElement>;
