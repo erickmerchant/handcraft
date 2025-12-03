@@ -40,10 +40,12 @@ export type HandcraftChildArg =
 export type HandcraftElementValue = {
   tag?: string;
   namespace?: string;
-  options?: HandcraftValueRecordArg;
   props: Array<{
     method: string;
-    args: Array<HandcraftValueArg | HandcraftValueRecordArg>;
+    args: Array<
+      | HandcraftValueArg
+      | HandcraftValueRecordArg
+    >;
   }>;
   children: Array<HandcraftChildArg>;
 };
@@ -78,6 +80,10 @@ export type HandcraftElementMethods = {
     >,
   ) => void;
   html: (html: string | (() => string)) => void;
+  shadow: (
+    options: ShadowRootInit,
+    ...children: Array<HandcraftChildArg>
+  ) => void;
 };
 
 type HandcraftChainableMethods<T> = {

@@ -118,6 +118,19 @@ const methods: HandcraftElementMethods = {
       },
     );
   },
+
+  shadow(
+    this: Element,
+    options: ShadowRootInit,
+    ...children: Array<HandcraftChildArg>
+  ) {
+    const el = this.shadowRoot ??
+      this.attachShadow(
+        options,
+      );
+
+    patch<ShadowRoot>(el, [], children);
+  },
 };
 
 const elementRefs: WeakMap<HandcraftElement, Element> = new WeakMap();
@@ -195,7 +208,7 @@ function patch<T extends Node = Element>(
             ) {
               const result = await item(); // @todo take out of loop
 
-              const derefed = result ? node(element, result) : result;
+              const derefed = result ? node(result) : result;
 
               if (derefed != null) {
                 if (currentChild == null) {
@@ -235,7 +248,7 @@ function patch<T extends Node = Element>(
         mutate<Node>(
           element,
           (element) => {
-            const c = node(element, child);
+            const c = node(child);
 
             if (c != null) {
               const p = weakPrev.deref();
@@ -249,7 +262,7 @@ function patch<T extends Node = Element>(
           },
         );
       } else if (typeof child === "string") {
-        const result = node(element, child);
+        const result = node(child);
 
         if (result != null) fragment.append(result);
       }
@@ -273,7 +286,6 @@ function replace(parent: Node, current: Node, next: Node | string) {
 }
 
 function node(
-  parent: Node,
   element: HandcraftNodeOrNodeFactory,
 ): Element | DocumentFragment | string | null | void {
   if (
@@ -297,19 +309,6 @@ function node(
         patch(el, result.props, result.children);
 
         return el;
-      }
-
-      if (result.tag === "shadow") {
-        if (parent instanceof Element) {
-          const el = parent.shadowRoot ??
-            parent.attachShadow(
-              { mode: result?.options?.mode ?? "open" } as ShadowRootInit,
-            );
-
-          patch<DocumentFragment>(el, result.props, result.children);
-        }
-
-        return;
       }
 
       if (result.tag === "fragment") {

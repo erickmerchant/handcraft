@@ -1,4 +1,8 @@
-import type { HandcraftNode, HandcraftValueArg } from "./mod.ts";
+import type {
+  HandcraftChildArg,
+  HandcraftNode,
+  HandcraftValueArg,
+} from "./mod.ts";
 import { isHandcraftElement, VNODE } from "./mod.ts";
 
 const VOID_ELEMENTS = [
@@ -59,8 +63,6 @@ export async function render(node: HandcraftNode): Promise<string> {
     ) {
       result += ' xmlns="http://www.w3.org/' + vnode.namespace + '"';
     }
-  } else if (vnode.tag === "shadow") {
-    result += `<template shadowrootmode="${vnode?.options?.mode ?? "open"}"`;
   }
 
   for (const { method, args } of vnode.props) {
@@ -119,6 +121,19 @@ export async function render(node: HandcraftNode): Promise<string> {
       continue;
     }
 
+    if (method === "shadow") {
+      const [options, ...children] = args as [
+        ShadowRootInit,
+        ...Array<HandcraftChildArg>,
+      ];
+
+      html += `<template shadowrootmode="${options?.mode ?? "open"}">`;
+      html += await renderChildren(children);
+      html += `</template>`;
+
+      continue;
+    }
+
     if (
       method === "attr" && typeof args[0] === "string" &&
       (typeof args[1] === "string" || typeof args[1] === "function")
@@ -138,42 +153,46 @@ export async function render(node: HandcraftNode): Promise<string> {
 
   if (vnode.tag !== "fragment") result += ">";
 
-  if (html) {
-    result += html;
-  } else {
-    for (const child of vnode.children) {
-      if (!child) continue;
+  result += html;
 
-      if (child != null) {
-        if (typeof child === "object" && Symbol.iterator in child) {
-          for (const c of child) {
-            const r = await c();
-
-            if (!r) continue;
-
-            result += await render(r);
-          }
-        } else {
-          result += await render(
-            typeof child === "function" &&
-              !isHandcraftElement(child)
-              ? child()
-              : child,
-          );
-        }
-      }
-    }
-  }
+  result += await renderChildren(vnode.children);
 
   if (vnode.namespace != null && vnode.tag != null) {
     if (!VOID_ELEMENTS.includes(vnode.tag)) {
       result += "</" + vnode.tag + ">";
     }
-  } else if (vnode.tag === "shadow") {
-    result += `</template>`;
   }
 
   return result;
+}
+
+async function renderChildren(children: Array<HandcraftChildArg>) {
+  let html = "";
+
+  for (const child of children) {
+    if (!child) continue;
+
+    if (child != null) {
+      if (typeof child === "object" && Symbol.iterator in child) {
+        for (const c of child) {
+          const r = await c();
+
+          if (!r) continue;
+
+          html += await render(r);
+        }
+      } else {
+        html += await render(
+          typeof child === "function" &&
+            !isHandcraftElement(child)
+            ? child()
+            : child,
+        );
+      }
+    }
+  }
+
+  return html;
 }
 
 function getValue<T = HandcraftValueArg>(value: T) {

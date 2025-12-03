@@ -46,14 +46,7 @@ export function create(
         ...args: Array<HandcraftValueArg | HandcraftValueRecordArg>
       ) => {
         if (typeof key === "string") {
-          if (
-            args.length === 1 && key === "options" && args[0] &&
-            typeof args[0] === "object"
-          ) {
-            vnode.options = args[0];
-          } else {
-            vnode.props.push({ method: key, args });
-          }
+          vnode.props.push({ method: key, args });
         }
 
         return proxy;
@@ -101,7 +94,5 @@ export const h: {
   svg: factoryNS("2000/svg"),
   math: factoryNS("1998/Math/MathML"),
 };
-
-export const shadow = factory("shadow") as HandcraftElement;
 
 export const fragment = factory("fragment") as HandcraftElement;
