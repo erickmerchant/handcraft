@@ -7,7 +7,7 @@ import type {
   HandcraftValueRecordArg,
 } from "./mod.ts";
 import { effect } from "./reactivity.ts";
-import { create } from "./mod.ts";
+import { create } from "./h.ts";
 import { isHandcraftElement, VNODE } from "./mod.ts";
 
 function fnValue<T>(value: T | (() => T)) {
