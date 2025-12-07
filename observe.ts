@@ -20,14 +20,20 @@ export function observe(element: HandcraftElement): ObserveAPI {
     for (const record of records) {
       const results = observerCache.get(record.target);
 
-      if (results && record.target instanceof Element) {
-        if (record.type === "attributes") {
-          results[`[${record.attributeName as string}]`] = record.target
-            .getAttribute(
-              record.attributeName as string,
-            );
-        }
+      if (!results || !(record.target instanceof Element)) continue;
 
+      const attributeName = record.attributeName;
+
+      if (attributeName) {
+        results[`[${attributeName as string}]`] = record.target
+          .getAttribute(
+            attributeName as string,
+          );
+      }
+
+      const addedNodes = [...record.addedNodes];
+
+      if (addedNodes.length) {
         for (const selector of Object.keys(results)) {
           if (!selector.startsWith(":scope")) continue;
 
@@ -36,11 +42,8 @@ export function observe(element: HandcraftElement): ObserveAPI {
               selector,
             )
           ) {
-            if ([...record.addedNodes].includes(result)) {
-              results[selector] = [
-                ...results[selector],
-                result,
-              ];
+            if (addedNodes.includes(result)) {
+              results[selector] = results[selector].concat(result);
             }
           }
         }
