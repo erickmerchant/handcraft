@@ -4,7 +4,7 @@ import { $, deref } from "./dollar.ts";
 
 const observerCache: WeakMap<
   Node,
-  Record<string, any>
+  { attributes: Record<string, any>; children: Record<string, any> }
 > = new WeakMap();
 
 type ObserveAPI = {
@@ -25,7 +25,7 @@ export function observe(element: HandcraftElement): ObserveAPI {
       const attributeName = record.attributeName;
 
       if (attributeName) {
-        results[`[${attributeName as string}]`] = record.target
+        results.attributes[`[${attributeName as string}]`] = record.target
           .getAttribute(
             attributeName as string,
           );
@@ -34,16 +34,16 @@ export function observe(element: HandcraftElement): ObserveAPI {
       const addedNodes = [...record.addedNodes];
 
       if (addedNodes.length) {
-        for (const selector of Object.keys(results)) {
-          if (!selector.startsWith(":scope")) continue;
-
+        for (const selector of Object.keys(results.children)) {
           for (
             const result of record.target.querySelectorAll(
               selector,
             )
           ) {
             if (addedNodes.includes(result)) {
-              results[selector] = results[selector].concat(result);
+              results.children[selector] = results.children[selector].concat(
+                result,
+              );
             }
           }
         }
@@ -51,15 +51,19 @@ export function observe(element: HandcraftElement): ObserveAPI {
     }
   });
 
-  let cache = el ? observerCache.get(el) : {};
+  let cache = el ? observerCache.get(el) : { attributes: {}, children: {} };
 
-  function observe<T>(key: string, value: () => T): T {
+  function observe<T>(
+    type: "children" | "attributes",
+    key: string,
+    value: () => T,
+  ): T {
     if (!inEffect() || !el) {
       return value();
     }
 
     if (!cache) {
-      cache = watch({});
+      cache = { attributes: watch({}), children: watch({}) };
 
       observerCache.set(el, cache);
 
@@ -70,11 +74,11 @@ export function observe(element: HandcraftElement): ObserveAPI {
       });
     }
 
-    if (!cache[key]) {
-      cache[key] = value();
+    if (!cache[type][key]) {
+      cache[type][key] = value();
     }
 
-    return cache[key] as T;
+    return cache[type][key] as T;
   }
 
   return new Proxy(() => {}, {
@@ -84,7 +88,7 @@ export function observe(element: HandcraftElement): ObserveAPI {
       const selector = selectors.map((s) => `:scope ${s}`).join();
 
       const value = () => [...el.querySelectorAll(selector)];
-      const observed = observe<Array<Element>>(selector, value);
+      const observed = observe<Array<Element>>("children", selector, value);
 
       return observed.splice(0, Infinity).map((r: Element) => $(r));
     },
@@ -95,28 +99,7 @@ export function observe(element: HandcraftElement): ObserveAPI {
 
       const value = () => el.getAttribute(key);
 
-      return observe<string | null>(`[${key}]`, value);
-    },
-  }) as ObserveAPI;
-}
-
-export function read(element: HandcraftElement): ObserveAPI {
-  const el = deref(element);
-
-  return new Proxy(() => {}, {
-    apply(_, __, selectors: Array<string>) {
-      if (!el) return [];
-
-      const selector = selectors.map((s) => `:scope ${s}`).join();
-
-      return [...el.querySelectorAll(selector)].map((r: Element) => $(r));
-    },
-    get(_, key) {
-      if (!el) return;
-
-      if (typeof key !== "string") return;
-
-      return el.getAttribute(key);
+      return observe<string | null>("attributes", `[${key}]`, value);
     },
   }) as ObserveAPI;
 }
