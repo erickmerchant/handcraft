@@ -1,6 +1,6 @@
 import type { HandcraftElement } from "./mod.ts";
 import { inEffect, watch } from "./reactivity.ts";
-import { $, deref } from "./dollar.ts";
+import { $ } from "./dollar.ts";
 
 const observerCache: WeakMap<
   Node,
@@ -13,9 +13,7 @@ type ObserveAPI = {
 
 let observer: MutationObserver;
 
-export function observe(element: HandcraftElement): ObserveAPI {
-  const el = deref(element);
-
+export function observe(element: Element): ObserveAPI {
   observer ??= new MutationObserver((records) => {
     for (const record of records) {
       const results = observerCache.get(record.target);
@@ -51,23 +49,25 @@ export function observe(element: HandcraftElement): ObserveAPI {
     }
   });
 
-  let cache = el ? observerCache.get(el) : { attributes: {}, children: {} };
+  let cache = element
+    ? observerCache.get(element)
+    : { attributes: {}, children: {} };
 
   function observe<T>(
     type: "children" | "attributes",
     key: string,
     value: () => T,
   ): T {
-    if (!inEffect() || !el) {
+    if (!inEffect() || !element) {
       return value();
     }
 
     if (!cache) {
       cache = { attributes: watch({}), children: watch({}) };
 
-      observerCache.set(el, cache);
+      observerCache.set(element, cache);
 
-      observer.observe(el, {
+      observer.observe(element, {
         attributes: true,
         subtree: true,
         childList: true,
@@ -83,21 +83,21 @@ export function observe(element: HandcraftElement): ObserveAPI {
 
   return new Proxy(() => {}, {
     apply(_, __, selectors: Array<string>) {
-      if (!el) return [];
+      if (!element) return [];
 
       const selector = selectors.map((s) => `:scope ${s}`).join();
 
-      const value = () => [...el.querySelectorAll(selector)];
+      const value = () => [...element.querySelectorAll(selector)];
       const observed = observe<Array<Element>>("children", selector, value);
 
       return observed.splice(0, Infinity).map((r: Element) => $(r));
     },
     get(_, key) {
-      if (!el) return;
+      if (!element) return;
 
       if (typeof key !== "string") return;
 
-      const value = () => el.getAttribute(key);
+      const value = () => element.getAttribute(key);
 
       return observe<string | null>("attributes", `[${key}]`, value);
     },

@@ -1,8 +1,7 @@
 import type { HandcraftChildArg, HandcraftElement } from "./mod.ts";
 import { h } from "./mod.ts";
-import { $ } from "./dollar.ts";
 
-type DefineLifeCycleCallback = (el: HandcraftElement) => void;
+type DefineLifeCycleCallback = (el: Element) => void;
 
 export type DefineFactory = {
   setup: (cb: DefineLifeCycleCallback) => DefineAPI;
@@ -27,11 +26,11 @@ export function define(name: string): DefineFactory {
       options.name,
       class extends HTMLElement {
         connectedCallback() {
-          options.setup($(this));
+          options.setup(this);
         }
 
         disconnectedCallback() {
-          options.teardown($(this));
+          options.teardown(this);
         }
       },
     );

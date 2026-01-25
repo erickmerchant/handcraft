@@ -2,7 +2,7 @@ import type {
   HandcraftChildArg,
   HandcraftElement,
   HandcraftElementMethods,
-  HandcraftNodeOrNodeFactory,
+  HandcraftElementValue,
   HandcraftValueArg,
   HandcraftValueRecordArg,
 } from "./mod.ts";
@@ -129,27 +129,19 @@ const methods: HandcraftElementMethods = {
         options,
       );
 
-    patch<ShadowRoot>(el, [], children);
+    patch<ShadowRoot>(el, { children, props: [] });
   },
 };
-
-const elementRefs: WeakMap<HandcraftElement, Element> = new WeakMap();
-
-export function deref(el: HandcraftElement): Element | undefined {
-  return elementRefs.get(el);
-}
 
 export function $(element: Element): HandcraftElement {
   const el = create("fragment");
   const ref = new WeakRef(element);
 
-  elementRefs.set(el, element);
-
   queueMicrotask(() => {
     const vnode = el[VNODE];
     const element = ref.deref();
 
-    if (element) patch(element, vnode.props, vnode.children);
+    if (element) patch(element, vnode);
   });
 
   return el;
@@ -157,38 +149,39 @@ export function $(element: Element): HandcraftElement {
 
 function patch<T extends Node = Element>(
   element: T,
-  props: Array<{
-    method: string;
-    args: Array<HandcraftValueArg | HandcraftValueRecordArg>;
-  }>,
-  children: Array<HandcraftChildArg>,
+  { children, props }: HandcraftElementValue,
 ) {
-  let i = 0;
-  let j = 0;
-
-  mutate<T>(element, (element) => {
-    for (const { method, args } of props.slice(i)) {
-      if (method in methods) {
-        // @ts-ignore ignore silly error
-        methods[method as keyof HandcraftElementMethods].call(element, ...args);
-      } else {
-        // @ts-ignore ignore silly error
-        attr(element, method, ...args);
-      }
+  for (const { method, args } of props) {
+    if (method in methods) {
+      // @ts-ignore ignore silly error
+      methods[method as keyof HandcraftElementMethods].call(element, ...args);
+    } else {
+      // @ts-ignore ignore silly error
+      attr(element, method, ...args);
     }
+  }
 
-    const nodeToCallback = new WeakMap<Node, () => void>();
-    const fragment = document.createDocumentFragment();
+  const nodeToCallback = new WeakMap<Node, () => void>();
+  const fragment = document.createDocumentFragment();
 
-    for (const child of children.slice(j)) {
-      if (!child) continue;
+  for (const child of children) {
+    if (child == null) continue;
 
+    if (typeof child === "string") {
+      fragment.append(child);
+    } else {
       if (
-        child != null &&
-        typeof child === "object" &&
-        child[Symbol.iterator] != null
+        typeof child === "function" ||
+        (typeof child === "object" &&
+          child[Symbol.iterator] != null)
       ) {
-        const bounds = [document.createComment(""), document.createComment("")];
+        const lastChild = fragment.lastChild;
+        const bounds = [
+          lastChild != null && lastChild.nodeType === 8
+            ? lastChild
+            : document.createComment(""),
+          document.createComment(""),
+        ];
 
         fragment.append(...bounds);
 
@@ -202,23 +195,57 @@ function patch<T extends Node = Element>(
 
           if (child == null) return;
 
-          for (const item of child) {
+          for (const item of typeof child === "function" ? [child] : child) {
             if (
-              currentChild == null || nodeToCallback.get(currentChild) !== item
+              currentChild == null ||
+              nodeToCallback.get(currentChild) !== item
             ) {
               const result = await item(); // @todo take out of loop
 
-              const derefed = result ? node(result) : result;
+              if (!result) continue;
+
+              let derefed: Element | DocumentFragment | string | Text;
+
+              if (isHandcraftElement(result)) {
+                const res = result[VNODE];
+
+                if (res instanceof Element) return res;
+
+                if (res.tag != null && res.namespace != null) {
+                  const el = document.createElementNS(
+                    `http://www.w3.org/${res.namespace}`,
+                    res.tag,
+                  );
+
+                  patch(el, res);
+
+                  derefed = el;
+                } else {
+                  const el = document.createDocumentFragment();
+
+                  patch(el, res);
+
+                  derefed = el;
+                }
+              } else {
+                derefed = result;
+              }
 
               if (derefed != null) {
+                if (typeof derefed !== "string") {
+                  nodeToCallback.set(derefed, item);
+                }
+
+                if (!(derefed instanceof Node)) {
+                  derefed = document.createTextNode(derefed);
+                }
+
                 if (currentChild == null) {
                   end?.before?.(derefed);
                 } else {
-                  currentChild = replace(element, currentChild, derefed);
-                }
+                  element.replaceChild(derefed, currentChild);
 
-                if (typeof derefed !== "string") {
-                  nodeToCallback.set(derefed, item);
+                  currentChild = derefed;
                 }
               } else {
                 continue;
@@ -238,92 +265,11 @@ function patch<T extends Node = Element>(
             currentChild = nextChild;
           }
         });
-      } else if (child != null && typeof child === "function") {
-        const prev = document.createComment("");
-
-        fragment.append(prev);
-
-        let weakPrev = new WeakRef<Comment | Node>(prev);
-
-        mutate<Node>(
-          element,
-          (element) => {
-            const c = node(child);
-
-            if (c != null) {
-              const p = weakPrev.deref();
-
-              if (p) {
-                weakPrev = new WeakRef(
-                  replace(element, p, c ?? document.createComment("")),
-                );
-              }
-            }
-          },
-        );
-      } else if (typeof child === "string") {
-        const result = node(child);
-
-        if (result != null) fragment.append(result);
       }
     }
-
-    element.appendChild(fragment);
-
-    i = props.length;
-    j = children.length;
-  });
-}
-
-function replace(parent: Node, current: Node, next: Node | string) {
-  if (!(next instanceof Node)) {
-    next = document.createTextNode(next);
   }
 
-  parent.replaceChild(next, current);
-
-  return next;
-}
-
-function node(
-  element: HandcraftNodeOrNodeFactory,
-): Element | DocumentFragment | string | null | void {
-  if (
-    element != null && typeof element === "function"
-  ) {
-    if (!isHandcraftElement(element)) {
-      element = element();
-    }
-
-    if (isHandcraftElement(element)) {
-      const result = element[VNODE];
-
-      if (result instanceof Element) return result;
-
-      if (result.tag != null && result.namespace != null) {
-        const el = document.createElementNS(
-          `http://www.w3.org/${result.namespace}`,
-          result.tag,
-        );
-
-        patch(el, result.props, result.children);
-
-        return el;
-      }
-
-      if (result.tag === "fragment") {
-        const el = document.createDocumentFragment();
-
-        patch<DocumentFragment>(el, result.props, result.children);
-
-        return el;
-      }
-    }
-
-    return element as (string | null);
-  }
-
-  return element;
+  element.appendChild(fragment);
 }
 
 function attr(element: Element, key: string, value: HandcraftValueArg) {

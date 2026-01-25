@@ -58,7 +58,6 @@ export type HandcraftElementMethods = {
     handler: EventListener,
     options?: AddEventListenerOptions | boolean,
   ) => void;
-
   effect: (cb: (...args: any[]) => void) => void;
   attr: (
     key: string,
@@ -109,8 +108,8 @@ export type HandcraftElement =
   >;
 
 export type HandcraftControlCallback = () =>
-  | HandcraftElement
+  | HandcraftNode
   | void
-  | Promise<HandcraftElement | void>;
+  | Promise<HandcraftNode | void>;
 
 export type HandcraftElementFactoryNS = Record<string, HandcraftElement>;
