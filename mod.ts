@@ -2,7 +2,6 @@ export * from "./define.ts";
 export * from "./dollar.ts";
 export * from "./each.ts";
 export * from "./h.ts";
-export * from "./observe.ts";
 export * from "./reactivity.ts";
 export * from "./when.ts";
 
