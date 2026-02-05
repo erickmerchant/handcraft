@@ -47,7 +47,6 @@ const methods: HandcraftElementMethods = {
       this,
       (element) => {
         if (key in element) {
-          // @ts-ignore don't care if it's writable
           element[key as keyof T] = fnValue(value);
         }
       },
@@ -153,10 +152,10 @@ function patch<T extends Node = Element>(
 ) {
   for (const { method, args } of props) {
     if (method in methods) {
-      // @ts-ignore ignore silly error
+      // @ts-ignore{2556}
       methods[method as keyof HandcraftElementMethods].call(element, ...args);
     } else {
-      // @ts-ignore ignore silly error
+      // @ts-ignore{2556}
       attr(element, method, ...args);
     }
   }
