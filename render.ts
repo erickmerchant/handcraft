@@ -68,14 +68,6 @@ export async function render(node: HandcraftNode): Promise<string> {
   for (const { method, args } of vnode.props) {
     if (["on", "prop", "effect"].includes(method)) continue;
 
-    if (method === "aria" && args[0] != null && typeof args[0] == "object") {
-      for (const [key, value] of Object.entries(args[0])) {
-        result += getAttr(`aria-${key}`, value);
-      }
-
-      continue;
-    }
-
     if (method === "class") {
       const classes = args.flat(Infinity);
       const list = [];
@@ -136,7 +128,7 @@ export async function render(node: HandcraftNode): Promise<string> {
 
     if (
       method === "attr" && typeof args[0] === "string" &&
-      (typeof args[1] === "string" || typeof args[1] === "function")
+      (args[1] == null || typeof args[1] !== "object")
     ) {
       result += getAttr(args[0], args[1]);
 
@@ -144,10 +136,19 @@ export async function render(node: HandcraftNode): Promise<string> {
     }
 
     if (
-      typeof args[0] === "string" || typeof args[0] === "number" ||
-      args[0] == null || typeof args[0] === "function"
+      args[0] == null || typeof args[0] !== "object"
     ) {
       result += getAttr(method, args[0]);
+
+      continue;
+    }
+
+    if (typeof args[0] === "object") {
+      for (const [key, value] of Object.entries(args[0])) {
+        result += getAttr(`${method}-${key}`, value);
+      }
+
+      continue;
     }
   }
 
@@ -210,10 +211,12 @@ function getAttr(
 ) {
   const v = getValue(value);
 
-  if (v != null && v !== false && v !== true) {
-    return ` ${key}="${escape(v)}"`;
-  } else if (v !== true) {
-    return ` ${key}`;
+  if (v != null && v !== false) {
+    if (v !== true) {
+      return ` ${key}="${escape(v)}"`;
+    } else {
+      return ` ${key}`;
+    }
   }
 
   return "";

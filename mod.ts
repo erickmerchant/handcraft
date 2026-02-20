@@ -63,9 +63,6 @@ export type HandcraftElementMethods = {
     value: HandcraftValueArg<string | boolean>,
   ) => void;
   prop<T>(key: string, value: HandcraftValueArg<T>): void;
-  aria: (
-    attrs: HandcraftValueRecordArg,
-  ) => void;
   class: (
     ...classes: Array<
       string | Record<string, boolean | (() => boolean)>
@@ -103,7 +100,9 @@ export type HandcraftElement =
   & HandcraftChainableMethods<HandcraftElementMethods>
   & Record<
     string,
-    ((...args: Array<HandcraftValueArg>) => HandcraftElement)
+    ((
+      arg: HandcraftValueArg | HandcraftValueRecordArg,
+    ) => HandcraftElement)
   >;
 
 export type HandcraftControlCallback = () =>

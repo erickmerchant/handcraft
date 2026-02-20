@@ -3,6 +3,7 @@ import type {
   HandcraftElement,
   HandcraftElementMethods,
   HandcraftElementValue,
+  HandcraftValue,
   HandcraftValueArg,
   HandcraftValueRecordArg,
 } from "./mod.ts";
@@ -32,10 +33,18 @@ const methods: HandcraftElementMethods = {
 
   attr(
     this: Element,
-    key: string,
-    value: HandcraftValueArg<string | boolean>,
+    method: string,
+    value:
+      | HandcraftValueArg<HandcraftValue>
+      | HandcraftValueRecordArg<HandcraftValue>,
   ) {
-    attr(this, key, value);
+    if (value != null && typeof value === "object") {
+      for (const [key, val] of Object.entries(value)) {
+        attr(this, `${method}-${key}`, val);
+      }
+    } else {
+      attr(this, method, value);
+    }
   },
 
   prop<V, T extends Node = Element>(
@@ -51,12 +60,6 @@ const methods: HandcraftElementMethods = {
         }
       },
     );
-  },
-
-  aria(this: Element, attrs: HandcraftValueRecordArg) {
-    for (const [key, value] of Object.entries(attrs)) {
-      attr(this, `aria-${key}`, value);
-    }
   },
 
   class(
@@ -156,7 +159,7 @@ function patch<T extends Node = Element>(
       methods[method as keyof HandcraftElementMethods].call(element, ...args);
     } else {
       // @ts-ignore{2556}
-      attr(element, method, ...args);
+      methods.attr.call(element, method, ...args);
     }
   }
 

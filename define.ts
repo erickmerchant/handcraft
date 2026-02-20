@@ -1,4 +1,4 @@
-import type { HandcraftElement } from "./mod.ts";
+import type { HandcraftElement, HandcraftValue } from "./mod.ts";
 import { h } from "./h.ts";
 import { watch } from "./reactivity.ts";
 
@@ -7,12 +7,12 @@ export function define<T>(
   opts: {
     connected: (this: any, el: Element) => void;
     disconnected?: (el: Element) => void;
-    attrs?: Record<string, number | string | boolean>;
+    attrs?: Record<string, HandcraftValue>;
   },
 ): HandcraftElement {
   const options: {
     name: string;
-    attrs: Record<string, number | string | boolean>;
+    attrs: Record<string, HandcraftValue>;
     connected: (this: typeof opts.attrs, el: Element) => void;
     disconnected: (el: Element) => void;
   } = {
