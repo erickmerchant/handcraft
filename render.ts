@@ -5,6 +5,8 @@ import type {
 } from "./mod.ts";
 import { isHandcraftElement, VNODE } from "./mod.ts";
 
+type EscapeMode = "html" | "attribute" | "script";
+
 const VOID_ELEMENTS = [
   "area",
   "base",
@@ -22,7 +24,28 @@ const VOID_ELEMENTS = [
   "wbr",
 ];
 
-function escape(str: { toString: () => string }): string {
+function escape(
+  str: { toString: () => string },
+  escapeMode: EscapeMode,
+): string {
+  if (escapeMode === "attribute") {
+    return `${str}`.replace(/[&"']/g, (k: string) => {
+      return {
+        "&": "&amp;",
+        '"': "&quot;",
+        "'": "&#39;",
+      }[k] ?? k;
+    });
+  }
+
+  if (escapeMode === "script") {
+    return `${str}`.replace(/</g, (k: string) => {
+      return {
+        "<": "\u003c",
+      }[k] ?? k;
+    });
+  }
+
   return `${str}`.replace(/[&<>"']/g, (k: string) => {
     return {
       "&": "&amp;",
@@ -34,11 +57,14 @@ function escape(str: { toString: () => string }): string {
   });
 }
 
-export async function render(node: HandcraftNode): Promise<string> {
+export async function render(
+  node: HandcraftNode,
+  escapeMode: EscapeMode = "html",
+): Promise<string> {
   if (node == null) return "";
 
   if (typeof node !== "function") {
-    return escape(node);
+    return escape(node, escapeMode);
   }
 
   if (node[VNODE] == null) {
@@ -88,7 +114,7 @@ export async function render(node: HandcraftNode): Promise<string> {
         }
       }
 
-      result += ` class="${escape(list.join(" "))}"`;
+      result += ` class="${escape(list.join(" "), "attribute")}"`;
 
       continue;
     }
@@ -100,7 +126,7 @@ export async function render(node: HandcraftNode): Promise<string> {
         styles.push(`${key}: ${getValue(value)}`);
       }
 
-      result += ' style="' + escape(styles.join("; ")) + '"';
+      result += ' style="' + escape(styles.join("; "), "attribute") + '"';
 
       continue;
     }
@@ -120,7 +146,10 @@ export async function render(node: HandcraftNode): Promise<string> {
       ];
 
       html += `<template shadowrootmode="${options?.mode ?? "open"}">`;
-      html += await renderChildren(children);
+      html += await renderChildren(
+        children,
+        "html",
+      );
       html += `</template>`;
 
       continue;
@@ -156,7 +185,10 @@ export async function render(node: HandcraftNode): Promise<string> {
 
   result += html;
 
-  result += await renderChildren(vnode.children);
+  result += await renderChildren(
+    vnode.children,
+    vnode.tag === "script" ? "script" : "html",
+  );
 
   if (vnode.namespace != null && vnode.tag != null) {
     if (!VOID_ELEMENTS.includes(vnode.tag)) {
@@ -167,7 +199,10 @@ export async function render(node: HandcraftNode): Promise<string> {
   return result;
 }
 
-async function renderChildren(children: Array<HandcraftChildArg>) {
+async function renderChildren(
+  children: Array<HandcraftChildArg>,
+  escapeMode: EscapeMode,
+) {
   let html = "";
 
   for (const child of children) {
@@ -180,7 +215,7 @@ async function renderChildren(children: Array<HandcraftChildArg>) {
 
           if (!r) continue;
 
-          html += await render(r);
+          html += await render(r, escapeMode);
         }
       } else {
         html += await render(
@@ -188,6 +223,7 @@ async function renderChildren(children: Array<HandcraftChildArg>) {
             !isHandcraftElement(child)
             ? child()
             : child,
+          escapeMode,
         );
       }
     }
@@ -213,7 +249,7 @@ function getAttr(
 
   if (v != null && v !== false) {
     if (v !== true) {
-      return ` ${key}="${escape(v)}"`;
+      return ` ${key}="${escape(v, "attribute")}"`;
     } else {
       return ` ${key}`;
     }
