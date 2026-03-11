@@ -1,5 +1,5 @@
 import type { HandcraftElement, HandcraftValue } from "./mod.ts";
-import { h } from "./h.ts";
+import { h } from "./dom.ts";
 import { watch } from "./reactivity.ts";
 
 export function define<T>(

@@ -1,15 +1,18 @@
 import type {
   HandcraftChildArg,
   HandcraftElement,
+  HandcraftElementFactoryNS,
   HandcraftElementMethods,
-  HandcraftElementValue,
   HandcraftValue,
   HandcraftValueArg,
   HandcraftValueRecordArg,
 } from "./mod.ts";
 import { effect } from "./reactivity.ts";
-import { create } from "./h.ts";
-import { isHandcraftElement, VNODE } from "./mod.ts";
+import { NODE } from "./mod.ts";
+
+function isHandcraftElement(x: unknown): x is HandcraftElement {
+  return x != null && typeof x === "function" && NODE in x;
+}
 
 function fnValue<T>(value: T | (() => T)) {
   return typeof value === "function" ? (value as CallableFunction)() : value;
@@ -28,7 +31,9 @@ const methods: HandcraftElementMethods = {
   },
 
   effect<T extends Node = Element>(this: T, cb: (...args: any[]) => void) {
-    mutate<T>(this, cb);
+    queueMicrotask(() => {
+      mutate<T>(this, cb);
+    });
   },
 
   attr(
@@ -116,7 +121,15 @@ const methods: HandcraftElementMethods = {
     mutate<Element>(
       this,
       (element) => {
-        element.setHTMLUnsafe(fnValue(html));
+        if (element.setHTMLUnsafe) {
+          element.setHTMLUnsafe(fnValue(html));
+        } else {
+          const div = document.createElement("div");
+
+          div.innerHTML = fnValue(html);
+
+          element.append(...div.childNodes);
+        }
       },
     );
   },
@@ -126,43 +139,21 @@ const methods: HandcraftElementMethods = {
     options: ShadowRootInit,
     ...children: Array<HandcraftChildArg>
   ) {
+    options.serializable ??= true;
+
     const el = this.shadowRoot ??
       this.attachShadow(
         options,
       );
 
-    patch<ShadowRoot>(el, { children, props: [] });
+    append<ShadowRoot>(el, ...children);
   },
 };
 
-export function $(element: Element): HandcraftElement {
-  const el = create("fragment");
-  const ref = new WeakRef(element);
-
-  queueMicrotask(() => {
-    const vnode = el[VNODE];
-    const element = ref.deref();
-
-    if (element) patch(element, vnode);
-  });
-
-  return el;
-}
-
-function patch<T extends Node = Element>(
+function append<T extends Node = Element>(
   element: T,
-  { children, props }: HandcraftElementValue,
+  ...children: Array<HandcraftChildArg>
 ) {
-  for (const { method, args } of props) {
-    if (method in methods) {
-      // @ts-ignore{2556}
-      methods[method as keyof HandcraftElementMethods].call(element, ...args);
-    } else {
-      // @ts-ignore{2556}
-      methods.attr.call(element, method, ...args);
-    }
-  }
-
   const nodeToCallback = new WeakMap<Node, () => void>();
   const fragment = document.createDocumentFragment();
 
@@ -206,48 +197,29 @@ function patch<T extends Node = Element>(
 
               if (!result) continue;
 
-              let derefed: Element | DocumentFragment | string | Text;
+              let deref: Node | string | undefined;
 
               if (isHandcraftElement(result)) {
-                const res = result[VNODE];
-
-                if (res instanceof Element) return res;
-
-                if (res.tag != null && res.namespace != null) {
-                  const el = document.createElementNS(
-                    `http://www.w3.org/${res.namespace}`,
-                    res.tag,
-                  );
-
-                  patch(el, res);
-
-                  derefed = el;
-                } else {
-                  const el = document.createDocumentFragment();
-
-                  patch(el, res);
-
-                  derefed = el;
-                }
+                deref = result[NODE];
               } else {
-                derefed = result;
+                deref = result;
               }
 
-              if (derefed != null) {
-                if (typeof derefed !== "string") {
-                  nodeToCallback.set(derefed, item);
+              if (deref != null) {
+                if (typeof deref !== "string") {
+                  nodeToCallback.set(deref, item);
                 }
 
-                if (!(derefed instanceof Node)) {
-                  derefed = document.createTextNode(derefed);
+                if (typeof deref === "string") {
+                  deref = document.createTextNode(deref);
                 }
 
                 if (currentChild == null) {
-                  end?.before?.(derefed);
+                  end?.before?.(deref);
                 } else {
-                  element.replaceChild(derefed, currentChild);
+                  element.replaceChild(deref, currentChild);
 
-                  currentChild = derefed;
+                  currentChild = deref;
                 }
               } else {
                 continue;
@@ -300,8 +272,99 @@ function mutate<T extends object>(
   effect(() => {
     const e = el.deref();
 
-    if (e && (!("isConnected" in e) || e.isConnected)) {
+    if (e) {
       callback(e);
     }
   });
 }
+
+export function $<T extends Node = Element>(
+  el: T,
+): HandcraftElement {
+  const ref = new WeakRef(el);
+
+  const proxy = new Proxy(() => {}, {
+    apply(_, __, args: Array<HandcraftChildArg>) {
+      append(el, ...args);
+
+      return proxy;
+    },
+    has(_target, key) {
+      return key === NODE;
+    },
+    get(_, key: string | symbol) {
+      if (key === "then") {
+        return undefined;
+      }
+
+      if (key === NODE) {
+        return ref.deref();
+      }
+
+      return (
+        ...args: Array<HandcraftValueArg | HandcraftValueRecordArg>
+      ) => {
+        if (typeof key === "string") {
+          if (methods[key as keyof HandcraftElementMethods]) {
+            /// @ts-ignore{2556}
+            methods[key as keyof HandcraftElementMethods].call(el, ...args);
+          } else {
+            /// @ts-ignore{2556}
+            methods.attr.call(el, key, ...args);
+          }
+        }
+
+        return proxy;
+      };
+    },
+  }) as HandcraftElement;
+
+  return proxy;
+}
+
+function factory<T extends Node = Element>(fn: () => T) {
+  return new Proxy(() => {}, {
+    apply(_, __, args) {
+      const el = $(fn());
+
+      return el(...args);
+    },
+    get(_, key: string) {
+      const el = $(fn());
+
+      return el[key as keyof HandcraftElement];
+    },
+  }) as HandcraftElement;
+}
+
+function factoryNS(
+  namespace: string,
+): HandcraftElementFactoryNS {
+  return new Proxy(
+    {},
+    {
+      get(_, tag: string) {
+        return factory(() =>
+          document.createElementNS(
+            `http://www.w3.org/${namespace}`,
+            tag,
+          )
+        );
+      },
+    },
+  ) as HandcraftElementFactoryNS;
+}
+
+export const h: {
+  html: HandcraftElementFactoryNS;
+  svg: HandcraftElementFactoryNS;
+  math: HandcraftElementFactoryNS;
+} = {
+  html: factoryNS("1999/xhtml"),
+  svg: factoryNS("2000/svg"),
+  math: factoryNS("1998/Math/MathML"),
+};
+
+export const fragment = factory(() =>
+  document.createDocumentFragment()
+) as HandcraftElement;

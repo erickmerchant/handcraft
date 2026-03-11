@@ -1,15 +1,10 @@
 export * from "./define.ts";
-export * from "./dollar.ts";
 export * from "./each.ts";
-export * from "./h.ts";
+export * from "./dom.ts";
 export * from "./reactivity.ts";
 export * from "./when.ts";
 
-export const VNODE = Symbol("vnode");
-
-export function isHandcraftElement(x: unknown): x is HandcraftElement {
-  return x != null && typeof x === "function" && VNODE in x;
-}
+export const NODE = Symbol("ref");
 
 export type HandcraftValue =
   | string
@@ -35,19 +30,6 @@ export type HandcraftNodeOrNodeFactory = HandcraftNode | HandcraftNodeFactory;
 export type HandcraftChildArg =
   | HandcraftNodeOrNodeFactory
   | Iterable<HandcraftControlCallback>;
-
-export type HandcraftElementValue = {
-  tag?: string;
-  namespace?: string;
-  props: Array<{
-    method: string;
-    args: Array<
-      | HandcraftValueArg
-      | HandcraftValueRecordArg
-    >;
-  }>;
-  children: Array<HandcraftChildArg>;
-};
 
 export type HandcraftEffectMethodCallback = (el: HTMLElement) => void;
 
@@ -92,7 +74,7 @@ export type HandcraftElement =
     (
       ...children: Array<HandcraftChildArg>
     ): HandcraftElement;
-    [VNODE]: HandcraftElementValue;
+    [NODE]: Node;
     name: (
       value: string | null | (() => string | null),
     ) => HandcraftElement;

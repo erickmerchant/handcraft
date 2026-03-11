@@ -1,259 +1,46 @@
-import type {
-  HandcraftChildArg,
-  HandcraftNode,
-  HandcraftValueArg,
-} from "./mod.ts";
-import { isHandcraftElement, VNODE } from "./mod.ts";
-
-type EscapeMode = "html" | "attribute" | "script";
-
-const VOID_ELEMENTS = [
-  "area",
-  "base",
-  "br",
-  "col",
-  "embed",
-  "hr",
-  "img",
-  "input",
-  "link",
-  "meta",
-  "param",
-  "source",
-  "track",
-  "wbr",
-];
-
-function escape(
-  str: { toString: () => string },
-  escapeMode: EscapeMode,
-): string {
-  if (escapeMode === "attribute") {
-    return `${str}`.replace(/[&"']/g, (k: string) => {
-      return {
-        "&": "&amp;",
-        '"': "&quot;",
-        "'": "&#39;",
-      }[k] ?? k;
-    });
-  }
-
-  if (escapeMode === "script") {
-    return `${str}`.replace(/</g, (k: string) => {
-      return {
-        "<": "\u003c",
-      }[k] ?? k;
-    });
-  }
-
-  return `${str}`.replace(/[&<>"']/g, (k: string) => {
-    return {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-    }[k] ?? k;
-  });
-}
+import { GlobalRegistrator } from "@happy-dom/global-registrator";
+import type { HandcraftElement } from "./mod.ts";
+import { NODE } from "./mod.ts";
 
 export async function render(
-  node: HandcraftNode,
-  escapeMode: EscapeMode = "html",
+  view: () => HandcraftElement | Promise<HandcraftElement>,
 ): Promise<string> {
-  if (node == null) return "";
+  GlobalRegistrator.register({
+    url: "http://localhost:3000",
+    width: 1920,
+    height: 1080,
+    settings: {
+      handleDisabledFileLoadingAsSuccess: true,
+      disableCSSFileLoading: true,
+      disableJavaScriptFileLoading: true,
+    },
+  });
 
-  if (typeof node !== "function") {
-    return escape(node, escapeMode);
-  }
+  const v = await view();
 
-  if (node[VNODE] == null) {
-    return "";
-  }
+  const { resolve, promise, reject } = Promise.withResolvers<string>();
 
-  const vnode = node[VNODE];
+  setTimeout(async () => {
+    try {
+      const el = v[NODE];
+      let html = "";
 
-  let result = "";
-  let html = "";
+      // @ts-ignore undefined global
+      await globalThis.happyDOM.waitUntilComplete();
 
-  if (vnode.tag === "html" && vnode.namespace === "1999/xhtml") {
-    result += "<!doctype html>";
-  }
-
-  if (vnode.namespace != null) {
-    result += "<" + vnode.tag;
-
-    if (
-      (vnode.tag === "svg" && vnode.namespace === "2000/svg") ||
-      (vnode.tag === "math" && vnode.namespace === "1998/Math/MathML")
-    ) {
-      result += ' xmlns="http://www.w3.org/' + vnode.namespace + '"';
-    }
-  }
-
-  for (const { method, args } of vnode.props) {
-    if (["on", "prop", "effect"].includes(method)) continue;
-
-    if (method === "class") {
-      const classes = args.flat(Infinity);
-      const list = [];
-
-      for (let c of classes) {
-        if (typeof c === "string") {
-          c = { [c]: true };
-        }
-
-        if (c != null && typeof c == "object") {
-          for (const [key, value] of Object.entries(c)) {
-            for (const k of key.split(" ")) {
-              if (value) {
-                list.push(k);
-              }
-            }
-          }
-        }
+      if (el && el instanceof Element) {
+        html = `<!doctype html>${
+          el.getHTML({ serializableShadowRoots: true })
+        }`;
       }
 
-      result += ` class="${escape(list.join(" "), "attribute")}"`;
+      await GlobalRegistrator.unregister();
 
-      continue;
+      resolve(html);
+    } catch (e) {
+      reject(e);
     }
+  }, 0);
 
-    if (method === "style" && args[0] != null && typeof args[0] == "object") {
-      const styles = [];
-
-      for (const [key, value] of Object.entries(args[0])) {
-        styles.push(`${key}: ${getValue(value)}`);
-      }
-
-      result += ' style="' + escape(styles.join("; "), "attribute") + '"';
-
-      continue;
-    }
-
-    if (method === "html") {
-      if (typeof args[0] === "string" || typeof args[0] === "function") {
-        html += getValue(args[0]);
-      }
-
-      continue;
-    }
-
-    if (method === "shadow") {
-      const [options, ...children] = args as [
-        ShadowRootInit,
-        ...Array<HandcraftChildArg>,
-      ];
-
-      html += `<template shadowrootmode="${options?.mode ?? "open"}">`;
-      html += await renderChildren(
-        children,
-        "html",
-      );
-      html += `</template>`;
-
-      continue;
-    }
-
-    if (
-      method === "attr" && typeof args[0] === "string" &&
-      (args[1] == null || typeof args[1] !== "object")
-    ) {
-      result += getAttr(args[0], args[1]);
-
-      continue;
-    }
-
-    if (
-      args[0] == null || typeof args[0] !== "object"
-    ) {
-      result += getAttr(method, args[0]);
-
-      continue;
-    }
-
-    if (typeof args[0] === "object") {
-      for (const [key, value] of Object.entries(args[0])) {
-        result += getAttr(`${method}-${key}`, value);
-      }
-
-      continue;
-    }
-  }
-
-  if (vnode.tag !== "fragment") result += ">";
-
-  result += html;
-
-  result += await renderChildren(
-    vnode.children,
-    vnode.tag === "script" ? "script" : "html",
-  );
-
-  if (vnode.namespace != null && vnode.tag != null) {
-    if (!VOID_ELEMENTS.includes(vnode.tag)) {
-      result += "</" + vnode.tag + ">";
-    }
-  }
-
-  return result;
-}
-
-async function renderChildren(
-  children: Array<HandcraftChildArg>,
-  escapeMode: EscapeMode,
-) {
-  let html = "";
-
-  for (const child of children) {
-    if (!child) continue;
-
-    if (child != null) {
-      if (typeof child === "object" && Symbol.iterator in child) {
-        for (const c of child) {
-          const r = await c();
-
-          if (!r) continue;
-
-          html += await render(r, escapeMode);
-        }
-      } else {
-        html += await render(
-          typeof child === "function" &&
-            !isHandcraftElement(child)
-            ? child()
-            : child,
-          escapeMode,
-        );
-      }
-    }
-  }
-
-  return html;
-}
-
-function getValue<T = HandcraftValueArg>(value: T) {
-  return (typeof value === "function" ? value() : value);
-}
-
-function getAttr(
-  key: string,
-  value:
-    | string
-    | number
-    | boolean
-    | null
-    | (() => string | number | boolean | null),
-) {
-  const v = getValue(value);
-
-  if (v != null && v !== false) {
-    if (v !== true) {
-      return ` ${key}="${escape(v, "attribute")}"`;
-    } else {
-      return ` ${key}`;
-    }
-  }
-
-  return "";
+  return promise;
 }
