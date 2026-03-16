@@ -25,12 +25,13 @@ export async function render(
       const el = v[NODE];
       let html = "";
 
-      // @ts-ignore undefined global
-      await globalThis.happyDOM.waitUntilComplete();
-
       if (el && el instanceof Element) {
+        const div = document.createElement("div");
+
+        div.append(el);
+
         html = `<!doctype html>${
-          el.getHTML({ serializableShadowRoots: true })
+          div.getHTML?.({ serializableShadowRoots: true })
         }`;
       }
 
