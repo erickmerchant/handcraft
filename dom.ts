@@ -6,13 +6,9 @@ import type {
   HandcraftValue,
   HandcraftValueArg,
   HandcraftValueRecordArg,
-} from "./mod.ts";
+} from "./types.ts";
+import { isHandcraftElement, NODE } from "./types.ts";
 import { effect } from "./reactivity.ts";
-import { NODE } from "./mod.ts";
-
-function isHandcraftElement(x: unknown): x is HandcraftElement<Node> {
-  return x != null && typeof x === "function" && NODE in x;
-}
 
 function fnValue<T>(value: T | (() => T)) {
   return typeof value === "function" ? (value as CallableFunction)() : value;
@@ -199,7 +195,7 @@ function append<T extends Node = Element>(
 
               let deref: Node | string | undefined;
 
-              if (isHandcraftElement(result)) {
+              if (isHandcraftElement<Node>(result)) {
                 deref = result[NODE];
               } else {
                 deref = result;

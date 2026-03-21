@@ -1,4 +1,4 @@
-import type { HandcraftElement, HandcraftValue } from "./mod.ts";
+import type { HandcraftElement, HandcraftValue } from "./types.ts";
 import { h } from "./dom.ts";
 import { watch } from "./reactivity.ts";
 

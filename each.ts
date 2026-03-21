@@ -1,4 +1,4 @@
-import type { HandcraftControlCallback, HandcraftElement } from "./mod.ts";
+import type { HandcraftControlCallback, HandcraftElement } from "./types.ts";
 
 type EachIndex = () => number;
 

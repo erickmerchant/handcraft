@@ -6,8 +6,8 @@ import type {
   HandcraftValue,
   HandcraftValueArg,
   HandcraftValueRecordArg,
-} from "./mod.ts";
-import { NODE } from "./mod.ts";
+} from "./types.ts";
+import { isHandcraftElement, NODE } from "./types.ts";
 import { escape } from "@std/html/entities";
 
 import { each as origEach, type EachAPI } from "./each.ts";
@@ -23,6 +23,7 @@ export function when(
   return origWhen<VNode>(cb);
 }
 
+export * from "./types.ts";
 export * from "./reactivity.ts";
 
 export type VNode = {
@@ -76,10 +77,6 @@ const voids = [
   "track",
   "wbr",
 ];
-
-function isHandcraftElement(x: unknown): x is HandcraftElement<VNode> {
-  return x != null && typeof x === "function" && NODE in x;
-}
 
 function fnValue<T>(value: T | (() => T)) {
   return typeof value === "function" ? (value as CallableFunction)() : value;
@@ -242,7 +239,7 @@ function append(
 
           let deref: VNode | string | undefined;
 
-          if (isHandcraftElement(result)) {
+          if (isHandcraftElement<VNode>(result)) {
             deref = result[NODE];
           } else {
             deref = result;

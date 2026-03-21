@@ -1,4 +1,4 @@
-import type { HandcraftControlCallback } from "./mod.ts";
+import type { HandcraftControlCallback } from "./types.ts";
 
 export type WhenAPI<N> = {
   show(cb: HandcraftControlCallback<N>): WhenAPI<N>;
