@@ -9,7 +9,7 @@ export function define<T>(
     disconnected?: (el: Element) => void;
     attrs?: Record<string, HandcraftValue>;
   },
-): HandcraftElement {
+): HandcraftElement<Node> {
   const options: {
     name: string;
     attrs: Record<string, HandcraftValue>;

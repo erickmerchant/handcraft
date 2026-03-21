@@ -1,23 +1,25 @@
 import type { HandcraftControlCallback } from "./mod.ts";
 
-type WhenAPI = {
-  show(cb: HandcraftControlCallback): WhenAPI;
-  fallback(cb: HandcraftControlCallback): WhenAPI;
-} & Iterable<HandcraftControlCallback>;
+export type WhenAPI<N> = {
+  show(cb: HandcraftControlCallback<N>): WhenAPI<N>;
+  fallback(cb: HandcraftControlCallback<N>): WhenAPI<N>;
+} & Iterable<HandcraftControlCallback<N>>;
 
-export function when(cb: (prev: boolean | void) => boolean): WhenAPI {
-  let show: HandcraftControlCallback;
-  let fallback: HandcraftControlCallback = () => {};
+export function when<N = Node>(
+  cb: (prev: boolean | void) => boolean,
+): WhenAPI<N> {
+  let show: HandcraftControlCallback<N>;
+  let fallback: HandcraftControlCallback<N> = () => {};
   let previous: boolean | void;
 
   return {
-    show(cb: HandcraftControlCallback) {
+    show(cb: HandcraftControlCallback<N>) {
       show = cb;
 
       return this;
     },
 
-    fallback(cb: HandcraftControlCallback) {
+    fallback(cb: HandcraftControlCallback<N>) {
       fallback = cb;
 
       return this;

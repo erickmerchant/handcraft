@@ -10,7 +10,7 @@ import type {
 import { effect } from "./reactivity.ts";
 import { NODE } from "./mod.ts";
 
-function isHandcraftElement(x: unknown): x is HandcraftElement {
+function isHandcraftElement(x: unknown): x is HandcraftElement<Node> {
   return x != null && typeof x === "function" && NODE in x;
 }
 
@@ -18,7 +18,7 @@ function fnValue<T>(value: T | (() => T)) {
   return typeof value === "function" ? (value as CallableFunction)() : value;
 }
 
-const methods: HandcraftElementMethods = {
+const methods: HandcraftElementMethods<Node> = {
   on(
     this: EventTarget,
     events: string,
@@ -137,7 +137,7 @@ const methods: HandcraftElementMethods = {
   shadow(
     this: Element,
     options: ShadowRootInit,
-    ...children: Array<HandcraftChildArg>
+    ...children: Array<HandcraftChildArg<Node>>
   ) {
     options.serializable ??= true;
 
@@ -152,7 +152,7 @@ const methods: HandcraftElementMethods = {
 
 function append<T extends Node = Element>(
   element: T,
-  ...children: Array<HandcraftChildArg>
+  ...children: Array<HandcraftChildArg<Node>>
 ) {
   const nodeToCallback = new WeakMap<Node, () => void>();
   const fragment = document.createDocumentFragment();
@@ -180,7 +180,7 @@ function append<T extends Node = Element>(
 
         const weakBounds = bounds.map((c) => new WeakRef(c));
 
-        mutate(element, async () => {
+        mutate(element, () => {
           const [start, end] = weakBounds.map((b) => b.deref());
           let currentChild: Node | null = start && start?.nextSibling !== end
             ? start?.nextSibling
@@ -193,7 +193,7 @@ function append<T extends Node = Element>(
               currentChild == null ||
               nodeToCallback.get(currentChild) !== item
             ) {
-              const result = await item(); // @todo take out of loop
+              const result = item();
 
               if (!result) continue;
 
@@ -280,11 +280,11 @@ function mutate<T extends object>(
 
 export function $<T extends Node = Element>(
   el: T,
-): HandcraftElement {
+): HandcraftElement<Node> {
   const ref = new WeakRef(el);
 
   const proxy = new Proxy(() => {}, {
-    apply(_, __, args: Array<HandcraftChildArg>) {
+    apply(_, __, args: Array<HandcraftChildArg<Node>>) {
       append(el, ...args);
 
       return proxy;
@@ -305,7 +305,7 @@ export function $<T extends Node = Element>(
         ...args: Array<HandcraftValueArg | HandcraftValueRecordArg>
       ) => {
         if (typeof key === "string") {
-          if (methods[key as keyof HandcraftElementMethods]) {
+          if (methods[key as keyof HandcraftElementMethods<Node>]) {
             /// @ts-ignore{2556}
             methods[key as keyof HandcraftElementMethods].call(el, ...args);
           } else {
@@ -317,7 +317,7 @@ export function $<T extends Node = Element>(
         return proxy;
       };
     },
-  }) as HandcraftElement;
+  }) as HandcraftElement<Node>;
 
   return proxy;
 }
@@ -332,14 +332,14 @@ function factory<T extends Node = Element>(fn: () => T) {
     get(_, key: string) {
       const el = $(fn());
 
-      return el[key as keyof HandcraftElement];
+      return el[key as keyof HandcraftElement<Node>];
     },
-  }) as HandcraftElement;
+  }) as HandcraftElement<Node>;
 }
 
 function factoryNS(
   namespace: string,
-): HandcraftElementFactoryNS {
+): HandcraftElementFactoryNS<Node> {
   return new Proxy(
     {},
     {
@@ -352,13 +352,13 @@ function factoryNS(
         );
       },
     },
-  ) as HandcraftElementFactoryNS;
+  ) as HandcraftElementFactoryNS<Node>;
 }
 
 export const h: {
-  html: HandcraftElementFactoryNS;
-  svg: HandcraftElementFactoryNS;
-  math: HandcraftElementFactoryNS;
+  html: HandcraftElementFactoryNS<Node>;
+  svg: HandcraftElementFactoryNS<Node>;
+  math: HandcraftElementFactoryNS<Node>;
 } = {
   html: factoryNS("1999/xhtml"),
   svg: factoryNS("2000/svg"),
@@ -367,4 +367,4 @@ export const h: {
 
 export const fragment = factory(() =>
   document.createDocumentFragment()
-) as HandcraftElement;
+) as HandcraftElement<Node>;

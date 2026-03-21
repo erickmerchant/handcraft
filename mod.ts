@@ -21,19 +21,21 @@ export type HandcraftValueRecordArg<T = HandcraftValue> = Record<
   HandcraftValueArg<T>
 >;
 
-export type HandcraftNode = HandcraftElement | string | null;
+export type HandcraftNode<N> = HandcraftElement<N> | string | null;
 
-export type HandcraftNodeFactory = () => HandcraftNode;
+export type HandcraftNodeFactory<N> = () => HandcraftNode<N>;
 
-export type HandcraftNodeOrNodeFactory = HandcraftNode | HandcraftNodeFactory;
+export type HandcraftNodeOrNodeFactory<N> =
+  | HandcraftNode<N>
+  | HandcraftNodeFactory<N>;
 
-export type HandcraftChildArg =
-  | HandcraftNodeOrNodeFactory
-  | Iterable<HandcraftControlCallback>;
+export type HandcraftChildArg<N> =
+  | HandcraftNodeOrNodeFactory<N>
+  | Iterable<HandcraftControlCallback<N>>;
 
 export type HandcraftEffectMethodCallback = (el: HTMLElement) => void;
 
-export type HandcraftElementMethods = {
+export type HandcraftElementMethods<N> = {
   on: (
     events: string,
     handler: EventListener,
@@ -59,37 +61,36 @@ export type HandcraftElementMethods = {
   html: (html: string | (() => string)) => void;
   shadow: (
     options: ShadowRootInit,
-    ...children: Array<HandcraftChildArg>
+    ...children: Array<HandcraftChildArg<N>>
   ) => void;
 };
 
-type HandcraftChainableMethods<T> = {
+type HandcraftChainableMethods<T, N> = {
   [K in keyof T]: T[K] extends (...args: any[]) => any
-    ? (...args: Parameters<T[K]>) => HandcraftElement
+    ? (...args: Parameters<T[K]>) => HandcraftElement<N>
     : T[K];
 };
 
-export type HandcraftElement =
+export type HandcraftElement<N> =
   & {
     (
-      ...children: Array<HandcraftChildArg>
-    ): HandcraftElement;
-    [NODE]: Node;
+      ...children: Array<HandcraftChildArg<N>>
+    ): HandcraftElement<N>;
+    [NODE]: N;
     name: (
       value: string | null | (() => string | null),
-    ) => HandcraftElement;
+    ) => HandcraftElement<N>;
   }
-  & HandcraftChainableMethods<HandcraftElementMethods>
+  & HandcraftChainableMethods<HandcraftElementMethods<N>, N>
   & Record<
     string,
     ((
       arg: HandcraftValueArg | HandcraftValueRecordArg,
-    ) => HandcraftElement)
+    ) => HandcraftElement<N>)
   >;
 
-export type HandcraftControlCallback = () =>
-  | HandcraftNode
-  | void
-  | Promise<HandcraftNode | void>;
+export type HandcraftControlCallback<N> = () =>
+  | HandcraftNode<N>
+  | void;
 
-export type HandcraftElementFactoryNS = Record<string, HandcraftElement>;
+export type HandcraftElementFactoryNS<N> = Record<string, HandcraftElement<N>>;

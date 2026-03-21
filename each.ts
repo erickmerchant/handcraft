@@ -17,36 +17,36 @@ type EachFilterCurrent<T> = {
   (): T;
 } & T;
 
-type EachMapper<T> = (
+type EachMapper<T, N> = (
   current: (() => T) & T,
   index: EachIndex,
-) => HandcraftElement | void | Promise<HandcraftElement | void>;
+) => HandcraftElement<N> | void;
 
 type EachFilterer<T> = (
   current: EachFilterCurrent<T>,
   index: EachIndex,
 ) => boolean;
 
-type EachAPI<T> = {
-  map(cb: EachMapper<T>): EachAPI<T>;
-  filter(cb: EachFilterer<T>): EachAPI<T>;
-  fallback(cb: HandcraftControlCallback): EachAPI<T>;
-} & Iterable<HandcraftControlCallback>;
+export type EachAPI<T, N> = {
+  map(cb: EachMapper<T, N>): EachAPI<T, N>;
+  filter(cb: EachFilterer<T>): EachAPI<T, N>;
+  fallback(cb: HandcraftControlCallback<N>): EachAPI<T, N>;
+} & Iterable<HandcraftControlCallback<N>>;
 
 import { watch } from "./reactivity.ts";
 
-export function each<T>(list: Array<T>): EachAPI<T> {
-  let mapper: EachMapper<T>;
+export function each<T, N = Node>(list: Array<T>): EachAPI<T, N> {
+  let mapper: EachMapper<T, N>;
   let filterer: EachFilterer<T> = () => true;
-  let fallback: HandcraftControlCallback = () => {};
+  let fallback: HandcraftControlCallback<N> = () => {};
   const entries: Array<EachCurrent<T>> = [];
   let current: EachCurrent<T>;
-  const show: HandcraftControlCallback = () => {
+  const show: HandcraftControlCallback<N> = () => {
     return mapper(current.value, current.index);
   };
 
   return {
-    map(cb: EachMapper<T>) {
+    map(cb: EachMapper<T, N>) {
       mapper = cb;
 
       return this;
@@ -58,7 +58,7 @@ export function each<T>(list: Array<T>): EachAPI<T> {
       return this;
     },
 
-    fallback(cb: HandcraftControlCallback) {
+    fallback(cb: HandcraftControlCallback<N>) {
       fallback = cb;
 
       return this;

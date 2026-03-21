@@ -1,14 +1,13 @@
 {
   "name": "@handcraft/lib",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "license": "MIT",
   "exports": {
     ".": "./mod.ts",
-    "./render": "./render.ts"
+    "./templating": "./templating.ts"
   },
   "imports": {
-    "@happy-dom/global-registrator": "npm:@happy-dom/global-registrator@^20.8.4",
-    "happy-dom": "npm:happy-dom@^20.8.4"
+    "@std/html": "jsr:@std/html@^1.0.5"
   },
   "compilerOptions": {
     "lib": ["deno.ns", "dom", "dom.iterable", "es2023"]
