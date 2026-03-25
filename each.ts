@@ -1,4 +1,5 @@
 import type { HandcraftControlCallback, HandcraftElement } from "./types.ts";
+import { watch } from "./reactivity.ts";
 
 type EachIndex = () => number;
 
@@ -32,8 +33,6 @@ export type EachAPI<T, N> = {
   filter(cb: EachFilterer<T>): EachAPI<T, N>;
   fallback(cb: HandcraftControlCallback<N>): EachAPI<T, N>;
 } & Iterable<HandcraftControlCallback<N>>;
-
-import { watch } from "./reactivity.ts";
 
 export function each<T, N = Node>(list: Array<T>): EachAPI<T, N> {
   let mapper: EachMapper<T, N>;

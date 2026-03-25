@@ -1,18 +1,18 @@
-import type { HandcraftElement, HandcraftValue } from "./types.ts";
+import type { HandcraftElement, HandcraftPrimitive } from "./types.ts";
 import { h } from "./dom.ts";
 import { watch } from "./reactivity.ts";
 
-export function define<T>(
+export function define(
   name: string,
   opts: {
     connected: (this: any, el: Element) => void;
     disconnected?: (el: Element) => void;
-    attrs?: Record<string, HandcraftValue>;
+    attrs?: Record<string, HandcraftPrimitive>;
   },
 ): HandcraftElement<Node> {
   const options: {
     name: string;
-    attrs: Record<string, HandcraftValue>;
+    attrs: Record<string, HandcraftPrimitive>;
     connected: (this: typeof opts.attrs, el: Element) => void;
     disconnected: (el: Element) => void;
   } = {

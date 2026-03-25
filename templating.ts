@@ -1,17 +1,19 @@
 import type {
-  HandcraftChildArg,
+  HandcraftChild,
   HandcraftElement,
   HandcraftElementFactoryNS,
   HandcraftElementMethods,
+  HandcraftPrimitive,
   HandcraftValue,
-  HandcraftValueArg,
-  HandcraftValueRecordArg,
+  HandcraftValueRecord,
 } from "./types.ts";
 import { isHandcraftElement, NODE } from "./types.ts";
 import { escape } from "@std/html/entities";
-
 import { each as origEach, type EachAPI } from "./each.ts";
 import { when as origWhen, type WhenAPI } from "./when.ts";
+
+export type HandcraftTemplatingChild = HandcraftChild<VNode>;
+export type HandcraftTemplatingElement = HandcraftElement<VNode>;
 
 export function each<T>(list: Array<T>): EachAPI<T, VNode> {
   return origEach<T, VNode>(list);
@@ -23,7 +25,6 @@ export function when(
   return origWhen<VNode>(cb);
 }
 
-export * from "./types.ts";
 export * from "./reactivity.ts";
 
 export type VNode = {
@@ -95,8 +96,8 @@ const methods: HandcraftElementMethods<VNode> = {
     this: VNode,
     method: string,
     value:
-      | HandcraftValueArg<HandcraftValue>
-      | HandcraftValueRecordArg<HandcraftValue>,
+      | HandcraftValue<HandcraftPrimitive>
+      | HandcraftValueRecord<HandcraftPrimitive>,
   ) {
     if (value != null && typeof value === "object") {
       for (const [key, val] of Object.entries(value)) {
@@ -145,7 +146,7 @@ const methods: HandcraftElementMethods<VNode> = {
 
   style(
     this: VNode,
-    styles: HandcraftValueRecordArg<string | number | null>,
+    styles: HandcraftValueRecord<string | number | null>,
   ) {
     this.attributes ??= {};
     this.attributes.style ??= "";
@@ -175,7 +176,7 @@ const methods: HandcraftElementMethods<VNode> = {
   shadow(
     this: VNode,
     options: ShadowRootInit,
-    ...children: Array<HandcraftChildArg<VNode>>
+    ...children: Array<HandcraftChild<VNode>>
   ) {
     options.serializable ??= true;
 
@@ -196,7 +197,7 @@ const methods: HandcraftElementMethods<VNode> = {
   },
 };
 
-function attr(element: VNode, key: string, value: HandcraftValueArg) {
+function attr(element: VNode, key: string, value: HandcraftValue) {
   const v = fnValue(value);
 
   element.attributes ??= {};
@@ -214,7 +215,7 @@ function attr(element: VNode, key: string, value: HandcraftValueArg) {
 
 function append(
   element: VNode,
-  ...children: Array<HandcraftChildArg<VNode>>
+  ...children: Array<HandcraftChild<VNode>>
 ) {
   const nodeToCallback = new WeakMap<VNode, () => void>();
   const fragment = [];
@@ -306,7 +307,7 @@ export function $(
   el: VNode,
 ): HandcraftElement<VNode> {
   const proxy = new Proxy(() => {}, {
-    apply(_, __, args: Array<HandcraftChildArg<VNode>>) {
+    apply(_, __, args: Array<HandcraftChild<VNode>>) {
       append(el, ...args);
 
       return proxy;
@@ -328,7 +329,7 @@ export function $(
       }
 
       return (
-        ...args: Array<HandcraftValueArg | HandcraftValueRecordArg>
+        ...args: Array<HandcraftValue | HandcraftValueRecord>
       ) => {
         if (typeof key === "string") {
           if (methods[key as keyof HandcraftElementMethods<VNode>]) {

@@ -4,19 +4,19 @@ export function isHandcraftElement<T>(x: unknown): x is HandcraftElement<T> {
   return x != null && typeof x === "function" && NODE in x;
 }
 
-export type HandcraftValue =
+export type HandcraftPrimitive =
   | string
   | number
   | boolean
   | null;
 
-export type HandcraftValueArg<T = HandcraftValue> =
+export type HandcraftValue<T = HandcraftPrimitive> =
   | T
   | (() => T);
 
-export type HandcraftValueRecordArg<T = HandcraftValue> = Record<
+export type HandcraftValueRecord<T = HandcraftPrimitive> = Record<
   string,
-  HandcraftValueArg<T>
+  HandcraftValue<T>
 >;
 
 export type HandcraftNode<N> = HandcraftElement<N> | string | null;
@@ -27,7 +27,7 @@ export type HandcraftNodeOrNodeFactory<N> =
   | HandcraftNode<N>
   | HandcraftNodeFactory<N>;
 
-export type HandcraftChildArg<N> =
+export type HandcraftChild<N> =
   | HandcraftNodeOrNodeFactory<N>
   | Iterable<HandcraftControlCallback<N>>;
 
@@ -42,9 +42,9 @@ export type HandcraftElementMethods<N> = {
   effect: (cb: (...args: any[]) => void) => void;
   attr: (
     key: string,
-    value: HandcraftValueArg<string | boolean>,
+    value: HandcraftValue<string | boolean>,
   ) => void;
-  prop<T>(key: string, value: HandcraftValueArg<T>): void;
+  prop<T>(key: string, value: HandcraftValue<T>): void;
   class: (
     ...classes: Array<
       string | Record<string, boolean | (() => boolean)>
@@ -53,13 +53,13 @@ export type HandcraftElementMethods<N> = {
   style: (
     attrs: Record<
       string,
-      HandcraftValueArg<string | number | null>
+      HandcraftValue<string | number | null>
     >,
   ) => void;
   html: (html: string | (() => string)) => void;
   shadow: (
     options: ShadowRootInit,
-    ...children: Array<HandcraftChildArg<N>>
+    ...children: Array<HandcraftChild<N>>
   ) => void;
 };
 
@@ -72,7 +72,7 @@ type HandcraftChainableMethods<T, N> = {
 export type HandcraftElement<N> =
   & {
     (
-      ...children: Array<HandcraftChildArg<N>>
+      ...children: Array<HandcraftChild<N>>
     ): HandcraftElement<N>;
     [NODE]: N;
     name: (
@@ -83,7 +83,7 @@ export type HandcraftElement<N> =
   & Record<
     string,
     ((
-      arg: HandcraftValueArg | HandcraftValueRecordArg,
+      arg: HandcraftValue | HandcraftValueRecord,
     ) => HandcraftElement<N>)
   >;
 

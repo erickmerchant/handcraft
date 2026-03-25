@@ -1,11 +1,11 @@
 import type {
-  HandcraftChildArg,
+  HandcraftChild,
   HandcraftElement,
   HandcraftElementFactoryNS,
   HandcraftElementMethods,
+  HandcraftPrimitive,
   HandcraftValue,
-  HandcraftValueArg,
-  HandcraftValueRecordArg,
+  HandcraftValueRecord,
 } from "./types.ts";
 import { isHandcraftElement, NODE } from "./types.ts";
 import { effect } from "./reactivity.ts";
@@ -36,8 +36,8 @@ const methods: HandcraftElementMethods<Node> = {
     this: Element,
     method: string,
     value:
-      | HandcraftValueArg<HandcraftValue>
-      | HandcraftValueRecordArg<HandcraftValue>,
+      | HandcraftValue<HandcraftPrimitive>
+      | HandcraftValueRecord<HandcraftPrimitive>,
   ) {
     if (value != null && typeof value === "object") {
       for (const [key, val] of Object.entries(value)) {
@@ -51,7 +51,7 @@ const methods: HandcraftElementMethods<Node> = {
   prop<V, T extends Node = Element>(
     this: T,
     key: string,
-    value: HandcraftValueArg<V>,
+    value: HandcraftValue<V>,
   ) {
     mutate<T>(
       this,
@@ -92,7 +92,7 @@ const methods: HandcraftElementMethods<Node> = {
 
   style(
     this: HTMLElement,
-    styles: HandcraftValueRecordArg<string | number | null>,
+    styles: HandcraftValueRecord<string | number | null>,
   ) {
     for (const [key, value] of Object.entries(styles)) {
       mutate<HTMLElement>(
@@ -133,7 +133,7 @@ const methods: HandcraftElementMethods<Node> = {
   shadow(
     this: Element,
     options: ShadowRootInit,
-    ...children: Array<HandcraftChildArg<Node>>
+    ...children: Array<HandcraftChild<Node>>
   ) {
     options.serializable ??= true;
 
@@ -148,7 +148,7 @@ const methods: HandcraftElementMethods<Node> = {
 
 function append<T extends Node = Element>(
   element: T,
-  ...children: Array<HandcraftChildArg<Node>>
+  ...children: Array<HandcraftChild<Node>>
 ) {
   const nodeToCallback = new WeakMap<Node, () => void>();
   const fragment = document.createDocumentFragment();
@@ -204,9 +204,7 @@ function append<T extends Node = Element>(
               if (deref != null) {
                 if (typeof deref !== "string") {
                   nodeToCallback.set(deref, item);
-                }
-
-                if (typeof deref === "string") {
+                } else {
                   deref = document.createTextNode(deref);
                 }
 
@@ -242,7 +240,7 @@ function append<T extends Node = Element>(
   element.appendChild(fragment);
 }
 
-function attr(element: Element, key: string, value: HandcraftValueArg) {
+function attr(element: Element, key: string, value: HandcraftValue) {
   mutate<Element>(
     element,
     (element) => {
@@ -280,7 +278,7 @@ export function $<T extends Node = Element>(
   const ref = new WeakRef(el);
 
   const proxy = new Proxy(() => {}, {
-    apply(_, __, args: Array<HandcraftChildArg<Node>>) {
+    apply(_, __, args: Array<HandcraftChild<Node>>) {
       append(el, ...args);
 
       return proxy;
@@ -298,7 +296,7 @@ export function $<T extends Node = Element>(
       }
 
       return (
-        ...args: Array<HandcraftValueArg | HandcraftValueRecordArg>
+        ...args: Array<HandcraftValue | HandcraftValueRecord>
       ) => {
         if (typeof key === "string") {
           if (methods[key as keyof HandcraftElementMethods<Node>]) {

@@ -1,4 +1,3 @@
-export * from "./types.ts";
 export * from "./define.ts";
 export * from "./each.ts";
 export * from "./dom.ts";
