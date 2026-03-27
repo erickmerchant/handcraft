@@ -234,7 +234,7 @@ function append(
         if (child == null) return;
 
         for (const item of typeof child === "function" ? [child] : child) {
-          const result = item(); // @todo take out of loop
+          const result = item();
 
           if (!result) continue;
 
