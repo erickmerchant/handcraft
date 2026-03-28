@@ -38,8 +38,8 @@ export function each<T, N = Node>(list: Array<T>): EachAPI<T, N> {
   let mapper: EachMapper<T, N>;
   let filterer: EachFilterer<T> = () => true;
   let fallback: HandcraftControlCallback<N> = () => {};
-  const entries: Array<EachCurrent<T>> = [];
   let current: EachCurrent<T>;
+  const entries: Array<EachCurrent<T>> = [];
   const show: HandcraftControlCallback<N> = () => {
     return mapper(current.value, current.index);
   };

@@ -1,6 +1,6 @@
-let current: () => void;
 const queue: Array<() => void> = [];
 const reads = new WeakMap();
+let current: () => void;
 let scheduled = false;
 
 function getProperty<T extends object>(o: T, key: string | symbol, r: T) {
