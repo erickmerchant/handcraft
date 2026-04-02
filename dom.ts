@@ -78,10 +78,12 @@ const methods: HandcraftElementMethods<Node> = {
         mutate<Element>(
           this,
           (element) => {
+            const v = fnValue(value);
+
             for (const k of key.split(" ")) {
               element.classList.toggle(
                 k,
-                fnValue(value),
+                v,
               );
             }
           },
@@ -299,13 +301,14 @@ export function $<T extends Node = Element>(
         ...args: Array<HandcraftValue | HandcraftValueRecord>
       ) => {
         if (typeof key === "string") {
-          if (methods[key as keyof HandcraftElementMethods<Node>]) {
-            /// @ts-ignore{2556}
-            methods[key as keyof HandcraftElementMethods].call(el, ...args);
-          } else {
-            /// @ts-ignore{2556}
-            methods.attr.call(el, key, ...args);
+          if (!methods[key as keyof HandcraftElementMethods<Node>]) {
+            args.unshift(key);
+
+            key = "attr";
           }
+
+          /// @ts-ignore{2556}
+          methods[key as keyof HandcraftElementMethods].call(el, ...args);
         }
 
         return proxy;
