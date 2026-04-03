@@ -66,10 +66,6 @@ export function each<T, N = Node>(list: Array<T>): EachAPI<T, N> {
     *[Symbol.iterator]() {
       let i = 0;
 
-      if (!list.length) {
-        yield fallback;
-      }
-
       for (const [index, value] of list.entries()) {
         if (
           !filterer(
@@ -134,6 +130,10 @@ export function each<T, N = Node>(list: Array<T>): EachAPI<T, N> {
         yield show;
 
         i++;
+      }
+
+      if (i === 0) {
+        yield fallback;
       }
 
       entries.splice(i, Infinity);
