@@ -184,8 +184,6 @@ function append<T extends Node = Element>(
             ? start?.nextSibling
             : null;
 
-          if (child == null) return;
-
           for (const item of typeof child === "function" ? [child] : child) {
             if (
               currentChild == null ||
