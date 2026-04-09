@@ -30,7 +30,7 @@ export function when(
   return origWhen<VNode>(cb);
 }
 
-export * from "./reactivity.ts";
+export { effect, inEffect, watch } from "./mod.ts";
 
 export type VNode = {
   tag?: string;
