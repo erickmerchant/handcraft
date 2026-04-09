@@ -1,4 +1,5 @@
 import type {
+  EachAPI,
   HandcraftChild,
   HandcraftElement,
   HandcraftElementFactoryNS,
@@ -6,11 +7,15 @@ import type {
   HandcraftPrimitive,
   HandcraftValue,
   HandcraftValueRecord,
-} from "./types.ts";
-import { isHandcraftElement, NODE } from "./types.ts";
+  WhenAPI,
+} from "./mod.ts";
+import {
+  each as origEach,
+  isHandcraftElement,
+  NODE,
+  when as origWhen,
+} from "./mod.ts";
 import { escape } from "@std/html/entities";
-import { each as origEach, type EachAPI } from "./each.ts";
-import { when as origWhen, type WhenAPI } from "./when.ts";
 
 export type HandcraftTemplatingChild = HandcraftChild<VNode>;
 export type HandcraftTemplatingElement = HandcraftElement<VNode>;

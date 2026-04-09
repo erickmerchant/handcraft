@@ -2,46 +2,49 @@ import type { HandcraftElement, HandcraftPrimitive } from "./types.ts";
 import { h } from "./dom.ts";
 import { watch } from "./reactivity.ts";
 
-export function define(
+type Attributes = Record<string, HandcraftPrimitive>;
+
+export function define<
+  T extends Attributes = Record<PropertyKey, any>,
+>(
   name: string,
-  opts: {
-    connected: (this: any, el: Element) => void;
+  { connected, disconnected = (() => {}), ...attributes }: T & {
+    connected: (this: T, el: Element) => void;
     disconnected?: (el: Element) => void;
-    attrs?: Record<string, HandcraftPrimitive>;
   },
 ): HandcraftElement<Node> {
   const options: {
     name: string;
-    attrs: Record<string, HandcraftPrimitive>;
-    connected: (this: typeof opts.attrs, el: Element) => void;
+    attributes: Attributes;
+    connected: (this: T, el: Element) => void;
     disconnected: (el: Element) => void;
   } = {
     name,
-    disconnected: () => {},
-    attrs: {},
-    ...opts,
+    connected,
+    disconnected,
+    attributes,
   };
 
   globalThis.customElements?.define?.(
     options.name,
     class extends HTMLElement {
-      static observedAttributes = Object.keys(options.attrs);
+      static observedAttributes = Object.keys(options.attributes);
 
-      #attrs = watch<typeof options.attrs>(options.attrs);
+      #attributes = watch<typeof options.attributes>(options.attributes);
 
       #set(key: string, value: string | null) {
         if (value == null) {
-          this.#attrs[key] = options.attrs[key];
+          this.#attributes[key] = options.attributes[key];
         } else {
-          switch (typeof options.attrs[key]) {
+          switch (typeof options.attributes[key]) {
             case "boolean":
-              this.#attrs[key] = value !== "";
+              this.#attributes[key] = value !== "";
               break;
             case "number":
-              this.#attrs[key] = +value;
+              this.#attributes[key] = +value;
               break;
             default:
-              this.#attrs[key] = value;
+              this.#attributes[key] = value;
           }
         }
       }
@@ -49,14 +52,16 @@ export function define(
       constructor() {
         super();
 
-        for (const key of Object.keys(options.attrs)) {
+        this.attachInternals();
+
+        for (const key of Object.keys(options.attributes)) {
           this.#set(key, this.getAttribute(key));
         }
       }
 
       connectedCallback() {
         setTimeout(() => {
-          options.connected.call(this.#attrs, this);
+          options.connected.call(this.#attributes as T, this);
         }, 0);
       }
 
