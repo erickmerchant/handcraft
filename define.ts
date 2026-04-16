@@ -8,26 +8,34 @@ export function define<
   T extends Attributes = Record<PropertyKey, any>,
 >(
   name: string,
-  { connected, disconnected = (() => {}), ...attributes }: T & {
+  { connected, disconnected = (() => {}), extend, ...attributes }: T & {
     connected: (this: T, el: Element) => void;
     disconnected?: (el: Element) => void;
+    extend?: string;
   },
 ): HandcraftElement<Node> {
   const options: {
     name: string;
+    extend?: string;
     attributes: Attributes;
     connected: (this: T, el: Element) => void;
     disconnected: (el: Element) => void;
   } = {
     name,
+    extend,
     connected,
     disconnected,
     attributes,
   };
 
+  const BaseClass =
+    (options.extend != null
+      ? document.createElement(options.extend).constructor
+      : HTMLElement) as CustomElementConstructor;
+
   globalThis.customElements?.define?.(
     options.name,
-    class extends HTMLElement {
+    class extends BaseClass {
       static observedAttributes = Object.keys(options.attributes);
 
       #attributes = watch<typeof options.attributes>(options.attributes);
@@ -52,7 +60,7 @@ export function define<
       constructor() {
         super();
 
-        this.attachInternals();
+        // this.attachInternals();
 
         for (const key of Object.keys(options.attributes)) {
           this.#set(key, this.getAttribute(key));
@@ -73,6 +81,7 @@ export function define<
         this.#set(key, value);
       }
     },
+    { extends: options.extend },
   );
 
   return h.html[name];

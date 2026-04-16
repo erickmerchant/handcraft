@@ -89,12 +89,12 @@ function fnValue<T>(value: T | (() => T)) {
 }
 
 const methods: HandcraftElementMethods<VNode> = {
+  effect<T extends VNode>(this: VNode) {
+  },
+
   on(
     this: VNode,
   ) {
-  },
-
-  effect<T extends VNode>(this: VNode) {
   },
 
   attr(
@@ -177,29 +177,6 @@ const methods: HandcraftElementMethods<VNode> = {
 
     this.children.push(symbol);
   },
-
-  shadow(
-    this: VNode,
-    options: ShadowRootInit,
-    ...children: Array<HandcraftChild<VNode>>
-  ) {
-    options.serializable ??= true;
-
-    const shadow: VNode = {
-      tag: "template",
-      namespace: namespaces.html,
-      attributes: {},
-      children: [],
-    };
-
-    for (const [key, value] of Object.entries(options)) {
-      attr(shadow, `shadowroot${key}`, value);
-    }
-
-    append(shadow, ...children);
-
-    this.children.push(shadow);
-  },
 };
 
 function attr(element: VNode, key: string, value: HandcraftValue) {
@@ -230,36 +207,28 @@ function append(
 
     if (typeof child === "string") {
       fragment.push(child);
-    } else {
-      if (
-        typeof child === "function" ||
-        (typeof child === "object" &&
-          child[Symbol.iterator] != null)
-      ) {
-        if (child == null) return;
+    } else if (child != null) {
+      for (const item of typeof child === "function" ? [child] : child) {
+        const result = item();
 
-        for (const item of typeof child === "function" ? [child] : child) {
-          const result = item();
+        if (!result) continue;
 
-          if (!result) continue;
+        let deref: VNode | string | undefined;
 
-          let deref: VNode | string | undefined;
+        if (isHandcraftElement<VNode>(result)) {
+          deref = result[NODE];
+        } else {
+          deref = result;
+        }
 
-          if (isHandcraftElement<VNode>(result)) {
-            deref = result[NODE];
-          } else {
-            deref = result;
+        if (deref != null) {
+          if (typeof deref !== "string") {
+            nodeToCallback.set(deref, item);
           }
 
-          if (deref != null) {
-            if (typeof deref !== "string") {
-              nodeToCallback.set(deref, item);
-            }
-
-            fragment.push(deref);
-          } else {
-            continue;
-          }
+          fragment.push(deref);
+        } else {
+          continue;
         }
       }
     }

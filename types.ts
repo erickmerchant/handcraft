@@ -34,12 +34,12 @@ export type HandcraftChild<N> =
 export type HandcraftEffectMethodCallback = (el: HTMLElement) => void;
 
 export type HandcraftElementMethods<N> = {
+  effect: (cb: (...args: any[]) => void) => void;
   on: (
     events: string,
     handler: EventListener,
     options?: AddEventListenerOptions | boolean,
   ) => void;
-  effect: (cb: (...args: any[]) => void) => void;
   attr: (
     key: string,
     value: HandcraftValue<string | boolean>,
@@ -57,10 +57,6 @@ export type HandcraftElementMethods<N> = {
     >,
   ) => void;
   html: (html: string | (() => string)) => void;
-  shadow: (
-    options: ShadowRootInit,
-    ...children: Array<HandcraftChild<N>>
-  ) => void;
 };
 
 type HandcraftChainableMethods<T, N> = {

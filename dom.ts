@@ -15,6 +15,12 @@ function fnValue<T>(value: T | (() => T)) {
 }
 
 const methods: HandcraftElementMethods<Node> = {
+  effect<T extends Node = Element>(this: T, cb: (...args: any[]) => void) {
+    queueMicrotask(() => {
+      mutate<T>(this, cb);
+    });
+  },
+
   on(
     this: EventTarget,
     events: string,
@@ -24,12 +30,6 @@ const methods: HandcraftElementMethods<Node> = {
     for (const event of events.split(/\s+/)) {
       this.addEventListener(event, handler, options);
     }
-  },
-
-  effect<T extends Node = Element>(this: T, cb: (...args: any[]) => void) {
-    queueMicrotask(() => {
-      mutate<T>(this, cb);
-    });
   },
 
   attr(
@@ -131,21 +131,6 @@ const methods: HandcraftElementMethods<Node> = {
       },
     );
   },
-
-  shadow(
-    this: Element,
-    options: ShadowRootInit,
-    ...children: Array<HandcraftChild<Node>>
-  ) {
-    options.serializable ??= true;
-
-    const el = this.shadowRoot ??
-      this.attachShadow(
-        options,
-      );
-
-    append<ShadowRoot>(el, ...children);
-  },
 };
 
 function append<T extends Node = Element>(
@@ -158,82 +143,101 @@ function append<T extends Node = Element>(
   for (const child of children) {
     if (child == null) continue;
 
-    if (typeof child === "string") {
+    if (
+      isHandcraftElement<Element>(child) &&
+      child[NODE]?.nodeName === "TEMPLATE"
+    ) {
+      const deref = child[NODE];
+
+      mutate(element, (element) => {
+        const options: Record<string, string | boolean> = {};
+
+        for (const attribute of deref.getAttributeNames()) {
+          if (attribute.startsWith("shadowroot")) {
+            const value = deref.getAttribute(attribute);
+
+            options[attribute.substring(10)] = !value ? true : value;
+          }
+        }
+
+        if (options["mode"] && element instanceof Element) {
+          const root = element.shadowRoot ??
+            // @ts-ignore it's fine
+            element.attachShadow(options);
+
+          root.append(...deref.children);
+        }
+      });
+    } else if (typeof child === "string") {
       fragment.append(child);
     } else {
-      if (
-        typeof child === "function" ||
-        (typeof child === "object" &&
-          child[Symbol.iterator] != null)
-      ) {
-        const lastChild = fragment.lastChild;
-        const bounds = [
-          lastChild != null && lastChild.nodeType === 8
-            ? lastChild
-            : document.createComment(""),
-          document.createComment(""),
-        ];
+      const lastChild = fragment.lastChild;
+      const bounds = [
+        lastChild != null && lastChild.nodeType === 8
+          ? lastChild
+          : document.createComment(""),
+        document.createComment(""),
+      ];
 
-        fragment.append(...bounds);
+      fragment.append(...bounds);
 
-        const weakBounds = bounds.map((c) => new WeakRef(c));
+      const weakBounds = bounds.map((c) => new WeakRef(c));
 
-        mutate(element, () => {
-          const [start, end] = weakBounds.map((b) => b.deref());
-          let currentChild: Node | null = start && start?.nextSibling !== end
-            ? start?.nextSibling
-            : null;
+      mutate(element, () => {
+        const [start, end] = weakBounds.map((b) => b.deref());
+        let currentChild: Node | null = start && start?.nextSibling !== end
+          ? start?.nextSibling
+          : null;
 
-          for (const item of typeof child === "function" ? [child] : child) {
-            if (
-              currentChild == null ||
-              nodeToCallback.get(currentChild) !== item
-            ) {
-              const result = item();
+        for (const item of typeof child === "function" ? [child] : child) {
+          if (
+            currentChild == null ||
+            nodeToCallback.get(currentChild) !== item
+          ) {
+            const result = isHandcraftElement<Node>(item) ? item : item();
 
-              if (!result) continue;
+            if (!result) continue;
 
-              let deref: Node | string | undefined;
+            let deref: Node | string | undefined;
 
-              if (isHandcraftElement<Node>(result)) {
-                deref = result[NODE];
-              } else {
-                deref = result;
-              }
-
-              if (deref != null) {
-                if (typeof deref !== "string") {
-                  nodeToCallback.set(deref, item);
-                } else {
-                  deref = document.createTextNode(deref);
-                }
-
-                if (currentChild == null) {
-                  end?.before?.(deref);
-                } else {
-                  element.replaceChild(deref, currentChild);
-
-                  currentChild = deref;
-                }
-              } else {
-                continue;
-              }
+            if (isHandcraftElement<Node>(result)) {
+              deref = result[NODE];
+            } else {
+              deref = result;
             }
 
-            currentChild = currentChild?.nextSibling !== end
-              ? (currentChild?.nextSibling ?? null)
-              : null;
+            if (deref != null) {
+              if (typeof deref !== "string") {
+                nodeToCallback.set(deref, item);
+              } else {
+                deref = document.createTextNode(deref);
+              }
+
+              if (currentChild == null) {
+                end?.before?.(deref);
+              } else {
+                element.replaceChild(deref, currentChild);
+
+                currentChild = deref;
+              }
+            } else {
+              continue;
+            }
           }
 
-          while (currentChild && currentChild !== end) {
-            const nextChild = currentChild?.nextSibling;
+          currentChild = currentChild?.nextSibling !== end
+            ? (currentChild?.nextSibling ?? null)
+            : null;
+        }
 
-            element.removeChild(currentChild);
+        while (currentChild && currentChild !== end) {
+          const nextChild = currentChild?.nextSibling;
 
-            currentChild = nextChild;
-          }
-        });
-      }
+          element.removeChild(currentChild);
+
+          currentChild = nextChild;
+        }
+      });
     }
   }
 
