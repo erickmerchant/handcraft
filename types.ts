@@ -70,7 +70,7 @@ export type HandcraftElement<N> =
     (
       ...children: Array<HandcraftChild<N>>
     ): HandcraftElement<N>;
-    [NODE]: N;
+    [NODE]?: N;
     name: (
       value: string | null | (() => string | null),
     ) => HandcraftElement<N>;

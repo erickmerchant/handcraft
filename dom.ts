@@ -16,9 +16,7 @@ function fnValue<T>(value: T | (() => T)) {
 
 const methods: HandcraftElementMethods<Node> = {
   effect<T extends Node = Element>(this: T, cb: (...args: any[]) => void) {
-    queueMicrotask(() => {
-      mutate<T>(this, cb);
-    });
+    mutate<T>(this, cb);
   },
 
   on(
@@ -149,20 +147,21 @@ function append<T extends Node = Element>(
     ) {
       const deref = child[NODE];
 
-      mutate(element, (element) => {
-        const options: Record<string, string | boolean> = {};
+      queueMicrotask(() => {
+        const options: ShadowRootInit = { mode: "open" };
 
         for (const attribute of deref.getAttributeNames()) {
           if (attribute.startsWith("shadowroot")) {
             const value = deref.getAttribute(attribute);
+            const key = attribute.substring(10);
 
-            options[attribute.substring(10)] = !value ? true : value;
+            // @ts-ignore{7053}
+            options[key] = !value ? true : value;
           }
         }
 
-        if (options["mode"] && element instanceof Element) {
+        if (options.mode && element instanceof Element) {
           const root = element.shadowRoot ??
-            // @ts-ignore it's fine
             element.attachShadow(options);
 
           root.append(...deref.children);
