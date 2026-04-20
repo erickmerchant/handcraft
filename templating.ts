@@ -266,7 +266,9 @@ function stringify(el: VNode): string {
 
       result += html;
     } else if (typeof child === "string") {
-      result += esc`${child}`;
+      result += el.tag && ["script", "style"].includes(el.tag)
+        ? child
+        : esc`${child}`;
     }
   }
 
