@@ -161,6 +161,18 @@ function append<T extends Node = Element>(
         }
 
         if (options.mode && element instanceof Element) {
+          if (element.shadowRoot) {
+            let currentChild = element.shadowRoot.firstChild;
+
+            while (currentChild) {
+              const nextChild = currentChild?.nextSibling;
+
+              if (currentChild.nodeName !== "LINK") currentChild.remove();
+
+              currentChild = nextChild;
+            }
+          }
+
           const root = element.shadowRoot ??
             element.attachShadow(options);
 

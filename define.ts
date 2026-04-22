@@ -1,5 +1,4 @@
-import type { HandcraftElement, HandcraftPrimitive } from "./types.ts";
-import { h } from "./dom.ts";
+import type { HandcraftPrimitive } from "./types.ts";
 import { watch } from "./reactivity.ts";
 
 type Attributes = Record<string, HandcraftPrimitive>;
@@ -13,7 +12,7 @@ export function define<
     disconnected?: (el: Element) => void;
     extend?: string;
   },
-): HandcraftElement<Node> {
+): void {
   const options: {
     name: string;
     extend?: string;
@@ -83,6 +82,4 @@ export function define<
     },
     { extends: options.extend },
   );
-
-  return h.html[name];
 }
