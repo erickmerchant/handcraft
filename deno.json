@@ -1,13 +1,13 @@
 {
   "name": "@handcraft/lib",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "license": "MIT",
   "exports": {
     ".": "./mod.ts",
     "./stringify": "./stringify.ts"
   },
   "imports": {
-    "@std/html": "jsr:@std/html@^1.0.6"
+    "@std/html": "jsr:@std/html@^1.0.7"
   },
   "compilerOptions": {
     "lib": ["deno.ns", "dom", "dom.iterable", "es2023"]

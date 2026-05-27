@@ -5,10 +5,14 @@ import type {
   HandcraftNode,
   HandcraftNodeState,
   HandcraftValue,
-} from "./types.ts";
-import { fnValue, isHandcraftNode, isIterable, NODE_STATE } from "./types.ts";
-import { definitions } from "./element.ts";
-import { h } from "./h.ts";
+} from "./mod.ts";
+import {
+  definitions,
+  h,
+  isHandcraftNode,
+  NODE_STATE,
+  resolveValue,
+} from "./mod.ts";
 
 function esc(
   strs: ReadonlyArray<string>,
@@ -94,7 +98,7 @@ export function stringify(
           const styles = [];
 
           for (const [k, v] of Object.entries(val)) {
-            const resolved = fnValue(v);
+            const resolved = resolveValue(v);
 
             if (resolved != null) styles.push(`${k}: ${resolved}`);
           }
@@ -116,7 +120,7 @@ export function stringify(
               tokens.push(val);
             } else {
               for (const [k, v] of Object.entries(val)) {
-                const resolved = fnValue(v);
+                const resolved = resolveValue(v);
 
                 if (resolved) {
                   tokens.push(k);
@@ -139,7 +143,7 @@ export function stringify(
             HandcraftValue<string | number | boolean | null>,
           ];
 
-          const resolved = fnValue(
+          const resolved = resolveValue(
             val as unknown as HandcraftValue<string | boolean>,
           );
 
@@ -160,7 +164,7 @@ export function stringify(
           ];
 
           if (val != null) {
-            const v = fnValue(val);
+            const v = resolveValue(val);
             const k = `aria-${key}`;
 
             if (v === true || v === false) {
@@ -227,14 +231,16 @@ function nodes(children: Array<HandcraftChild>, escape: boolean): string {
       HandcraftControlCallback | HandcraftNode | string | null
     >;
 
-    if (isIterable<HandcraftControlCallback>(child)) {
+    if (
+      child != null && typeof child === "object" && Symbol.iterator in child
+    ) {
       items = child;
     } else {
       items = [child];
     }
 
     for (const item of items) {
-      const resolved = fnValue(item);
+      const resolved = resolveValue(item);
 
       if (!resolved) continue;
 

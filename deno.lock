@@ -1,16 +1,16 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@std/html@^1.0.6": "1.0.6"
+    "jsr:@std/html@^1.0.7": "1.0.7"
   },
   "jsr": {
-    "@std/html@1.0.6": {
-      "integrity": "eaf759c8141e0733ca30eb49e4c08d8e6ca442b85c4d51f9894a56f502993e08"
+    "@std/html@1.0.7": {
+      "integrity": "175c818905a6e75743c69c251395e273d82698e58cfe7dd76268d70e28b8d8fe"
     }
   },
   "workspace": {
     "dependencies": [
-      "jsr:@std/html@^1.0.6"
+      "jsr:@std/html@^1.0.7"
     ]
   }
 }

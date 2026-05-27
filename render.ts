@@ -1,6 +1,6 @@
 import { effect } from "./reactivity.ts";
 import type { HandcraftChild, HandcraftNode, HandcraftValue } from "./types.ts";
-import { fnValue, isHandcraftNode, NODE_STATE } from "./types.ts";
+import { isHandcraftNode, NODE_STATE, resolveValue } from "./types.ts";
 
 export function render(
   node: HandcraftNode,
@@ -37,7 +37,7 @@ export function render(
           (element) => {
             if (key in element) {
               // @ts-ignore{7053}
-              element[key] = fnValue(val);
+              element[key] = resolveValue(val);
             }
           },
         );
@@ -55,7 +55,7 @@ export function render(
           mutate<HTMLElement>(
             target as HTMLElement,
             (element) => {
-              const v = fnValue(value);
+              const v = resolveValue(value);
 
               if (v == null) {
                 element.style.removeProperty(key);
@@ -81,7 +81,7 @@ export function render(
             mutate<Element>(
               target,
               (element) => {
-                const v = fnValue(value);
+                const v = resolveValue(value);
 
                 for (const kk of k.split(" ")) {
                   element[key === "class" ? "classList" : "part"].toggle(
@@ -116,7 +116,7 @@ export function render(
           mutate<Element>(
             target,
             (element) => {
-              const v = fnValue(val);
+              const v = resolveValue(val);
               const k = `aria-${key}`;
 
               if (v == null) {
@@ -371,7 +371,7 @@ function attr<T>(element: Element, key: string, value: HandcraftValue<T>) {
   mutate<Element>(
     element,
     (element) => {
-      const v = fnValue(value);
+      const v = resolveValue(value);
 
       if (v === true || v === false || v == null) {
         element.toggleAttribute(key, !!v);

@@ -3,12 +3,8 @@ export const NODE_STATE = Symbol("ref");
 export function isHandcraftNode(x: unknown): x is HandcraftNode {
   return x != null && typeof x === "function" && NODE_STATE in x;
 }
-export function isIterable<T>(x: unknown): x is Iterable<T> {
-  return x != null && typeof x === "object" &&
-    typeof x[Symbol.iterator as keyof typeof x] === "function";
-}
 
-export function fnValue<T>(value: T | (() => T)): T {
+export function resolveValue<T>(value: T | (() => T)): T {
   return typeof value === "function" ? (value as CallableFunction)() : value;
 }
 

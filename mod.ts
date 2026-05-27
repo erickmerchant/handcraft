@@ -1,5 +1,5 @@
 export type * from "./types.ts";
-export { NODE_STATE } from "./types.ts";
+export { isHandcraftNode, NODE_STATE, resolveValue } from "./types.ts";
 
 export * from "./each.ts";
 export * from "./element.ts";
