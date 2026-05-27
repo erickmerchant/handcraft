@@ -5,5 +5,5 @@ export * from "./each.ts";
 export * from "./element.ts";
 export * from "./h.ts";
 export * from "./reactivity.ts";
-export * from "./when.ts";
 export * from "./render.ts";
+export * from "./when.ts";
