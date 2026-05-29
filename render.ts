@@ -153,7 +153,6 @@ export function render(
 }
 
 const nodeToCallback = new WeakMap<Node, () => void>();
-
 const START_COMMENT = " <> ";
 const END_COMMENT = " </> ";
 
