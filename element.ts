@@ -11,7 +11,7 @@ if (!globalThis.HTMLElement) {
 export const definitions: Map<string, (new () => HandcraftElement)> = new Map();
 
 export class HandcraftElement extends HTMLElement {
-  static define(name: string): void {
+  static define(name: string): HandcraftNode {
     globalThis.customElements?.define?.(
       name,
       // @ts-ignore{2345}
@@ -20,6 +20,8 @@ export class HandcraftElement extends HTMLElement {
 
     // @ts-ignore{2345}
     definitions.set(name, this);
+
+    return h.html[name];
   }
 
   state: Record<string, any> = watch({});
