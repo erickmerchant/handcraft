@@ -14,11 +14,9 @@ export class HandcraftElement extends HTMLElement {
   static define(name: string): HandcraftNode {
     globalThis.customElements?.define?.(
       name,
-      // @ts-ignore{2345}
       this,
     );
 
-    // @ts-ignore{2345}
     definitions.set(name, this);
 
     return h.html[name];
@@ -30,16 +28,18 @@ export class HandcraftElement extends HTMLElement {
 
   attributeChangedCallback(k: string, o: string | null, n: string | null) {
     if (o !== n && Object.hasOwn(this, k)) {
+      let value;
+
       if (typeof this[k as keyof typeof this] === "boolean") {
-        // @ts-ignore{2322}
-        this[k as keyof typeof this] = n === "";
-      } else if (typeof this[k as keyof typeof this] === "number") {
-        // @ts-ignore{2322}
-        this[k as keyof typeof this] = +n;
+        value = n === "";
+      } else if (typeof this[k as keyof typeof this] === "number" && n) {
+        value = +n;
       } else {
-        // @ts-ignore{2322}
-        this[k as keyof typeof this] = n;
+        value = n;
       }
+
+      // @ts-ignore{2322}
+      this[k as keyof typeof this] = value;
     }
   }
 

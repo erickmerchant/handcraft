@@ -144,7 +144,7 @@ export function stringify(
           ];
 
           const resolved = resolveValue(
-            val as unknown as HandcraftValue<string | boolean>,
+            val as HandcraftValue<string | boolean>,
           );
 
           if (resolved != null && resolved !== false) {
