@@ -6,13 +6,7 @@ import type {
   HandcraftNodeState,
   HandcraftValue,
 } from "./mod.ts";
-import {
-  definitions,
-  h,
-  isHandcraftNode,
-  NODE_STATE,
-  resolveValue,
-} from "./mod.ts";
+import { definitions, h, NODE_STATE, resolveValue } from "./mod.ts";
 
 function esc(
   strs: ReadonlyArray<string>,
@@ -221,12 +215,6 @@ function nodes(children: Array<HandcraftChild>, escape: boolean): string {
   for (const child of children ?? []) {
     if (child == null) continue;
 
-    const fenced = typeof child !== "string" && !isHandcraftNode(child);
-
-    if (fenced) {
-      result += `<!-- <> -->`;
-    }
-
     let items: Iterable<
       HandcraftControlCallback | HandcraftNode | string | null
     >;
@@ -234,6 +222,8 @@ function nodes(children: Array<HandcraftChild>, escape: boolean): string {
     if (
       child != null && typeof child === "object" && Symbol.iterator in child
     ) {
+      result += `<!-- <> -->`;
+
       items = child;
     } else {
       items = [child];
@@ -251,7 +241,9 @@ function nodes(children: Array<HandcraftChild>, escape: boolean): string {
       }
     }
 
-    if (fenced) {
+    if (
+      child != null && typeof child === "object" && Symbol.iterator in child
+    ) {
       result += `<!-- </> -->`;
     }
   }

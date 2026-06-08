@@ -22,7 +22,7 @@ export class HandcraftElement extends HTMLElement {
     return h.html[name];
   }
 
-  state: Record<string, any> = watch({});
+  state: Record<string, any> = watch<Record<string, any>>({});
   hydrating = true;
   ssr = false;
 
