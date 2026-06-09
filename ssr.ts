@@ -6,7 +6,29 @@ import type {
   HandcraftNodeState,
   HandcraftValue,
 } from "./mod.ts";
-import { definitions, h, NODE_STATE, resolveValue } from "./mod.ts";
+import {
+  definitions,
+  h,
+  isHandcraftNode,
+  NODE_STATE,
+  resolveValue,
+} from "./mod.ts";
+
+export function view(
+  callback: (
+    ...args: any
+  ) => Response | HandcraftNode | Promise<Response | HandcraftNode>,
+): () => Promise<Response | string> {
+  return async (...args: any): Promise<Response | string> => {
+    const response = await callback(...args);
+
+    if (isHandcraftNode(response)) {
+      return stringify(response);
+    }
+
+    return response;
+  };
+}
 
 function esc(
   strs: ReadonlyArray<string>,
