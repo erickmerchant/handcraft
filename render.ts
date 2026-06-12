@@ -26,13 +26,7 @@ export function render(
 
         for (const event of events.split(/\s+/)) {
           target.addEventListener(event, (e: Event) => {
-            queueMicrotask(() =>
-              handler({
-                ...e,
-                currentTarget: e.currentTarget,
-                target: e.target,
-              })
-            );
+            handler(e);
           }, options);
         }
       }
