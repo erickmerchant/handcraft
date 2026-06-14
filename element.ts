@@ -56,6 +56,8 @@ export class HandcraftElement extends HTMLElement {
         typeof this[name as keyof typeof this] === "function"
       ) continue;
 
+      this.attributeChangedCallback(name, null, this.getAttribute(name));
+
       this.state[name] = this[name as keyof typeof this];
 
       const descriptor = Object.getOwnPropertyDescriptor(this, name);
