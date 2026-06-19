@@ -5,9 +5,7 @@ export type WhenAPI = {
   fallback(cb: HandcraftControlCallback): WhenAPI;
 } & Iterable<HandcraftControlCallback>;
 
-export function when(
-  cb: (prev: boolean | void) => boolean,
-): WhenAPI {
+export function when(cb: (prev: boolean | void) => boolean): WhenAPI {
   let show: HandcraftControlCallback;
   let fallback: HandcraftControlCallback = () => null;
   let previous: boolean | void;

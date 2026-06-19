@@ -86,10 +86,7 @@ export function render(
                 const v = resolveValue(value);
 
                 for (const kk of k.split(" ")) {
-                  element[key === "class" ? "classList" : "part"].toggle(
-                    kk,
-                    v,
-                  );
+                  element[key === "class" ? "classList" : "part"].toggle(kk, v);
                 }
               },
             );
@@ -124,10 +121,7 @@ export function render(
               if (v == null) {
                 element.removeAttribute(k);
               } else if (v === true || v === false) {
-                element.setAttribute(
-                  k,
-                  v ? "true" : "false",
-                );
+                element.setAttribute(k, v ? "true" : "false");
               } else {
                 element.setAttribute(k, `${v}`);
               }
@@ -230,8 +224,7 @@ function nodes(
 
         for (const item of typeof child === "function" ? [child] : child) {
           if (
-            currentChild == null ||
-            nodeToCallback.get(currentChild) !== item
+            currentChild == null || nodeToCallback.get(currentChild) !== item
           ) {
             const child = item();
 
@@ -295,9 +288,7 @@ function getBounds(
   let start: ChildNode | null = null;
   let end: ChildNode | null = null;
 
-  if (
-    currentChild && isStartComment(currentChild)
-  ) {
+  if (currentChild && isStartComment(currentChild)) {
     start = currentChild;
 
     let nesting = 1;

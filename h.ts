@@ -38,9 +38,7 @@ export function factory(
         return vnode;
       }
 
-      return (
-        ...args: Array<any>
-      ) => {
+      return (...args: Array<any>) => {
         if (typeof key === "string") {
           if (
             ![
@@ -72,9 +70,7 @@ export function factory(
   return proxy;
 }
 
-function factoryNS(
-  namespace: string,
-): HandcraftNodeFactoryNS {
+function factoryNS(namespace: string): HandcraftNodeFactoryNS {
   return new Proxy(
     {},
     {

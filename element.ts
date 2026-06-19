@@ -12,10 +12,7 @@ export const definitions: Map<string, (new () => HandcraftElement)> = new Map();
 
 export class HandcraftElement extends HTMLElement {
   static define(name: string): HandcraftNode {
-    globalThis.customElements?.define?.(
-      name,
-      this,
-    );
+    globalThis.customElements?.define?.(name, this);
 
     definitions.set(name, this);
 

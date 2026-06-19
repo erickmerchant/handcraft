@@ -81,9 +81,7 @@ export type HandcraftNode =
   }
   & Record<
     string,
-    ((
-      arg: any,
-    ) => HandcraftNode)
+    ((arg: any) => HandcraftNode)
   >;
 
 export type HandcraftControlCallback = () =>
