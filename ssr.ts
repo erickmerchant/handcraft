@@ -212,14 +212,12 @@ export function stringify(
 
     instance.ssr = true;
 
-    const names = Object.getOwnPropertyNames(instance);
+    const observedAttributes: Array<string> =
+      Object.getPrototypeOf(instance).constructor?.observedAttributes ?? [];
+    const observedProperties: Array<string> =
+      Object.getPrototypeOf(instance).constructor?.observedProperties ?? [];
 
-    for (const name of names) {
-      if (
-        ["state", "hydrating"].includes(name) ||
-        typeof instance[name as keyof typeof instance] === "function"
-      ) continue;
-
+    for (const name of [...observedAttributes, ...observedProperties]) {
       if (attributes[name] != null) {
         instance.attributeChangedCallback(
           name,

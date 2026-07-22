@@ -19,7 +19,7 @@ export class HandcraftElement extends HTMLElement {
     return h.html[name];
   }
 
-  state: Record<string, any> = watch<Record<string, any>>({});
+  #state: Record<string, any> = watch<Record<string, any>>({});
   hydrating = true;
   ssr = false;
 
@@ -45,17 +45,15 @@ export class HandcraftElement extends HTMLElement {
   }
 
   setup() {
-    const names = Object.getOwnPropertyNames(this);
+    const observedAttributes: Array<string> =
+      Object.getPrototypeOf(this).constructor?.observedAttributes ?? [];
+    const observedProperties: Array<string> =
+      Object.getPrototypeOf(this).constructor?.observedProperties ?? [];
 
-    for (const name of names) {
-      if (
-        ["state", "hydrating"].includes(name) ||
-        typeof this[name as keyof typeof this] === "function"
-      ) continue;
-
+    for (const name of [...observedAttributes, ...observedProperties]) {
       this.attributeChangedCallback(name, null, this.getAttribute(name));
 
-      this.state[name] = this[name as keyof typeof this];
+      this.#state[name] = this[name as keyof typeof this];
 
       const descriptor = Object.getOwnPropertyDescriptor(this, name);
 
@@ -63,10 +61,10 @@ export class HandcraftElement extends HTMLElement {
 
       Object.defineProperty(this, name, {
         set: descriptor.set ?? ((val) => {
-          this.state[name] = val;
+          this.#state[name] = val;
         }),
         get: descriptor.get ?? (() => {
-          return this.state[name];
+          return this.#state[name];
         }),
       });
     }
