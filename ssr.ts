@@ -212,10 +212,11 @@ export function stringify(
 
     instance.ssr = true;
 
-    const observedAttributes: Array<string> =
-      Object.getPrototypeOf(instance).constructor?.observedAttributes ?? [];
-    const observedProperties: Array<string> =
-      Object.getPrototypeOf(instance).constructor?.observedProperties ?? [];
+    const constructor = Object.getPrototypeOf(instance).constructor;
+    const observedAttributes: Array<string> = constructor?.observedAttributes ??
+      [];
+    const observedProperties: Array<string> = constructor?.observedProperties ??
+      [];
 
     for (const name of [...observedAttributes, ...observedProperties]) {
       if (attributes[name] != null) {
