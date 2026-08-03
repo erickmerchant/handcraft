@@ -1,4 +1,4 @@
-export const NODE_STATE = Symbol("ref");
+export const NODE_STATE = Symbol();
 
 export function isHandcraftNode(x: unknown): x is HandcraftNode {
   return x != null && typeof x === "function" && NODE_STATE in x;
@@ -17,8 +17,6 @@ export type HandcraftChild =
     | null
   >
   | Iterable<HandcraftControlCallback>;
-
-export type HandcraftEffectMethodCallback = (el: HTMLElement) => void;
 
 export type HandcraftNodeState = {
   name: string;

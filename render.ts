@@ -152,14 +152,12 @@ const nodeToCallback = new WeakMap<Node, () => void>();
 const START_COMMENT = " <> ";
 const END_COMMENT = " </> ";
 
-function isStartComment(currentChild: ChildNode): boolean {
+function isCommentWithSpecificValue(
+  currentChild: ChildNode,
+  value: string,
+): boolean {
   return currentChild?.nodeType === Node.COMMENT_NODE &&
-    currentChild.nodeValue === START_COMMENT;
-}
-
-function isEndComment(currentChild: ChildNode): boolean {
-  return currentChild?.nodeType === Node.COMMENT_NODE &&
-    currentChild.nodeValue === END_COMMENT;
+    currentChild.nodeValue === value;
 }
 
 function nodes(
@@ -288,18 +286,18 @@ function getBounds(
   let start: ChildNode | null = null;
   let end: ChildNode | null = null;
 
-  if (currentChild && isStartComment(currentChild)) {
+  if (currentChild && isCommentWithSpecificValue(currentChild, START_COMMENT)) {
     start = currentChild;
 
     let nesting = 1;
     let next = start.nextSibling;
 
     while (next) {
-      if (isStartComment(next)) {
+      if (isCommentWithSpecificValue(next, START_COMMENT)) {
         nesting += 1;
       }
 
-      if (isEndComment(next)) {
+      if (isCommentWithSpecificValue(next, END_COMMENT)) {
         nesting -= 1;
 
         if (nesting === 0) {
