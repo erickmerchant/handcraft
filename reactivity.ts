@@ -49,7 +49,7 @@ function deleteProperty<T extends object>(o: T, key: string | symbol) {
   return Reflect.deleteProperty(o, key);
 }
 
-export function effect(callback: (...args: any[]) => void) {
+export function effect(callback: (...args: Array<any>) => void) {
   if (!queue.includes(callback)) {
     queue.push(callback);
 

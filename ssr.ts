@@ -3,6 +3,7 @@ import type {
   HandcraftChild,
   HandcraftControlCallback,
   HandcraftNode,
+  HandcraftNodeMethods,
   HandcraftNodeState,
   HandcraftValue,
 } from "./mod.ts";
@@ -76,125 +77,172 @@ export function stringify(
   const attributes: Record<string, string> = {};
 
   const loopAttributes = (
-    records: Array<[string, any[] | Record<string, any>]>,
+    records: Array<[string, Array<any>]>,
   ) => {
-    for (const [key, value] of records ?? []) {
-      switch (key) {
-        case "effect":
-        case "on":
-        case "prop":
-          break;
-        case "style":
-          {
-            const [val] = value as [
-              Record<
-                string,
-                HandcraftValue<string | number | null>
-              >,
-            ];
+    const methods: HandcraftNodeMethods = {
+      effect(
+        _cb: (...args: Array<any>) => void,
+      ): void {
+      },
+      on(
+        _events: string,
+        _handler: EventListener,
+        _options?: AddEventListenerOptions | boolean,
+      ): void {
+      },
+      attr(
+        key: string,
+        value: HandcraftValue<string | number | boolean | null>,
+      ): void {
+        const resolved = resolveValue(
+          value as HandcraftValue<string | boolean>,
+        );
 
-            const styles = [];
+        if (resolved != null && resolved !== false) {
+          if (resolved === true) {
+            attributes[key] = "";
+          } else {
+            attributes[key] = resolved;
+          }
+        }
+      },
+      aria(
+        key: string,
+        value: HandcraftValue<string | number | boolean | null>,
+      ): void {
+        if (value != null) {
+          const v = resolveValue(value);
+          const k = `aria-${key}`;
 
+          if (v === true || v === false) {
+            attributes[k] = v ? "true" : "false";
+          } else if (v != null) {
+            attributes[k] = v.toString();
+          }
+        }
+      },
+      data(
+        key: string,
+        value: HandcraftValue<string | number | null>,
+      ): void {
+        if (value != null) {
+          const v = resolveValue(value);
+          const k = `data-${key}`;
+
+          if (v != null) {
+            attributes[k] = v.toString();
+          }
+        }
+      },
+      prop<T>(
+        _key: string,
+        _value: HandcraftValue<T>,
+      ): void {
+      },
+      class(
+        ...classes: Array<
+          string | Record<string, HandcraftValue<boolean>>
+        >
+      ): void {
+        const tokens = [];
+
+        for (
+          const val of classes as Array<
+            string | Record<string, HandcraftValue<boolean>>
+          >
+        ) {
+          if (typeof val === "string") {
+            tokens.push(val);
+          } else {
             for (const [k, v] of Object.entries(val)) {
               const resolved = resolveValue(v);
 
-              if (resolved != null) styles.push(`${k}: ${resolved}`);
-            }
-
-            attributes.style = styles.join(";");
-          }
-          break;
-        case "class":
-        case "part":
-          {
-            const tokens = [];
-
-            for (
-              const val of value as Array<
-                string | Record<string, HandcraftValue<boolean>>
-              >
-            ) {
-              if (typeof val === "string") {
-                tokens.push(val);
-              } else {
-                for (const [k, v] of Object.entries(val)) {
-                  const resolved = resolveValue(v);
-
-                  if (resolved) {
-                    tokens.push(k);
-                  }
-                }
-              }
-            }
-
-            const list = tokens.join(" ");
-
-            if (list) {
-              attributes[key] = list;
-            }
-          }
-          break;
-        case "attr":
-          {
-            const [k, val] = value as [
-              string,
-              HandcraftValue<string | number | boolean | null>,
-            ];
-
-            const resolved = resolveValue(
-              val as HandcraftValue<string | boolean>,
-            );
-
-            if (resolved != null && resolved !== false) {
-              if (resolved === true) {
-                attributes[k] = "";
-              } else {
-                attributes[k] = resolved;
+              if (resolved) {
+                tokens.push(k);
               }
             }
           }
-          break;
-        case "aria":
-          {
-            const [key, val] = value as [
-              string,
-              HandcraftValue<string | number | boolean | null>,
-            ];
+        }
 
-            if (val != null) {
-              const v = resolveValue(val);
-              const k = `aria-${key}`;
+        const list = tokens.join(" ");
 
-              if (v === true || v === false) {
-                attributes[k] = v ? "true" : "false";
-              } else if (v != null) {
-                attributes[k] = v.toString();
+        if (list) {
+          attributes.class = list;
+        }
+      },
+      part(
+        ...parts: Array<
+          string | Record<string, HandcraftValue<boolean>>
+        >
+      ): void {
+        const tokens = [];
+
+        for (
+          const val of parts as Array<
+            string | Record<string, HandcraftValue<boolean>>
+          >
+        ) {
+          if (typeof val === "string") {
+            tokens.push(val);
+          } else {
+            for (const [k, v] of Object.entries(val)) {
+              const resolved = resolveValue(v);
+
+              if (resolved) {
+                tokens.push(k);
               }
             }
           }
-          break;
-        case "shadow":
-          {
-            const [options, children] = value as [
-              ShadowRootInit,
-              Array<HandcraftChild>,
-            ];
+        }
 
-            const node: HandcraftNodeState = {
-              name: "template",
-              namespace: "1999/xhtml",
-              attributes: [],
-              children,
-            };
+        const list = tokens.join(" ");
 
-            for (const [key, value] of Object.entries(options)) {
-              node.attributes.push(["attr", [`shadowroot${key}`, value]]);
-            }
+        if (list) {
+          attributes.part = list;
+        }
+      },
+      style(
+        attrs: Record<
+          string,
+          HandcraftValue<string | number | null>
+        >,
+      ): void {
+        const styles = [];
 
-            shadow = stringify({ [NODE_STATE]: node }, escape);
-          }
+        for (const [k, v] of Object.entries(attrs)) {
+          const resolved = resolveValue(v);
 
-          break;
+          if (resolved != null) styles.push(`${k}: ${resolved}`);
+        }
+
+        attributes.style = styles.join(";");
+      },
+      shadow(
+        options: ShadowRootInit,
+        children: Array<HandcraftChild>,
+      ): void {
+        const node: HandcraftNodeState = {
+          name: "template",
+          namespace: "1999/xhtml",
+          attributes: [],
+          children,
+        };
+
+        for (const [key, value] of Object.entries(options)) {
+          node.attributes.push(["attr", [`shadowroot${key}`, value]]);
+        }
+
+        shadow = stringify({ [NODE_STATE]: node }, escape);
+      },
+    };
+
+    for (const [key, value] of records ?? []) {
+      if (key in methods) {
+        // @ts-ignore{2556}
+        methods[key as keyof typeof methods](...value);
+      } else {
+        // @ts-ignore{2556}
+        methods.attr(key, ...value);
       }
     }
   };

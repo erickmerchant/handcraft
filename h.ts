@@ -40,25 +40,6 @@ export function factory(
 
       return (...args: Array<any>) => {
         if (typeof key === "string") {
-          if (
-            ![
-              "effect",
-              "on",
-              "prop",
-              "style",
-              "class",
-              "part",
-              "attr",
-              "aria",
-              "shadow",
-            ]
-              .includes(key)
-          ) {
-            args.unshift(key);
-
-            key = "attr";
-          }
-
           vnode.attributes.push([key, args]);
         }
 

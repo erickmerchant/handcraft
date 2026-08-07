@@ -1,5 +1,11 @@
 import { effect } from "./reactivity.ts";
-import type { HandcraftChild, HandcraftNode, HandcraftValue } from "./types.ts";
+import type {
+  HandcraftChild,
+  HandcraftNode,
+  HandcraftNodeMethods,
+  HandcraftNodeState,
+  HandcraftValue,
+} from "./types.ts";
 import { isHandcraftNode, NODE_STATE, resolveValue } from "./types.ts";
 
 export function render(
@@ -9,71 +15,102 @@ export function render(
 ) {
   const state = node[NODE_STATE];
 
-  if (target instanceof Element) {
-    for (const [key, value] of state.attributes ?? []) {
-      if (key === "effect") {
-        const [cb] = value as [(...args: any[]) => void];
-
-        mutate(target, cb);
+  const methods: HandcraftNodeMethods & {
+    _list(
+      key: string,
+      ...tokens: Array<
+        string | Record<string, HandcraftValue<boolean>>
+      >
+    ): void;
+    _attr(
+      key: string,
+      value: HandcraftValue<string | number | boolean | null>,
+      adapter?: (
+        v: string | number | boolean | null,
+      ) => string | number | boolean | null,
+    ): void;
+  } = {
+    effect(cb: (...args: Array<any>) => void): void {
+      mutate(target, cb);
+    },
+    on(
+      events: string,
+      handler: EventListener,
+      options?: AddEventListenerOptions | boolean,
+    ): void {
+      for (const event of events.split(/\s+/)) {
+        target.addEventListener(event, (e: Event) => {
+          handler(e);
+        }, options);
       }
-
-      if (key === "on") {
-        const [events, handler, options] = value as [
-          string,
-          EventListener,
-          AddEventListenerOptions | boolean | undefined,
-        ];
-
-        for (const event of events.split(/\s+/)) {
-          target.addEventListener(event, (e: Event) => {
-            handler(e);
-          }, options);
-        }
-      }
-
-      if (key === "prop") {
-        const [key, val] = value as [string, any];
-
+    },
+    _attr(
+      key: string,
+      value: HandcraftValue<string | number | boolean | null>,
+      adapter: (
+        v: string | number | boolean | null,
+      ) => string | number | boolean | null = (
+        v: string | number | boolean | null,
+      ) => v,
+    ): void {
+      if (value != null && target instanceof Element) {
         mutate<Element>(
           target,
           (element) => {
-            if (key in element) {
-              // @ts-ignore{7053}
-              element[key] = resolveValue(val);
+            const v = adapter(resolveValue(value));
+
+            if (v === true || v === false || v == null) {
+              element.toggleAttribute(key, !!v);
+            } else {
+              element.setAttribute(key, `${v}`);
             }
           },
         );
       }
-
-      if (key === "style") {
-        const [styles] = value as [
-          Record<
-            string,
-            HandcraftValue<string | number | null>
-          >,
-        ];
-
-        for (const [key, value] of Object.entries(styles)) {
-          mutate<HTMLElement>(
-            target as HTMLElement,
-            (element) => {
-              const v = resolveValue(value);
-
-              if (v == null) {
-                element.style.removeProperty(key);
-              } else {
-                element.style.setProperty(key, `${v}`);
-              }
-            },
-          );
-        }
-      }
-
-      if (key === "class" || key === "part") {
-        const tokens = value as Array<
-          string | Record<string, boolean | (() => boolean)>
-        >;
-
+    },
+    attr(
+      key: string,
+      value: HandcraftValue<string | number | boolean | null>,
+    ): void {
+      this._attr(key, value);
+    },
+    aria(
+      key: string,
+      value: HandcraftValue<string | number | boolean | null>,
+    ): void {
+      this._attr(
+        `aria-${key}`,
+        value,
+        (v) => (v === true ? "true" : v === false ? "false" : v),
+      );
+    },
+    data(
+      key: string,
+      value: HandcraftValue<string | number | null>,
+    ): void {
+      this._attr(`data-${key}`, value);
+    },
+    prop<T>(
+      key: string,
+      value: HandcraftValue<T>,
+    ): void {
+      mutate(
+        target,
+        (element) => {
+          if (key in element) {
+            // @ts-ignore{7053}
+            element[key] = resolveValue(value);
+          }
+        },
+      );
+    },
+    _list(
+      key: "classList" | "part",
+      ...tokens: Array<
+        string | Record<string, HandcraftValue<boolean>>
+      >
+    ): void {
+      if (target instanceof Element) {
         for (let c of tokens) {
           if (typeof c !== "object") {
             c = { [c]: true };
@@ -86,59 +123,69 @@ export function render(
                 const v = resolveValue(value);
 
                 for (const kk of k.split(" ")) {
-                  element[key === "class" ? "classList" : "part"].toggle(kk, v);
+                  element[key].toggle(kk, v);
                 }
               },
             );
           }
         }
       }
+    },
+    class(
+      ...classes: Array<
+        string | Record<string, HandcraftValue<boolean>>
+      >
+    ): void {
+      this._list("classList", ...classes);
+    },
+    part(
+      ...parts: Array<
+        string | Record<string, HandcraftValue<boolean>>
+      >
+    ): void {
+      this._list("part", ...parts);
+    },
+    style(
+      attrs: Record<
+        string,
+        HandcraftValue<string | number | null>
+      >,
+    ): void {
+      for (const [key, value] of Object.entries(attrs)) {
+        mutate<HTMLElement>(
+          target as HTMLElement,
+          (element) => {
+            const v = resolveValue(value);
 
-      if (key === "attr") {
-        const [method, val] = value as [
-          string,
-          HandcraftValue<string | number | boolean | null>,
-        ];
-
-        if (val != null) {
-          attr(target, method, val);
-        }
+            if (v == null) {
+              element.style.removeProperty(key);
+            } else {
+              element.style.setProperty(key, `${v}`);
+            }
+          },
+        );
       }
-
-      if (key === "aria") {
-        const [key, val] = value as [
-          string,
-          HandcraftValue<string | number | boolean | null>,
-        ];
-
-        if (val != null) {
-          mutate<Element>(
-            target,
-            (element) => {
-              const v = resolveValue(val);
-              const k = `aria-${key}`;
-
-              if (v == null) {
-                element.removeAttribute(k);
-              } else if (v === true || v === false) {
-                element.setAttribute(k, v ? "true" : "false");
-              } else {
-                element.setAttribute(k, `${v}`);
-              }
-            },
-          );
-        }
-      }
-
-      if (key === "shadow") {
-        const [options, children] = value as [
-          ShadowRootInit,
-          Array<HandcraftChild>,
-        ];
-
+    },
+    shadow(
+      options: ShadowRootInit,
+      children: Array<HandcraftChild>,
+    ): void {
+      if (target instanceof Element) {
         const shadow = target.shadowRoot ?? target.attachShadow(options);
 
         nodes(shadow, children, hydrating);
+      }
+    },
+  };
+
+  if (target instanceof Element) {
+    for (const [key, value] of state.attributes ?? []) {
+      if (key in methods) {
+        // @ts-ignore{2556}
+        methods[key as keyof typeof methods](...value);
+      } else {
+        // @ts-ignore{2556}
+        methods.attr(key, ...value);
       }
     }
   }
@@ -177,7 +224,7 @@ function nodes(
         currentChild?.nodeType !== Node.TEXT_NODE;
 
       if (create) {
-        const newChild = document.createTextNode(child);
+        const newChild = createText(child);
 
         appendOrReplace(target, newChild, currentChild);
 
@@ -193,10 +240,7 @@ function nodes(
         currentChild?.nodeName?.toLowerCase?.() !== node.name;
 
       if (create) {
-        const newChild = document.createElementNS(
-          `http://www.w3.org/${node.namespace}`,
-          node.name,
-        );
+        const newChild = createElementFromNodeState(node);
 
         appendOrReplace(target, newChild, currentChild);
 
@@ -234,10 +278,7 @@ function nodes(
                 currentChild?.nodeName?.toLowerCase?.() !== node.name;
 
               if (create) {
-                const newChild = document.createElementNS(
-                  `http://www.w3.org/${node.namespace}`,
-                  node.name,
-                );
+                const newChild = createElementFromNodeState(node);
 
                 beforeOrReplace(end, newChild, currentChild);
 
@@ -250,7 +291,7 @@ function nodes(
                 currentChild?.nodeType !== Node.TEXT_NODE;
 
               if (create) {
-                const newChild = document.createTextNode(child);
+                const newChild = createText(child);
 
                 beforeOrReplace(end, newChild, currentChild);
 
@@ -283,11 +324,8 @@ function getBounds(
   currentChild?: ChildNode | null,
   nextChild?: ChildNode | null,
 ) {
-  let start: ChildNode | null = null;
-  let end: ChildNode | null = null;
-
   if (currentChild && isCommentWithSpecificValue(currentChild, START_COMMENT)) {
-    start = currentChild;
+    const start = currentChild;
 
     let nesting = 1;
     let next = start.nextSibling;
@@ -301,9 +339,7 @@ function getBounds(
         nesting -= 1;
 
         if (nesting === 0) {
-          end = next;
-
-          break;
+          return [start, next];
         }
       }
 
@@ -311,16 +347,33 @@ function getBounds(
     }
   }
 
-  if (!start || !end) {
-    start = document.createComment(START_COMMENT);
-    end = document.createComment(END_COMMENT);
+  return [
+    appendOrReplaceComment(target, START_COMMENT, currentChild),
+    appendOrReplaceComment(target, END_COMMENT, nextChild),
+  ];
+}
 
-    appendOrReplace(target, start, currentChild);
+function createElementFromNodeState(node: HandcraftNodeState): Element {
+  return document.createElementNS(
+    `http://www.w3.org/${node.namespace}`,
+    node.name,
+  );
+}
 
-    appendOrReplace(target, end, nextChild);
-  }
+function createText(text: string): Text {
+  return document.createTextNode(text);
+}
 
-  return [start, end];
+function appendOrReplaceComment(
+  target: Element | DocumentFragment,
+  text: string,
+  currentChild?: ChildNode | null,
+): Comment {
+  const comment = document.createComment(text);
+
+  appendOrReplace(target, comment, currentChild);
+
+  return comment;
 }
 
 function appendOrReplace(
@@ -355,21 +408,6 @@ function trim(currentChild?: ChildNode | null, end?: ChildNode | null) {
 
     currentChild = nextChild;
   }
-}
-
-function attr<T>(element: Element, key: string, value: HandcraftValue<T>) {
-  mutate<Element>(
-    element,
-    (element) => {
-      const v = resolveValue(value);
-
-      if (v === true || v === false || v == null) {
-        element.toggleAttribute(key, !!v);
-      } else {
-        element.setAttribute(key, `${v}`);
-      }
-    },
-  );
 }
 
 function mutate<T extends object>(
