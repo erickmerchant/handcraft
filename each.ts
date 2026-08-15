@@ -94,23 +94,25 @@ export function each<T, N = Node>(list: Array<T>): EachAPI<T, N> {
             store,
             value: new Proxy(() => store.value, {
               get(_, p) {
-                return store.value != null && typeof store.value === "object"
-                  ? Reflect.get(store.value, p)
-                  : undefined;
+                if (store.value != null && typeof store.value === "object") {
+                  return Reflect.get(store.value, p);
+                }
+
+                return undefined;
               },
               set(_, p, newValue) {
-                if (store.value == null || typeof store.value !== "object") {
-                  return false;
+                if (store.value != null && typeof store.value === "object") {
+                  return Reflect.set(store.value, p, newValue);
                 }
 
-                return Reflect.set(store.value, p, newValue);
+                return false;
               },
               deleteProperty(_, p) {
-                if (store.value == null || typeof store.value !== "object") {
-                  return false;
+                if (store.value != null && typeof store.value === "object") {
+                  return Reflect.deleteProperty(store.value, p);
                 }
 
-                return Reflect.deleteProperty(store.value, p);
+                return false;
               },
             }),
             index() {

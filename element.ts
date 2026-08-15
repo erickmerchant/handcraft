@@ -24,12 +24,17 @@ export class HandcraftElement extends HTMLElement {
   ssr = false;
 
   attributeChangedCallback(k: string, o: string | null, n: string | null) {
+    if (o === n) return;
+
     if (o !== n && Object.hasOwn(this, k)) {
       let value;
+      const type = typeof this[k as keyof typeof this];
 
-      if (typeof this[k as keyof typeof this] === "boolean") {
+      if (n == null) {
+        value = null;
+      } else if (type === "boolean") {
         value = n === "";
-      } else if (typeof this[k as keyof typeof this] === "number" && n) {
+      } else if (type === "number") {
         value = +n;
       } else {
         value = n;
