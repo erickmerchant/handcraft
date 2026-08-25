@@ -19,16 +19,14 @@ export class HandcraftElement extends HTMLElement {
     return h.html[name];
   }
 
-  #state: Record<string, any> = watch<Record<string, any>>({});
   hydrating = true;
   ssr = false;
 
   attributeChangedCallback(k: string, o: string | null, n: string | null) {
-    if (o === n) return;
-
-    if (o !== n && Object.hasOwn(this, k)) {
+    if (o !== n) {
       let value;
-      const type = typeof this[k as keyof typeof this];
+
+      const type = k in this ? typeof this[k as keyof typeof this] : "string";
 
       if (n == null) {
         value = null;
@@ -40,8 +38,10 @@ export class HandcraftElement extends HTMLElement {
         value = n;
       }
 
-      // @ts-ignore{2322}
-      this[k as keyof typeof this] = value;
+      if (k in this) {
+        // @ts-ignore{2322}
+        this[k as keyof typeof this] = value;
+      }
     }
   }
 
@@ -51,28 +51,13 @@ export class HandcraftElement extends HTMLElement {
 
   setup() {
     const constructor = Object.getPrototypeOf(this).constructor;
-    const observedAttributes: Array<string> = constructor?.observedAttributes ??
-      [];
-    const observedProperties: Array<string> = constructor?.observedProperties ??
-      [];
 
-    for (const name of [...observedAttributes, ...observedProperties]) {
-      this.attributeChangedCallback(name, null, this.getAttribute(name));
-
-      this.#state[name] = this[name as keyof typeof this];
-
-      const descriptor = Object.getOwnPropertyDescriptor(this, name);
-
-      if (!descriptor || !descriptor.enumerable) continue;
-
-      Object.defineProperty(this, name, {
-        set: descriptor.set ?? ((val) => {
-          this.#state[name] = val;
-        }),
-        get: descriptor.get ?? (() => {
-          return this.#state[name];
-        }),
-      });
+    for (const key of constructor.observedAttributes ?? []) {
+      this.attributeChangedCallback(
+        key,
+        null,
+        this.getAttribute(key),
+      );
     }
 
     const node = h.html[this.nodeName.toLocaleLowerCase()]();
@@ -86,4 +71,48 @@ export class HandcraftElement extends HTMLElement {
 
   view(_host: HandcraftNode): void {
   }
+}
+
+const states = new WeakMap<HandcraftElement, Record<string | symbol, any>>();
+
+function store(target: HandcraftElement) {
+  let state = states.get(target);
+
+  if (!state) {
+    state = watch<Record<string | symbol, any>>({});
+
+    states.set(target, state);
+  }
+
+  return state;
+}
+
+export function reactive(): (
+  target: ClassAccessorDecoratorTarget<HandcraftElement, any>,
+  context: ClassAccessorDecoratorContext<HandcraftElement, any>,
+) => ClassAccessorDecoratorResult<HandcraftElement, any> {
+  return function (
+    _target,
+    context: ClassAccessorDecoratorContext<HandcraftElement, any>,
+  ): ClassAccessorDecoratorResult<any, any> {
+    return {
+      set(value: any) {
+        const state = store(this);
+
+        state[context.name] = value;
+      },
+      get() {
+        const state = store(this);
+
+        return state[context.name];
+      },
+      init(value: any) {
+        const state = store(this);
+
+        state[context.name] = value;
+
+        return value;
+      },
+    };
+  };
 }

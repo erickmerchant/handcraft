@@ -263,10 +263,8 @@ export function stringify(
     const constructor = Object.getPrototypeOf(instance).constructor;
     const observedAttributes: Array<string> = constructor?.observedAttributes ??
       [];
-    const observedProperties: Array<string> = constructor?.observedProperties ??
-      [];
 
-    for (const name of [...observedAttributes, ...observedProperties]) {
+    for (const name of observedAttributes) {
       if (attributes[name] != null) {
         instance.attributeChangedCallback(
           name,
