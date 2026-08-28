@@ -26,7 +26,7 @@ export class HandcraftElement extends HTMLElement {
   attributeChangedCallback(k: string, o: string | null, n: string | null) {
     if (o === n) return;
 
-    if (o !== n && Object.hasOwn(this, k)) {
+    if (Object.hasOwn(this, k)) {
       let value;
       const type = typeof this[k as keyof typeof this];
 
