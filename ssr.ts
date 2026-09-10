@@ -220,6 +220,7 @@ export function stringify(
       shadow(
         options: ShadowRootInit,
         children: Array<HandcraftChild>,
+        ...styles: Array<CSSStyleSheet | null>
       ): void {
         const node: HandcraftNodeState = {
           name: "template",
@@ -227,6 +228,25 @@ export function stringify(
           attributes: [],
           children,
         };
+
+        for (const style of styles.filter((s) => s != null)) {
+          const n: HandcraftNodeState = {
+            name: "style",
+            namespace: "1999/xhtml",
+            attributes: [],
+            children: [],
+          };
+
+          for (const rule of style.cssRules) {
+            n.children!.push(rule.cssText);
+          }
+
+          if (style.media) {
+            n.attributes.push(["media", [style.media.mediaText]]);
+          }
+
+          node.children?.unshift({ [NODE_STATE]: n } as HandcraftChild);
+        }
 
         for (const [key, value] of Object.entries(options)) {
           node.attributes.push(["attr", [`shadowroot${key}`, value]]);

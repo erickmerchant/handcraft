@@ -169,9 +169,12 @@ export function render(
     shadow(
       options: ShadowRootInit,
       children: Array<HandcraftChild>,
+      ...styles: Array<CSSStyleSheet | null>
     ): void {
       if (target instanceof Element) {
         const shadow = target.shadowRoot ?? target.attachShadow(options);
+
+        shadow.adoptedStyleSheets = [...styles.filter((s) => s != null)];
 
         nodes(shadow, children, hydrating);
       }

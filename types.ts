@@ -70,6 +70,7 @@ export type HandcraftNodeMethods = {
   shadow(
     options: ShadowRootInit,
     children: Array<HandcraftChild>,
+    ...styles: Array<CSSStyleSheet | null>
   ): void;
 };
 
