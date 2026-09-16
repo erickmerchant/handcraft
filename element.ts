@@ -53,10 +53,9 @@ export class HandcraftElement extends HTMLElement {
     const constructor = Object.getPrototypeOf(this).constructor;
     const observedAttributes: Array<string> = constructor?.observedAttributes ??
       [];
-    const observedProperties: Array<string> = constructor?.observedProperties ??
-      [];
+    [];
 
-    for (const name of [...observedAttributes, ...observedProperties]) {
+    for (const name of observedAttributes) {
       this.attributeChangedCallback(name, null, this.getAttribute(name));
 
       this.#state[name] = this[name as keyof typeof this];

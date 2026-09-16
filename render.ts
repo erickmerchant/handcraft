@@ -3,7 +3,6 @@ import type {
   HandcraftChild,
   HandcraftNode,
   HandcraftNodeMethods,
-  HandcraftNodeState,
   HandcraftValue,
 } from "./types.ts";
 import { isHandcraftNode, NODE_STATE, resolveValue } from "./types.ts";
@@ -219,37 +218,45 @@ function nodes(
 
     if (child == null) continue;
 
-    if (typeof child === "string") {
-      const create = !hydrating || !currentChild ||
-        currentChild?.nodeType !== Node.TEXT_NODE;
+    if (
+      !node(
+        child,
+        currentChild,
+        target as ChildNode,
+        appendOrReplace,
+        hydrating,
+      ) &&
+      child != null
+    ) {
+      if (
+        currentChild && isCommentWithSpecificValue(currentChild, START_COMMENT)
+      ) {
+        const start = currentChild;
 
-      if (create) {
-        const newChild = createText(child);
+        let nesting = 1;
+        let next = start.nextSibling;
 
-        appendOrReplace(target, newChild, currentChild);
+        while (next) {
+          if (isCommentWithSpecificValue(next, START_COMMENT)) {
+            nesting += 1;
+          }
 
-        currentChild = newChild;
-      } else if (currentChild && currentChild.nodeValue !== child) {
-        currentChild.nodeValue = child;
+          if (isCommentWithSpecificValue(next, END_COMMENT)) {
+            nesting -= 1;
+
+            if (nesting === 0) {
+              return [start, next];
+            }
+          }
+
+          next = next.nextSibling;
+        }
       }
-    } else if (isHandcraftNode(child)) {
-      const node = child[NODE_STATE];
 
-      const create = !hydrating || !currentChild ||
-        currentChild?.nodeType !== Node.ELEMENT_NODE ||
-        currentChild?.nodeName?.toLowerCase?.() !== node.name;
-
-      if (create) {
-        const newChild = createElementFromNodeState(node);
-
-        appendOrReplace(target, newChild, currentChild);
-
-        currentChild = newChild;
-      }
-
-      render(child, currentChild as Element, hydrating);
-    } else if (child != null) {
-      const [start, end] = getBounds(target, currentChild, nextChild);
+      const [start, end]: [Comment, Comment] = [
+        appendOrReplaceComment(target, START_COMMENT, currentChild),
+        appendOrReplaceComment(target, END_COMMENT, nextChild),
+      ];
 
       const weakBounds = [start, end].map((c) => new WeakRef(c));
 
@@ -268,38 +275,9 @@ function nodes(
           if (
             currentChild == null || nodeToCallback.get(currentChild) !== item
           ) {
-            const child = item();
+            const child = typeof item === "string" ? item : item();
 
-            if (isHandcraftNode(child)) {
-              const node = child[NODE_STATE];
-
-              const create = !hydrating || !currentChild ||
-                currentChild?.nodeType !== Node.ELEMENT_NODE ||
-                currentChild?.nodeName?.toLowerCase?.() !== node.name;
-
-              if (create) {
-                const newChild = createElementFromNodeState(node);
-
-                beforeOrReplace(end, newChild, currentChild);
-
-                currentChild = newChild;
-              }
-
-              render(child, currentChild as Element, hydrating);
-            } else if (typeof child === "string") {
-              const create = !hydrating || !currentChild ||
-                currentChild?.nodeType !== Node.TEXT_NODE;
-
-              if (create) {
-                const newChild = createText(child);
-
-                beforeOrReplace(end, newChild, currentChild);
-
-                currentChild = newChild;
-              } else if (currentChild && currentChild.nodeValue !== child) {
-                currentChild.nodeValue = child;
-              }
-            }
+            node(child, currentChild, end, beforeOrReplace, hydrating);
           }
 
           currentChild = currentChild?.nextSibling !== end
@@ -319,49 +297,58 @@ function nodes(
   }
 }
 
-function getBounds(
-  target: Element | DocumentFragment,
-  currentChild?: ChildNode | null,
-  nextChild?: ChildNode | null,
-) {
-  if (currentChild && isCommentWithSpecificValue(currentChild, START_COMMENT)) {
-    const start = currentChild;
+function node(
+  child: string | HandcraftChild | null,
+  currentChild: ChildNode | undefined | null,
+  target: ChildNode,
+  replacer: (
+    target: ChildNode,
+    newChild: ChildNode,
+    currentChild?: ChildNode | null,
+  ) => void,
+  hydrating: boolean,
+): boolean {
+  let result = false;
 
-    let nesting = 1;
-    let next = start.nextSibling;
+  if (isHandcraftNode(child)) {
+    const node = child[NODE_STATE];
 
-    while (next) {
-      if (isCommentWithSpecificValue(next, START_COMMENT)) {
-        nesting += 1;
-      }
+    const create = !hydrating || !currentChild ||
+      currentChild?.nodeType !== Node.ELEMENT_NODE ||
+      currentChild?.nodeName?.toLowerCase?.() !== node.name;
 
-      if (isCommentWithSpecificValue(next, END_COMMENT)) {
-        nesting -= 1;
+    if (create) {
+      const newChild = document.createElementNS(
+        `http://www.w3.org/${node.namespace}`,
+        node.name,
+      );
 
-        if (nesting === 0) {
-          return [start, next];
-        }
-      }
+      replacer(target, newChild, currentChild);
 
-      next = next.nextSibling;
+      currentChild = newChild;
     }
+
+    render(child, currentChild as Element, hydrating);
+
+    result = true;
+  } else if (typeof child === "string") {
+    const create = !hydrating || !currentChild ||
+      currentChild?.nodeType !== Node.TEXT_NODE;
+
+    if (create) {
+      const newChild = document.createTextNode(child);
+
+      replacer(target, newChild, currentChild);
+
+      currentChild = newChild;
+    } else if (currentChild && currentChild.nodeValue !== child) {
+      currentChild.nodeValue = child;
+    }
+
+    result = true;
   }
 
-  return [
-    appendOrReplaceComment(target, START_COMMENT, currentChild),
-    appendOrReplaceComment(target, END_COMMENT, nextChild),
-  ];
-}
-
-function createElementFromNodeState(node: HandcraftNodeState): Element {
-  return document.createElementNS(
-    `http://www.w3.org/${node.namespace}`,
-    node.name,
-  );
-}
-
-function createText(text: string): Text {
-  return document.createTextNode(text);
+  return result;
 }
 
 function appendOrReplaceComment(
@@ -371,32 +358,32 @@ function appendOrReplaceComment(
 ): Comment {
   const comment = document.createComment(text);
 
-  appendOrReplace(target, comment, currentChild);
+  appendOrReplace(target as ChildNode, comment, currentChild);
 
   return comment;
 }
 
 function appendOrReplace(
-  target: Element | DocumentFragment,
+  target: ChildNode,
   newChild: ChildNode,
   currentChild?: ChildNode | null,
 ) {
   if (currentChild) {
     currentChild.replaceWith(newChild);
   } else {
-    target.append(newChild);
+    target.appendChild(newChild);
   }
 }
 
 function beforeOrReplace(
-  end: ChildNode,
+  target: ChildNode,
   newChild: ChildNode,
   currentChild?: ChildNode | null,
 ) {
   if (currentChild) {
     currentChild.replaceWith(newChild);
   } else {
-    end.before(newChild);
+    target.before(newChild);
   }
 }
 
