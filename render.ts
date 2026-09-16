@@ -228,36 +228,7 @@ function nodes(
       ) &&
       child != null
     ) {
-      if (
-        currentChild && isCommentWithSpecificValue(currentChild, START_COMMENT)
-      ) {
-        const start = currentChild;
-
-        let nesting = 1;
-        let next = start.nextSibling;
-
-        while (next) {
-          if (isCommentWithSpecificValue(next, START_COMMENT)) {
-            nesting += 1;
-          }
-
-          if (isCommentWithSpecificValue(next, END_COMMENT)) {
-            nesting -= 1;
-
-            if (nesting === 0) {
-              return [start, next];
-            }
-          }
-
-          next = next.nextSibling;
-        }
-      }
-
-      const [start, end]: [Comment, Comment] = [
-        appendOrReplaceComment(target, START_COMMENT, currentChild),
-        appendOrReplaceComment(target, END_COMMENT, nextChild),
-      ];
-
+      const [start, end] = getBounds(target, currentChild, nextChild);
       const weakBounds = [start, end].map((c) => new WeakRef(c));
 
       nextChild = end.nextSibling;
@@ -349,6 +320,42 @@ function node(
   }
 
   return result;
+}
+
+function getBounds(
+  target: Element | DocumentFragment,
+  currentChild?: ChildNode | null,
+  nextChild?: ChildNode | null,
+): [Comment, Comment] {
+  if (
+    currentChild && isCommentWithSpecificValue(currentChild, START_COMMENT)
+  ) {
+    const start = currentChild;
+
+    let nesting = 1;
+    let next = start.nextSibling;
+
+    while (next) {
+      if (isCommentWithSpecificValue(next, START_COMMENT)) {
+        nesting += 1;
+      }
+
+      if (isCommentWithSpecificValue(next, END_COMMENT)) {
+        nesting -= 1;
+
+        if (nesting === 0) {
+          return [start, next] as [Comment, Comment];
+        }
+      }
+
+      next = next.nextSibling;
+    }
+  }
+
+  return [
+    appendOrReplaceComment(target, START_COMMENT, currentChild),
+    appendOrReplaceComment(target, END_COMMENT, nextChild),
+  ];
 }
 
 function appendOrReplaceComment(
