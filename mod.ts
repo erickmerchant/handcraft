@@ -1,6 +1,7 @@
 export type * from "./types.ts";
 export { isHandcraftNode, NODE_STATE, resolveValue } from "./types.ts";
 
+export * from "./dollar.ts";
 export * from "./each.ts";
 export * from "./element.ts";
 export * from "./h.ts";
