@@ -194,7 +194,6 @@ export function render(
   }
 }
 
-const nodeToCallback = new WeakMap<Node, () => void>();
 const START_COMMENT = " <> ";
 const END_COMMENT = " </> ";
 
@@ -244,7 +243,7 @@ function nodes(
 
         for (const item of typeof child === "function" ? [child] : child) {
           if (
-            currentChild == null || nodeToCallback.get(currentChild) !== item
+            currentChild == null || hydrating
           ) {
             const child = typeof item === "string" ? item : item();
 
