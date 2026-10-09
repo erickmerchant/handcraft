@@ -20,7 +20,6 @@ export class HandcraftElement extends HTMLElement {
   }
 
   #state: Record<string, any> = watch<Record<string, any>>({});
-  hydrating = true;
   ssr = false;
 
   attributeChangedCallback(k: string, o: string | null, n: string | null) {
@@ -77,9 +76,7 @@ export class HandcraftElement extends HTMLElement {
 
     this.view(node);
 
-    render(node, this, this.hydrating);
-
-    this.hydrating = false;
+    render(node, this);
   }
 
   view(_host: HandcraftNode): void {

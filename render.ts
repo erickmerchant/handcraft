@@ -10,7 +10,6 @@ import { isHandcraftNode, NODE_STATE, resolveValue } from "./types.ts";
 export function render(
   node: HandcraftNode,
   target: Element | DocumentFragment,
-  hydrating: boolean = false,
 ) {
   const state = node[NODE_STATE];
 
@@ -172,7 +171,7 @@ export function render(
       if (target instanceof Element) {
         const shadow = target.shadowRoot ?? target.attachShadow(options);
 
-        nodes(shadow, children, hydrating);
+        nodes(shadow, children);
       }
     },
   };
@@ -190,7 +189,7 @@ export function render(
   }
 
   if (state.children) {
-    nodes(target, state.children, hydrating);
+    nodes(target, state.children);
   }
 }
 
@@ -208,7 +207,6 @@ function isCommentWithSpecificValue(
 function nodes(
   target: Element | DocumentFragment,
   children: Array<HandcraftChild>,
-  hydrating: boolean,
 ) {
   let currentChild: ChildNode | null | undefined = target.firstChild;
 
@@ -223,7 +221,6 @@ function nodes(
         currentChild,
         target as ChildNode,
         appendOrReplace,
-        hydrating,
       ) &&
       child != null
     ) {
@@ -242,13 +239,9 @@ function nodes(
           : null;
 
         for (const item of typeof child === "function" ? [child] : child) {
-          if (
-            currentChild == null || hydrating
-          ) {
-            const child = typeof item === "string" ? item : item();
+          const child = typeof item === "string" ? item : item();
 
-            node(child, currentChild, end, beforeOrReplace, hydrating);
-          }
+          node(child, currentChild, end, beforeOrReplace);
 
           currentChild = currentChild?.nextSibling !== end
             ? (currentChild?.nextSibling ?? null)
@@ -262,9 +255,7 @@ function nodes(
     currentChild = nextChild;
   }
 
-  if (hydrating) {
-    trim(currentChild);
-  }
+  trim(currentChild);
 }
 
 function node(
@@ -276,14 +267,13 @@ function node(
     newChild: ChildNode,
     currentChild?: ChildNode | null,
   ) => void,
-  hydrating: boolean,
 ): boolean {
   let result = false;
 
   if (isHandcraftNode(child)) {
     const node = child[NODE_STATE];
 
-    const create = !hydrating || !currentChild ||
+    const create = !currentChild ||
       currentChild?.nodeType !== Node.ELEMENT_NODE ||
       currentChild?.nodeName?.toLowerCase?.() !== node.name;
 
@@ -298,11 +288,11 @@ function node(
       currentChild = newChild;
     }
 
-    render(child, currentChild as Element, hydrating);
+    render(child, currentChild as Element);
 
     result = true;
   } else if (typeof child === "string") {
-    const create = !hydrating || !currentChild ||
+    const create = !currentChild ||
       currentChild?.nodeType !== Node.TEXT_NODE;
 
     if (create) {

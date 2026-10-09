@@ -10,7 +10,7 @@ export function $(
 
   queueMicrotask(() => {
     for (const element of target.querySelectorAll(selector)) {
-      render(node, element, true);
+      render(node, element);
     }
   });
 
