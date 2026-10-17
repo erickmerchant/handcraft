@@ -4,7 +4,20 @@
   "license": "MIT",
   "exports": {
     ".": "./mod.ts",
-    "./ssr": "./ssr.ts"
+    "./attr": "./attr.ts",
+    "./dollar": "./dollar.ts",
+    "./each": "./each.ts",
+    "./effect": "./effect.ts",
+    "./element": "./element.ts",
+    "./h": "./h.ts",
+    "./on": "./on.ts",
+    "./prop": "./prop.ts",
+    "./reactivity": "./reactivity.ts",
+    "./render": "./render.ts",
+    "./shadow": "./shadow.ts",
+    "./ssr": "./ssr.ts",
+    "./text": "./text.ts",
+    "./when": "./when.ts"
   },
   "imports": {
     "@std/html": "jsr:@std/html@^1.0.7"

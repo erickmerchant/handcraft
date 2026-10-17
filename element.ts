@@ -1,6 +1,6 @@
-import type { HandcraftNode } from "./types.ts";
+import type { HandcraftNode, HandcraftTag } from "./support.ts";
 import { watch } from "./reactivity.ts";
-import { h } from "./h.ts";
+import { h, namespace_html } from "./h.ts";
 import { render } from "./render.ts";
 
 if (!globalThis.HTMLElement) {
@@ -11,12 +11,12 @@ if (!globalThis.HTMLElement) {
 export const definitions: Map<string, (new () => HandcraftElement)> = new Map();
 
 export class HandcraftElement extends HTMLElement {
-  static define(name: string): HandcraftNode {
+  static define(name: string): HandcraftTag {
     globalThis.customElements?.define?.(name, this);
 
     definitions.set(name, this);
 
-    return h.html[name];
+    return h(namespace_html)[name];
   }
 
   #state: Record<string, any> = watch<Record<string, any>>({});
@@ -72,13 +72,12 @@ export class HandcraftElement extends HTMLElement {
       });
     }
 
-    const node = h.html[this.nodeName.toLocaleLowerCase()]();
+    const tag = h(namespace_html)[this.nodeName.toLocaleLowerCase()];
+    const node = this.view(tag);
 
-    this.view(node);
-
-    render(node, this);
+    if (node) render(node, this);
   }
 
-  view(_host: HandcraftNode): void {
+  view(_host: HandcraftTag): HandcraftNode | void {
   }
 }

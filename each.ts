@@ -1,5 +1,6 @@
-import type { HandcraftControlCallback, HandcraftNode } from "./types.ts";
+import type { HandcraftControlCallback, HandcraftNode } from "./support.ts";
 import { watch } from "./reactivity.ts";
+import { controlCallback } from "./render.ts";
 
 type EachIndex = () => number;
 
@@ -21,20 +22,20 @@ type EachFilterCurrent<T> = {
 type EachMapper<T, N> = (
   current: (() => T) & T,
   index: EachIndex,
-) => HandcraftNode | string | null;
+) => HandcraftNode | null;
 
 type EachFilterer<T> = (
   current: EachFilterCurrent<T>,
   index: EachIndex,
 ) => boolean;
 
-export type EachAPI<T, N> = {
+export type EachAPI<T, N> = HandcraftNode & {
   map(cb: EachMapper<T, N>): EachAPI<T, N>;
   filter(cb: EachFilterer<T>): EachAPI<T, N>;
   fallback(cb: HandcraftControlCallback): EachAPI<T, N>;
 } & Iterable<HandcraftControlCallback>;
 
-export function each<T, N = Node>(list: Array<T>): EachAPI<T, N> {
+export default function <T, N = Node>(list: Array<T>): EachAPI<T, N> {
   let mapper: EachMapper<T, N>;
   let filterer: EachFilterer<T> = () => true;
   let fallback: HandcraftControlCallback = () => null;
@@ -44,26 +45,8 @@ export function each<T, N = Node>(list: Array<T>): EachAPI<T, N> {
     return mapper(current.value, current.index);
   };
 
-  return {
-    map(cb: EachMapper<T, N>) {
-      mapper = cb;
-
-      return this;
-    },
-
-    filter(cb: EachFilterer<T>) {
-      filterer = cb;
-
-      return this;
-    },
-
-    fallback(cb: HandcraftControlCallback) {
-      fallback = cb;
-
-      return this;
-    },
-
-    *[Symbol.iterator]() {
+  const iterable = {
+    [Symbol.iterator]: function* () {
       let i = 0;
 
       for (const [index, value] of list.entries()) {
@@ -141,4 +124,32 @@ export function each<T, N = Node>(list: Array<T>): EachAPI<T, N> {
       entries.splice(i, Infinity);
     },
   };
+
+  const node = controlCallback(iterable) as EachAPI<T, N>;
+
+  node.state = {
+    type: "fragment",
+  };
+
+  node.map = (cb: EachMapper<T, N>) => {
+    mapper = cb;
+
+    return node;
+  };
+
+  node.filter = (cb: EachFilterer<T>) => {
+    filterer = cb;
+
+    return node;
+  };
+
+  node.fallback = (cb: HandcraftControlCallback) => {
+    fallback = cb;
+
+    return node;
+  };
+
+  node[Symbol.iterator] = iterable[Symbol.iterator];
+
+  return node;
 }

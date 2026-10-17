@@ -1,18 +1,22 @@
-import type { HandcraftNode } from "./types.ts";
+import type { HandcraftNode } from "./support.ts";
 import { render } from "./render.ts";
-import { h } from "./h.ts";
+import { h, namespace_html } from "./h.ts";
 
 export function $(
   selector: string,
   target: Element | Document | DocumentFragment = document,
-): HandcraftNode {
-  const node = h.html.div();
+): (
+  ...nodes: Array<HandcraftNode>
+) => void {
+  return (
+    ...nodes: Array<HandcraftNode>
+  ) => {
+    const node = h(namespace_html).div(...nodes);
 
-  queueMicrotask(() => {
-    for (const element of target.querySelectorAll(selector)) {
-      render(node, element);
-    }
-  });
-
-  return node;
+    queueMicrotask(() => {
+      for (const element of target.querySelectorAll(selector)) {
+        render(node, element);
+      }
+    });
+  };
 }

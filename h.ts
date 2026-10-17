@@ -1,84 +1,53 @@
-import type {
-  HandcraftChild,
-  HandcraftNode,
-  HandcraftNodeFactoryNS,
-  HandcraftNodeState,
-} from "./types.ts";
-import { NODE_STATE } from "./types.ts";
+import type { HandcraftNode, HandcraftTagFactory } from "./support.ts";
+import { render } from "./render.ts";
 
-export function factory(
-  name: string,
-  namespace: string,
-): HandcraftNode {
-  const vnode: HandcraftNodeState = {
-    namespace,
-    name,
-    attributes: [],
-  };
-
-  const proxy = new Proxy(() => {}, {
-    apply(_, __, args: Array<HandcraftChild>) {
-      if (args.length) {
-        vnode.children ??= [];
-
-        vnode.children.push(...args);
-      }
-
-      return proxy;
-    },
-    has(_target, key) {
-      return key === NODE_STATE;
-    },
-    get(_, key: string | symbol) {
-      if (key === "then") {
-        return undefined;
-      }
-
-      if (key === NODE_STATE) {
-        return vnode;
-      }
-
-      return (...args: Array<any>) => {
-        if (typeof key === "string") {
-          vnode.attributes.push([key, args]);
-        }
-
-        return proxy;
-      };
-    },
-  }) as HandcraftNode;
-
-  return proxy;
-}
-
-function factoryNS(namespace: string): HandcraftNodeFactoryNS {
+export function h(namespace: string): HandcraftTagFactory {
   return new Proxy(
     {},
     {
       get(_, name: string) {
-        return new Proxy(() => {}, {
-          apply(_, __, args) {
-            const el = factory(name, namespace);
+        return (
+          ...nodes: Array<HandcraftNode>
+        ) => {
+          const node: HandcraftNode = (
+            target: Element,
+            current?: ChildNode | null,
+          ): ChildNode | null => {
+            const create = !current ||
+              current?.nodeType !== Node.ELEMENT_NODE ||
+              current?.nodeName?.toLowerCase?.() !== node.name;
 
-            return el(...args);
-          },
-          get(_, key: string) {
-            const el = factory(name, namespace);
+            if (create) {
+              const newChild = document.createElementNS(namespace, name);
 
-            return el[key as keyof HandcraftNode];
-          },
-        }) as HandcraftNode;
+              if (current) {
+                current.replaceWith(newChild);
+              } else {
+                target.appendChild(newChild);
+              }
+
+              current = newChild;
+            }
+
+            render(node, current as Element);
+
+            return current ?? null;
+          };
+
+          node.state = {
+            type: "node",
+            name,
+            namespace,
+            nodes,
+          };
+
+          return node;
+        };
       },
     },
-  ) as HandcraftNodeFactoryNS;
+  ) as HandcraftTagFactory;
 }
 
-export const h: {
-  html: HandcraftNodeFactoryNS;
-  svg: HandcraftNodeFactoryNS;
-  math: HandcraftNodeFactoryNS;
-} = {
-  html: factoryNS("1999/xhtml"),
-  svg: factoryNS("2000/svg"),
-  math: factoryNS("1998/Math/MathML"),
-};
+export const namespace_html = "http://www.w3.org/1999/xhtml";
+export const namespace_svg = "http://www.w3.org/2000/svg";
+export const namespace_math = "http://www.w3.org/1998/Math/MathML";

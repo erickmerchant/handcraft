@@ -25,7 +25,7 @@ function modifyProperty<T extends object>(o: T, key: string | symbol) {
     for (const cb of callbacks) {
       if (cb === current) continue;
 
-      effect(cb);
+      run(cb);
     }
 
     callbacks.clear();
@@ -49,7 +49,10 @@ function deleteProperty<T extends object>(o: T, key: string | symbol) {
   return Reflect.deleteProperty(o, key);
 }
 
-export function effect(callback: (...args: Array<any>) => void) {
+/**
+ * ...
+ */
+export function run(callback: (...args: Array<any>) => void): void {
   if (!queue.includes(callback)) {
     queue.push(callback);
 
@@ -74,10 +77,9 @@ export function effect(callback: (...args: Array<any>) => void) {
   }
 }
 
-export function inEffect(): boolean {
-  return current != null;
-}
-
+/**
+ * ...
+ */
 export function watch<T extends object>(object: T): T {
   reads.set(object, new Map());
 

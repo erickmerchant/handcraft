@@ -1,29 +1,21 @@
-import type { HandcraftControlCallback } from "./types.ts";
+import type { HandcraftControlCallback, HandcraftNode } from "./support.ts";
+import { controlCallback } from "./render.ts";
 
-export type WhenAPI = {
-  show(cb: HandcraftControlCallback): WhenAPI;
-  fallback(cb: HandcraftControlCallback): WhenAPI;
-} & Iterable<HandcraftControlCallback>;
+export type WhenAPI =
+  & HandcraftNode
+  & ({
+    show(cb: HandcraftControlCallback): WhenAPI;
+    fallback(cb: HandcraftControlCallback): WhenAPI;
+  })
+  & Iterable<HandcraftControlCallback>;
 
-export function when(cb: (prev: boolean | void) => boolean): WhenAPI {
+export default function (cb: (prev: boolean | void) => boolean): WhenAPI {
   let show: HandcraftControlCallback;
   let fallback: HandcraftControlCallback = () => null;
   let previous: boolean | void;
 
-  return {
-    show(cb: HandcraftControlCallback) {
-      show = cb;
-
-      return this;
-    },
-
-    fallback(cb: HandcraftControlCallback) {
-      fallback = cb;
-
-      return this;
-    },
-
-    *[Symbol.iterator]() {
+  const iterable = {
+    [Symbol.iterator]: function* () {
       const current = cb(previous);
 
       yield current ? show : fallback;
@@ -31,4 +23,26 @@ export function when(cb: (prev: boolean | void) => boolean): WhenAPI {
       previous = current;
     },
   };
+
+  const node = controlCallback(iterable) as WhenAPI;
+
+  node.state = {
+    type: "fragment",
+  };
+
+  node.show = (cb: HandcraftControlCallback) => {
+    show = cb;
+
+    return node;
+  };
+
+  node.fallback = (cb: HandcraftControlCallback) => {
+    fallback = cb;
+
+    return node;
+  };
+
+  node[Symbol.iterator] = iterable[Symbol.iterator];
+
+  return node;
 }
