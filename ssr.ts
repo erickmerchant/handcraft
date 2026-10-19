@@ -3,10 +3,10 @@ import type {
   HandcraftControlCallback,
   HandcraftNode,
   HandcraftState,
-} from "./support.ts";
+} from "./mod.ts";
 import { definitions } from "./element.ts";
 import { h, namespace_html } from "./h.ts";
-import { resolveValue } from "./support.ts";
+import { resolveValue } from "./mod.ts";
 
 export function view(
   callback: (
@@ -70,9 +70,11 @@ export function stringify(
   const attributes: Record<string, string> = {};
 
   const loopAttributes = (
-    nodes: Array<HandcraftNode>,
+    nodes: Array<HandcraftNode | null>,
   ) => {
     for (const node of nodes) {
+      if (node == null) continue;
+
       if (node.state.type === "attr" && node.state.name) {
         const v = resolveValue(node.state.value);
 
@@ -127,8 +129,8 @@ export function stringify(
         let nodes;
 
         if (state.nodes?.length) {
-          const instanceNodes = instanceState.nodes?.filter?.(({ state }) =>
-            state.type === "shadow" || state.type === "attr"
+          const instanceNodes = instanceState.nodes?.filter?.((node) =>
+            node?.state?.type === "shadow" || node?.state?.type === "attr"
           ) ?? [];
 
           nodes = instanceNodes.concat(state.nodes ?? []);
@@ -162,7 +164,7 @@ export function stringify(
   return result;
 }
 
-function nodes(nodes: Array<HandcraftNode>, escape: boolean): string {
+function nodes(nodes: Array<HandcraftNode | null>, escape: boolean): string {
   let result = "";
 
   try {

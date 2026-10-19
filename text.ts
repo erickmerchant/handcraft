@@ -1,6 +1,6 @@
-import type { HandcraftNode, HandcraftValue } from "./support.ts";
-import { resolveValue } from "./support.ts";
-import { mutate } from "./render.ts";
+import type { HandcraftNode, HandcraftValue } from "./mod.ts";
+import { resolveValue } from "./mod.ts";
+import { insertOrReplace, mutate } from "./render.ts";
 
 export default function (
   text: HandcraftValue<string>,
@@ -17,11 +17,7 @@ export default function (
       if (create) {
         const newChild = document.createTextNode(resolved);
 
-        if (current) {
-          current.replaceWith(newChild);
-        } else {
-          target.appendChild(newChild);
-        }
+        insertOrReplace(target, newChild, current);
 
         current = newChild;
       } else if (current && current.nodeValue !== resolved) {
@@ -29,7 +25,7 @@ export default function (
       }
     });
 
-    return current ?? null;
+    return current?.nextSibling ?? null;
   };
 
   node.state = {

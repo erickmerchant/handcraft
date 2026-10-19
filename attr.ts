@@ -1,5 +1,5 @@
-import type { HandcraftNode, HandcraftValue } from "./support.ts";
-import { resolveValue } from "./support.ts";
+import type { HandcraftNode, HandcraftValue } from "./mod.ts";
+import { resolveValue } from "./mod.ts";
 import { mutate } from "./render.ts";
 
 export default new Proxy(

@@ -1,4 +1,4 @@
-import type { HandcraftNode, HandcraftTag } from "./support.ts";
+import type { HandcraftNode, HandcraftTag } from "./mod.ts";
 import { watch } from "./reactivity.ts";
 import { h, namespace_html } from "./h.ts";
 import { render } from "./render.ts";
@@ -19,8 +19,25 @@ export class HandcraftElement extends HTMLElement {
     return h(namespace_html)[name];
   }
 
-  #state: Record<string, any> = watch<Record<string, any>>({});
   ssr = false;
+
+  connectedCallback() {
+    queueMicrotask(() => this.setup());
+  }
+
+  setup() {
+    const tag = h(namespace_html)[this.nodeName.toLocaleLowerCase()];
+    const node = this.view(tag);
+
+    if (node) render(node, this);
+  }
+
+  view(_host: HandcraftTag): HandcraftNode | void {
+  }
+}
+
+export class HandcraftElementWithAttributes extends HandcraftElement {
+  #state: Record<string, any> = watch<Record<string, any>>({});
 
   attributeChangedCallback(k: string, o: string | null, n: string | null) {
     if (o === n) return;
@@ -44,11 +61,7 @@ export class HandcraftElement extends HTMLElement {
     }
   }
 
-  connectedCallback() {
-    queueMicrotask(() => this.setup());
-  }
-
-  setup() {
+  override setup() {
     const constructor = Object.getPrototypeOf(this).constructor;
     const observedAttributes: Array<string> = constructor?.observedAttributes ??
       [];
@@ -72,12 +85,6 @@ export class HandcraftElement extends HTMLElement {
       });
     }
 
-    const tag = h(namespace_html)[this.nodeName.toLocaleLowerCase()];
-    const node = this.view(tag);
-
-    if (node) render(node, this);
-  }
-
-  view(_host: HandcraftTag): HandcraftNode | void {
+    super.setup();
   }
 }

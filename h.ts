@@ -1,5 +1,5 @@
-import type { HandcraftNode, HandcraftTagFactory } from "./support.ts";
-import { render } from "./render.ts";
+import type { HandcraftNode, HandcraftTagFactory } from "./mod.ts";
+import { insertOrReplace, render } from "./render.ts";
 
 export function h(namespace: string): HandcraftTagFactory {
   return new Proxy(
@@ -7,31 +7,29 @@ export function h(namespace: string): HandcraftTagFactory {
     {
       get(_, name: string) {
         return (
-          ...nodes: Array<HandcraftNode>
+          ...nodes: Array<HandcraftNode | null>
         ) => {
           const node: HandcraftNode = (
             target: Element,
             current?: ChildNode | null,
+            end?: ChildNode | null,
           ): ChildNode | null => {
             const create = !current ||
               current?.nodeType !== Node.ELEMENT_NODE ||
-              current?.nodeName?.toLowerCase?.() !== node.name;
+              current?.nodeName?.toLowerCase?.() !== node.state.name ||
+              (current as Element)?.namespaceURI !== node.state.namespace;
 
             if (create) {
               const newChild = document.createElementNS(namespace, name);
 
-              if (current) {
-                current.replaceWith(newChild);
-              } else {
-                target.appendChild(newChild);
-              }
+              insertOrReplace(target, newChild, current, end);
 
               current = newChild;
             }
 
             render(node, current as Element);
 
-            return current ?? null;
+            return current?.nextSibling ?? null;
           };
 
           node.state = {

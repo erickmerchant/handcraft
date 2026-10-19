@@ -1,4 +1,4 @@
-import type { HandcraftNode } from "./support.ts";
+import type { HandcraftNode } from "./mod.ts";
 
 export default new Proxy(
   {},

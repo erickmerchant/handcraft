@@ -1,4 +1,4 @@
-import type { HandcraftControlCallback, HandcraftNode } from "./support.ts";
+import type { HandcraftControlCallback, HandcraftNode } from "./mod.ts";
 import { controlCallback } from "./render.ts";
 
 export type WhenAPI =

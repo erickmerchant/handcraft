@@ -1,4 +1,4 @@
-import type { HandcraftControlCallback, HandcraftNode } from "./support.ts";
+import type { HandcraftControlCallback, HandcraftNode } from "./mod.ts";
 import { run } from "./reactivity.ts";
 
 export function render(
@@ -10,13 +10,13 @@ export function render(
   if (target instanceof Element) {
     let current = target.firstChild;
 
-    for (const v of state?.nodes ?? []) {
-      current = v(
+    for (const node of state?.nodes ?? []) {
+      if (!node) continue;
+
+      current = node(
         target,
         current,
-      ) ?? current;
-
-      current = current?.nextSibling ?? null;
+      );
     }
   }
 }
@@ -54,21 +54,21 @@ export function controlCallback(
     mutate(target, () => {
       const [start, end] = weakBounds.map((b) => b.deref());
 
+      if (!start || !end) return;
+
+      let current: ChildNode | null = (start && start?.nextSibling !== end)
+        ? start?.nextSibling
+        : null;
+
       for (const control of iterable) {
-        if (!start || !end) return;
-
-        let current: ChildNode | null = start && start?.nextSibling !== end
-          ? start?.nextSibling
-          : null;
-
         const node = control();
 
         if (!node) continue;
 
-        node(target, current);
+        node(target, current, end);
 
-        current = current?.nextSibling !== end
-          ? (current?.nextSibling ?? null)
+        current = (current && current?.nextSibling !== end)
+          ? current?.nextSibling
           : null;
       }
 
@@ -82,7 +82,7 @@ export function controlCallback(
 const START_COMMENT = " <> ";
 const END_COMMENT = " </> ";
 
-export function isCommentWithSpecificValue(
+function isCommentWithSpecificValue(
   currentChild: ChildNode,
   value: string,
 ): boolean {
@@ -90,19 +90,19 @@ export function isCommentWithSpecificValue(
     currentChild.nodeValue === value;
 }
 
-export function appendOrReplaceComment(
+function insertOrReplaceComment(
   target: Element | DocumentFragment,
   text: string,
   currentChild?: ChildNode | null,
 ): Comment {
   const comment = document.createComment(text);
 
-  appendOrReplace(target as ChildNode, comment, currentChild);
+  insertOrReplace(target as ChildNode, comment, currentChild);
 
   return comment;
 }
 
-export function getBounds(
+function getBounds(
   target: Element | DocumentFragment,
   currentChild?: ChildNode | null,
   nextChild?: ChildNode | null,
@@ -133,12 +133,12 @@ export function getBounds(
   }
 
   return [
-    appendOrReplaceComment(target, START_COMMENT, currentChild),
-    appendOrReplaceComment(target, END_COMMENT, nextChild),
+    insertOrReplaceComment(target, START_COMMENT, currentChild),
+    insertOrReplaceComment(target, END_COMMENT, nextChild),
   ];
 }
 
-export function trim(currentChild?: ChildNode | null, end?: ChildNode | null) {
+function trim(currentChild?: ChildNode | null, end?: ChildNode | null) {
   while (currentChild && currentChild !== end) {
     const nextChild = currentChild?.nextSibling;
 
@@ -148,13 +148,16 @@ export function trim(currentChild?: ChildNode | null, end?: ChildNode | null) {
   }
 }
 
-export function appendOrReplace(
+export function insertOrReplace(
   target: ChildNode,
   newChild: ChildNode,
   currentChild?: ChildNode | null,
+  end?: ChildNode | null,
 ) {
   if (currentChild) {
     currentChild.replaceWith(newChild);
+  } else if (end) {
+    end.before(newChild);
   } else {
     target.appendChild(newChild);
   }

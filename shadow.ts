@@ -1,8 +1,8 @@
-import type { HandcraftNode } from "./support.ts";
+import type { HandcraftNode } from "./mod.ts";
 
 export default function (
   options: ShadowRootInit,
-  ...nodes: Array<HandcraftNode>
+  ...nodes: Array<HandcraftNode | null>
 ): HandcraftNode {
   const node: HandcraftNode = (
     target: Element,
@@ -12,9 +12,9 @@ export default function (
     let c = shadow.firstChild;
 
     for (const node of nodes) {
-      c = node(shadow as unknown as Element, c);
+      if (!node) continue;
 
-      c = c?.nextSibling ?? null;
+      c = node(shadow as unknown as Element, c);
     }
 
     return current ?? null;
