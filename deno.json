@@ -17,6 +17,7 @@
     "./shadow": "./shadow.ts",
     "./ssr": "./ssr.ts",
     "./text": "./text.ts",
+    "./tokens": "./tokens.ts",
     "./when": "./when.ts"
   },
   "imports": {

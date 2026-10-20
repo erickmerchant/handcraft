@@ -194,7 +194,7 @@ function nodes(nodes: Array<HandcraftNode | null>, escape: boolean): string {
 
         result += stringify({ state: state }, escape);
       } else if (node.state.type === "text") {
-        result += node.state.text ?? "";
+        result += resolveValue(node.state.text) ?? "";
       } else if (node.state.type === "node") {
         result += stringify(node, escape);
       } else if (
