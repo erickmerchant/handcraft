@@ -49,3 +49,5 @@ export function h(namespace: string): HandcraftTagFactory {
 export const namespace_html = "http://www.w3.org/1999/xhtml";
 export const namespace_svg = "http://www.w3.org/2000/svg";
 export const namespace_math = "http://www.w3.org/1998/Math/MathML";
+
+export const html: HandcraftTagFactory = h(namespace_html);

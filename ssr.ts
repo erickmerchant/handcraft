@@ -4,8 +4,8 @@ import type {
   HandcraftNode,
   HandcraftState,
 } from "./mod.ts";
-import { definitions } from "./element.ts";
-import { h, namespace_html } from "./h.ts";
+import { definitions, HandcraftElementWithAttributes } from "./element.ts";
+import { html } from "./h.ts";
 import { resolveValue } from "./mod.ts";
 
 export function view(
@@ -109,7 +109,10 @@ export function stringify(
           [];
 
       for (const name of observedAttributes) {
-        if (attributes[name] != null) {
+        if (
+          attributes[name] != null &&
+          instance instanceof HandcraftElementWithAttributes
+        ) {
           instance.attributeChangedCallback(
             name,
             null,
@@ -118,7 +121,7 @@ export function stringify(
         }
       }
 
-      const tag = h(namespace_html)[state.name];
+      const tag = html[state.name];
       const instanceNode = instance.view(tag);
 
       if (instanceNode) {

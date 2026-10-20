@@ -1,6 +1,6 @@
 import type { HandcraftNode, HandcraftTag } from "./mod.ts";
 import { watch } from "./reactivity.ts";
-import { h, namespace_html } from "./h.ts";
+import { html } from "./h.ts";
 import { render } from "./render.ts";
 
 if (!globalThis.HTMLElement) {
@@ -16,7 +16,7 @@ export class HandcraftElement extends HTMLElement {
 
     definitions.set(name, this);
 
-    return h(namespace_html)[name];
+    return html[name];
   }
 
   ssr = false;
@@ -26,7 +26,7 @@ export class HandcraftElement extends HTMLElement {
   }
 
   setup() {
-    const tag = h(namespace_html)[this.nodeName.toLocaleLowerCase()];
+    const tag = html[this.nodeName.toLocaleLowerCase()];
     const node = this.view(tag);
 
     if (node) render(node, this);

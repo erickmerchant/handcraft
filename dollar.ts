@@ -1,6 +1,6 @@
 import type { HandcraftNode } from "./mod.ts";
 import { render } from "./render.ts";
-import { h, namespace_html } from "./h.ts";
+import { html } from "./h.ts";
 
 export function $(
   selector: string,
@@ -11,7 +11,7 @@ export function $(
   return (
     ...nodes: Array<HandcraftNode | null>
   ) => {
-    const node = h(namespace_html).div(...nodes);
+    const node = html.div(...nodes);
 
     queueMicrotask(() => {
       for (const element of target.querySelectorAll(selector)) {
