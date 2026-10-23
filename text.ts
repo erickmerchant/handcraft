@@ -1,11 +1,12 @@
 import type { HandcraftNode, HandcraftValue } from "./mod.ts";
+import { HandcraftTextState } from "./mod.ts";
 import { resolveValue } from "./mod.ts";
 import { insertOrReplace, mutate } from "./render.ts";
 
 export default function (
   text: HandcraftValue<string>,
-): HandcraftNode {
-  const node: HandcraftNode = (
+): HandcraftNode<HandcraftTextState> {
+  const node: HandcraftNode<HandcraftTextState> = (
     target: Element,
     current?: ChildNode | null,
   ): ChildNode | null => {
@@ -28,10 +29,7 @@ export default function (
     return current?.nextSibling ?? null;
   };
 
-  node.state = {
-    type: "text",
-    text,
-  };
+  node.state = new HandcraftTextState(text);
 
   return node;
 }

@@ -1,10 +1,20 @@
-import type { HandcraftNode } from "./mod.ts";
+import type {
+  HandcraftFragmentState,
+  HandcraftNode,
+  HandcraftNodeState,
+  HandcraftTextState,
+} from "./mod.ts";
+import { HandcraftShadowState } from "./mod.ts";
 
 export default function (
   options: ShadowRootInit,
-  ...nodes: Array<HandcraftNode | null>
-): HandcraftNode {
-  const node: HandcraftNode = (
+  ...nodes: Array<
+    HandcraftNode<
+      HandcraftNodeState | HandcraftFragmentState | HandcraftTextState
+    > | null
+  >
+): HandcraftNode<HandcraftShadowState> {
+  const node: HandcraftNode<HandcraftShadowState> = (
     target: Element,
     current?: ChildNode | null,
   ): ChildNode | null => {
@@ -20,11 +30,7 @@ export default function (
     return current ?? null;
   };
 
-  node.state = {
-    type: "shadow",
-    options,
-    nodes,
-  };
+  node.state = new HandcraftShadowState(options, nodes);
 
   return node;
 }

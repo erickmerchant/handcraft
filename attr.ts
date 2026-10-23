@@ -1,5 +1,5 @@
 import type { HandcraftNode, HandcraftValue } from "./mod.ts";
-import { resolveValue } from "./mod.ts";
+import { HandcraftAttrState, resolveValue } from "./mod.ts";
 import { mutate } from "./render.ts";
 
 export default new Proxy(
@@ -7,7 +7,7 @@ export default new Proxy(
   {
     get(_, name: string) {
       return (value: HandcraftValue<string | number | boolean | null>) => {
-        const node: HandcraftNode = (
+        const node: HandcraftNode<HandcraftAttrState> = (
           target: Element,
           current?: ChildNode | null,
         ): ChildNode | null => {
@@ -27,11 +27,7 @@ export default new Proxy(
           return current ?? null;
         };
 
-        node.state = {
-          type: "attr",
-          name,
-          value,
-        };
+        node.state = new HandcraftAttrState(name, value);
 
         return node;
       };
@@ -41,5 +37,5 @@ export default new Proxy(
   string,
   (
     value: HandcraftValue<string | number | boolean | null>,
-  ) => HandcraftNode
+  ) => HandcraftNode<HandcraftAttrState>
 >;

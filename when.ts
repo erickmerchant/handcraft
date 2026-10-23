@@ -1,8 +1,9 @@
 import type { HandcraftControlCallback, HandcraftNode } from "./mod.ts";
+import { HandcraftFragmentState } from "./mod.ts";
 import { controlCallback } from "./render.ts";
 
 export type WhenAPI =
-  & HandcraftNode
+  & HandcraftNode<HandcraftFragmentState>
   & ({
     show(cb: HandcraftControlCallback): WhenAPI;
     fallback(cb: HandcraftControlCallback): WhenAPI;
@@ -14,21 +15,17 @@ export default function (cb: (prev: boolean | void) => boolean): WhenAPI {
   let fallback: HandcraftControlCallback = () => null;
   let previous: boolean | void;
 
-  const iterable = {
-    [Symbol.iterator]: function* () {
-      const current = cb(previous);
+  const state = new HandcraftFragmentState(function* () {
+    const current = cb(previous);
 
-      yield current ? show : fallback;
+    yield current ? show : fallback;
 
-      previous = current;
-    },
-  };
+    previous = current;
+  });
 
-  const node = controlCallback(iterable) as WhenAPI;
+  const node = controlCallback(state) as WhenAPI;
 
-  node.state = {
-    type: "fragment",
-  };
+  node.state = state;
 
   node.show = (cb: HandcraftControlCallback) => {
     show = cb;
@@ -41,8 +38,6 @@ export default function (cb: (prev: boolean | void) => boolean): WhenAPI {
 
     return node;
   };
-
-  node[Symbol.iterator] = iterable[Symbol.iterator];
 
   return node;
 }

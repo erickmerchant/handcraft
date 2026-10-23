@@ -1,4 +1,4 @@
-import type { HandcraftNode } from "./mod.ts";
+import type { HandcraftNode, HandcraftState } from "./mod.ts";
 import { render } from "./render.ts";
 import { html } from "./h.ts";
 
@@ -6,10 +6,10 @@ export function $(
   selector: string,
   target: Element | Document | DocumentFragment = document,
 ): (
-  ...nodes: Array<HandcraftNode | null>
+  ...nodes: Array<HandcraftNode<HandcraftState> | null>
 ) => void {
   return (
-    ...nodes: Array<HandcraftNode | null>
+    ...nodes: Array<HandcraftNode<HandcraftState> | null>
   ) => {
     const node = html.div(...nodes);
 

@@ -1,4 +1,5 @@
 import type { HandcraftNode } from "./mod.ts";
+import { HandcraftNoState } from "./mod.ts";
 
 export default new Proxy(
   {},
@@ -8,7 +9,7 @@ export default new Proxy(
         handler: EventListener,
         options?: AddEventListenerOptions | boolean,
       ) => {
-        const node: HandcraftNode = (
+        const node: HandcraftNode<HandcraftNoState> = (
           target: Element,
           current?: ChildNode | null,
         ): ChildNode | null => {
@@ -19,9 +20,7 @@ export default new Proxy(
           return current ?? null;
         };
 
-        node.state = {
-          type: "on",
-        };
+        node.state = new HandcraftNoState();
 
         return node;
       };
@@ -32,5 +31,5 @@ export default new Proxy(
   (
     handler: EventListener,
     options?: AddEventListenerOptions | boolean,
-  ) => HandcraftNode
+  ) => HandcraftNode<HandcraftNoState>
 >;

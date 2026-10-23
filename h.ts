@@ -1,4 +1,9 @@
-import type { HandcraftNode, HandcraftTagFactory } from "./mod.ts";
+import type {
+  HandcraftNode,
+  HandcraftState,
+  HandcraftTagFactory,
+} from "./mod.ts";
+import { HandcraftNodeState } from "./mod.ts";
 import { insertOrReplace, render } from "./render.ts";
 
 export function h(namespace: string): HandcraftTagFactory {
@@ -7,9 +12,9 @@ export function h(namespace: string): HandcraftTagFactory {
     {
       get(_, name: string) {
         return (
-          ...nodes: Array<HandcraftNode | null>
+          ...nodes: Array<HandcraftNode<HandcraftState> | null>
         ) => {
-          const node: HandcraftNode = (
+          const node: HandcraftNode<HandcraftNodeState> = (
             target: Element,
             current?: ChildNode | null,
             end?: ChildNode | null,
@@ -32,12 +37,7 @@ export function h(namespace: string): HandcraftTagFactory {
             return current?.nextSibling ?? null;
           };
 
-          node.state = {
-            type: "node",
-            name,
-            namespace,
-            nodes,
-          };
+          node.state = new HandcraftNodeState(name, namespace, nodes);
 
           return node;
         };

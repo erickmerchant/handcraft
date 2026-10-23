@@ -1,13 +1,18 @@
-import type { HandcraftControlCallback, HandcraftNode } from "./mod.ts";
+import type {
+  HandcraftControlCallback,
+  HandcraftNode,
+  HandcraftState,
+} from "./mod.ts";
+import { HandcraftNodeState } from "./mod.ts";
 import { run } from "./reactivity.ts";
 
 export function render(
-  node: HandcraftNode,
+  node: HandcraftNode<HandcraftState>,
   target: Element | DocumentFragment,
 ) {
   const state = node.state;
 
-  if (target instanceof Element) {
+  if (target instanceof Element && state instanceof HandcraftNodeState) {
     let current = target.firstChild;
 
     for (const node of state?.nodes ?? []) {

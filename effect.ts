@@ -1,10 +1,11 @@
 import type { HandcraftNode } from "./mod.ts";
+import { HandcraftNoState } from "./mod.ts";
 import { mutate } from "./render.ts";
 
 export default function (
   value: (...args: Array<any>) => void,
-): HandcraftNode {
-  const node: HandcraftNode = (
+): HandcraftNode<HandcraftNoState> {
+  const node: HandcraftNode<HandcraftNoState> = (
     target: Element,
     current?: ChildNode | null,
   ): ChildNode | null => {
@@ -13,9 +14,7 @@ export default function (
     return current ?? null;
   };
 
-  node.state = {
-    type: "effect",
-  };
+  node.state = new HandcraftNoState();
 
   return node;
 }

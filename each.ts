@@ -1,4 +1,9 @@
-import type { HandcraftControlCallback, HandcraftNode } from "./mod.ts";
+import type {
+  HandcraftControlCallback,
+  HandcraftNode,
+  HandcraftNodeState,
+} from "./mod.ts";
+import { HandcraftFragmentState } from "./mod.ts";
 import { watch } from "./reactivity.ts";
 import { controlCallback } from "./render.ts";
 
@@ -22,14 +27,14 @@ type EachFilterCurrent<T> = {
 type EachMapper<T, N> = (
   current: (() => T) & T,
   index: EachIndex,
-) => HandcraftNode | null;
+) => HandcraftNode<HandcraftNodeState> | null;
 
 type EachFilterer<T> = (
   current: EachFilterCurrent<T>,
   index: EachIndex,
 ) => boolean;
 
-export type EachAPI<T, N> = HandcraftNode & {
+export type EachAPI<T, N> = HandcraftNode<HandcraftFragmentState> & {
   map(cb: EachMapper<T, N>): EachAPI<T, N>;
   filter(cb: EachFilterer<T>): EachAPI<T, N>;
   fallback(cb: HandcraftControlCallback): EachAPI<T, N>;
@@ -45,91 +50,87 @@ export default function <T, N = Node>(list: Array<T>): EachAPI<T, N> {
     return mapper(current.value, current.index);
   };
 
-  const iterable = {
-    [Symbol.iterator]: function* () {
-      let i = 0;
+  const state = new HandcraftFragmentState(function* () {
+    let i = 0;
 
-      for (const [index, value] of list.entries()) {
-        if (
-          !filterer(
-            new Proxy(() => value, {
-              get(_, p) {
-                return value != null && typeof value === "object"
-                  ? Reflect.get(value, p)
-                  : undefined;
-              },
-            }) as EachFilterCurrent<T>,
-            () => index,
-          )
-        ) {
-          continue;
-        }
-
-        current = entries[i];
-
-        if (!current) {
-          const store: EachStore<T> = watch({
-            value: null,
-            index,
-          });
-
-          current = {
-            store,
-            value: new Proxy(() => store.value, {
-              get(_, p) {
-                if (store.value != null && typeof store.value === "object") {
-                  return Reflect.get(store.value, p);
-                }
-
-                return undefined;
-              },
-              set(_, p, newValue) {
-                if (store.value != null && typeof store.value === "object") {
-                  return Reflect.set(store.value, p, newValue);
-                }
-
-                return false;
-              },
-              deleteProperty(_, p) {
-                if (store.value != null && typeof store.value === "object") {
-                  return Reflect.deleteProperty(store.value, p);
-                }
-
-                return false;
-              },
-            }),
-            index() {
-              return store.index;
+    for (const [index, value] of list.entries()) {
+      if (
+        !filterer(
+          new Proxy(() => value, {
+            get(_, p) {
+              return value != null && typeof value === "object"
+                ? Reflect.get(value, p)
+                : undefined;
             },
-          } as EachCurrent<T>;
-
-          entries.push(current);
-        }
-
-        if (value !== current.store.value) {
-          current.store.value = value;
-        }
-
-        current.store.index = index;
-
-        yield show;
-
-        i++;
+          }) as EachFilterCurrent<T>,
+          () => index,
+        )
+      ) {
+        continue;
       }
 
-      if (i === 0) {
-        yield fallback;
+      current = entries[i];
+
+      if (!current) {
+        const store: EachStore<T> = watch({
+          value: null,
+          index,
+        });
+
+        current = {
+          store,
+          value: new Proxy(() => store.value, {
+            get(_, p) {
+              if (store.value != null && typeof store.value === "object") {
+                return Reflect.get(store.value, p);
+              }
+
+              return undefined;
+            },
+            set(_, p, newValue) {
+              if (store.value != null && typeof store.value === "object") {
+                return Reflect.set(store.value, p, newValue);
+              }
+
+              return false;
+            },
+            deleteProperty(_, p) {
+              if (store.value != null && typeof store.value === "object") {
+                return Reflect.deleteProperty(store.value, p);
+              }
+
+              return false;
+            },
+          }),
+          index() {
+            return store.index;
+          },
+        } as EachCurrent<T>;
+
+        entries.push(current);
       }
 
-      entries.splice(i, Infinity);
-    },
-  };
+      if (value !== current.store.value) {
+        current.store.value = value;
+      }
 
-  const node = controlCallback(iterable) as EachAPI<T, N>;
+      current.store.index = index;
 
-  node.state = {
-    type: "fragment",
-  };
+      yield show;
+
+      i++;
+    }
+
+    if (i === 0) {
+      yield fallback;
+    }
+
+    entries.splice(i, Infinity);
+  });
+
+  const node = controlCallback(state) as EachAPI<T, N>;
+
+  node.state = state;
 
   node.map = (cb: EachMapper<T, N>) => {
     mapper = cb;
@@ -148,8 +149,6 @@ export default function <T, N = Node>(list: Array<T>): EachAPI<T, N> {
 
     return node;
   };
-
-  node[Symbol.iterator] = iterable[Symbol.iterator];
 
   return node;
 }

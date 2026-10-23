@@ -4,6 +4,12 @@ import type {
   HandcraftNode,
   HandcraftState,
 } from "./mod.ts";
+import {
+  HandcraftAttrState,
+  HandcraftNodeState,
+  HandcraftShadowState,
+  HandcraftTextState,
+} from "./mod.ts";
 import { definitions, HandcraftElementWithAttributes } from "./element.ts";
 import { html } from "./h.ts";
 import { resolveValue } from "./mod.ts";
@@ -11,7 +17,10 @@ import { resolveValue } from "./mod.ts";
 export function view(
   callback: (
     ...args: any
-  ) => Response | HandcraftNode | Promise<Response | HandcraftNode>,
+  ) =>
+    | Response
+    | HandcraftNode<HandcraftNodeState>
+    | Promise<Response | HandcraftNode<HandcraftNodeState>>,
 ): () => Promise<Response | string> {
   return async (...args: any): Promise<Response | string> => {
     const response = await callback(...args);
@@ -61,7 +70,7 @@ const voids = [
 ];
 
 export function stringify(
-  node: { state: HandcraftState },
+  node: HandcraftNode<HandcraftNodeState>,
   escape: boolean = true,
 ): string {
   let result = "";
@@ -70,12 +79,12 @@ export function stringify(
   const attributes: Record<string, string> = {};
 
   const loopAttributes = (
-    nodes: Array<HandcraftNode | null>,
+    nodes: Array<HandcraftNode<HandcraftState> | null>,
   ) => {
     for (const node of nodes) {
       if (node == null) continue;
 
-      if (node.state.type === "attr" && node.state.name) {
+      if (node.state instanceof HandcraftAttrState) {
         const v = resolveValue(node.state.value);
 
         if (v === true || v === false || v === null) {
@@ -124,7 +133,7 @@ export function stringify(
       const tag = html[state.name];
       const instanceNode = instance.view(tag);
 
-      if (instanceNode) {
+      if (instanceNode && instanceNode.state instanceof HandcraftNodeState) {
         const instanceState = instanceNode.state;
 
         loopAttributes(instanceState.nodes ?? []);
@@ -133,7 +142,8 @@ export function stringify(
 
         if (state.nodes?.length) {
           const instanceNodes = instanceState.nodes?.filter?.((node) =>
-            node?.state?.type === "shadow" || node?.state?.type === "attr"
+            node?.state instanceof HandcraftShadowState ||
+            node?.state instanceof HandcraftAttrState
           ) ?? [];
 
           nodes = instanceNodes.concat(state.nodes ?? []);
@@ -167,47 +177,48 @@ export function stringify(
   return result;
 }
 
-function nodes(nodes: Array<HandcraftNode | null>, escape: boolean): string {
+function nodes(
+  nodes: Array<HandcraftNode<HandcraftState> | null>,
+  escape: boolean,
+): string {
   let result = "";
 
   try {
     for (const node of nodes ?? []) {
       if (node == null) continue;
 
-      if (node.state.type === "shadow") {
-        const state: HandcraftState = {
-          type: "node",
-          name: "template",
-          namespace: "http://www.w3.org/1999/xhtml",
-          nodes: node.state.nodes,
-        };
+      if (node.state instanceof HandcraftShadowState) {
+        const state = new HandcraftNodeState(
+          "template",
+          "http://www.w3.org/1999/xhtml",
+          node.state.nodes,
+        );
 
         for (const [key, value] of Object.entries(node.state.options ?? {})) {
           state.nodes!.push({
-            state: {
-              type: "attr",
-              name: `shadowroot${key}`,
-              value,
-            },
-          } as HandcraftNode);
+            state: new HandcraftAttrState(`shadowroot${key}`, value),
+          } as HandcraftNode<HandcraftAttrState>);
         }
 
-        result += stringify({ state: state }, escape);
-      } else if (node.state.type === "text") {
+        result += stringify(
+          { state: state } as HandcraftNode<HandcraftNodeState>,
+          escape,
+        );
+      } else if (node.state instanceof HandcraftTextState) {
         result += resolveValue(node.state.text) ?? "";
-      } else if (node.state.type === "node") {
-        result += stringify(node, escape);
+      } else if (node.state instanceof HandcraftNodeState) {
+        result += stringify(node as HandcraftNode<HandcraftNodeState>, escape);
       } else if (
-        Symbol.iterator in node
+        Symbol.iterator in node.state
       ) {
         result += `<!-- <> -->`;
 
-        for (const item of node as Iterable<HandcraftControlCallback>) {
+        for (const item of node.state as Iterable<HandcraftControlCallback>) {
           const c = item();
 
           if (c == null) continue;
 
-          result += stringify(c, escape);
+          result += stringify(c as HandcraftNode<HandcraftNodeState>, escape);
         }
 
         result += `<!-- </> -->`;
