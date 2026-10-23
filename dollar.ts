@@ -1,6 +1,9 @@
-import type { HandcraftNode, HandcraftState } from "./mod.ts";
+import {
+  type HandcraftNode,
+  HandcraftNodeState,
+  type HandcraftState,
+} from "./mod.ts";
 import { render } from "./render.ts";
-import { html } from "./h.ts";
 
 export function $(
   selector: string,
@@ -11,11 +14,13 @@ export function $(
   return (
     ...nodes: Array<HandcraftNode<HandcraftState> | null>
   ) => {
-    const node = html.div(...nodes);
+    const node = (_target: Element, current?: ChildNode | null) => current;
+
+    node.state = new HandcraftNodeState("div", "", nodes);
 
     queueMicrotask(() => {
       for (const element of target.querySelectorAll(selector)) {
-        render(node, element);
+        render(node as HandcraftNode<HandcraftNodeState>, element);
       }
     });
   };
