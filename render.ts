@@ -80,7 +80,7 @@ export function controlCallback(
       trim(current, end);
     });
 
-    return end;
+    return end.nextSibling;
   };
 }
 
