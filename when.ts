@@ -1,5 +1,5 @@
-import type { HandcraftControlCallback, HandcraftNode } from "./mod.ts";
-import { HandcraftFragmentState } from "./mod.ts";
+import type { HandcraftControlCallback, HandcraftNode } from "./types.ts";
+import { HandcraftFragmentState } from "./types.ts";
 import { controlCallback } from "./render.ts";
 
 export type WhenAPI =
@@ -10,7 +10,7 @@ export type WhenAPI =
   })
   & Iterable<HandcraftControlCallback>;
 
-export default function (cb: (prev: boolean | void) => boolean): WhenAPI {
+export default (cb: (prev: boolean | void) => boolean): WhenAPI => {
   let show: HandcraftControlCallback;
   let fallback: HandcraftControlCallback = () => null;
   let previous: boolean | void;
@@ -40,4 +40,4 @@ export default function (cb: (prev: boolean | void) => boolean): WhenAPI {
   };
 
   return node;
-}
+};

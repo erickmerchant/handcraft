@@ -1,13 +1,17 @@
-import type { HandcraftNode, HandcraftValue } from "./mod.ts";
-import { HandcraftAttrState, recordProxy, resolveValue } from "./mod.ts";
+import type { HandcraftNode, HandcraftValue } from "./types.ts";
+import { HandcraftAttrState } from "./types.ts";
+import { recordProxy, resolveValue } from "./utils.ts";
 import { mutate } from "./render.ts";
 
 export default recordProxy<
   (
     value: HandcraftValue<string | number | boolean | null>,
   ) => HandcraftNode<HandcraftAttrState>
->((name: string) => {
-  return (value: HandcraftValue<string | number | boolean | null>) => {
+>(
+  (name: string) =>
+  (
+    value: HandcraftValue<string | number | boolean | null>,
+  ) => {
     const node: HandcraftNode<HandcraftAttrState> = (
       target: Element,
       current?: ChildNode | null,
@@ -31,8 +35,8 @@ export default recordProxy<
     node.state = new HandcraftAttrState(name, value);
 
     return node;
-  };
-}) as Record<
+  },
+) as Record<
   string,
   (
     value: HandcraftValue<string | number | boolean | null>,

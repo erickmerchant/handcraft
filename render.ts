@@ -2,8 +2,8 @@ import type {
   HandcraftControlCallback,
   HandcraftNode,
   HandcraftState,
-} from "./mod.ts";
-import { HandcraftNodeState } from "./mod.ts";
+} from "./types.ts";
+import { HandcraftNodeState } from "./types.ts";
 import { run } from "./reactivity.ts";
 
 export function render(

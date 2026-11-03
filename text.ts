@@ -1,11 +1,11 @@
-import type { HandcraftNode, HandcraftValue } from "./mod.ts";
-import { HandcraftTextState } from "./mod.ts";
-import { resolveValue } from "./mod.ts";
+import type { HandcraftNode, HandcraftValue } from "./types.ts";
+import { HandcraftTextState } from "./types.ts";
+import { resolveValue } from "./utils.ts";
 import { insertOrReplace, mutate } from "./render.ts";
 
-export default function (
+export default (
   text: HandcraftValue<string>,
-): HandcraftNode<HandcraftTextState> {
+): HandcraftNode<HandcraftTextState> => {
   const node: HandcraftNode<HandcraftTextState> = (
     target: Element,
     current?: ChildNode | null,
@@ -32,4 +32,4 @@ export default function (
   node.state = new HandcraftTextState(text);
 
   return node;
-}
+};

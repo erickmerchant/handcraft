@@ -1,6 +1,6 @@
-import type { HandcraftNode, HandcraftTag } from "./mod.ts";
+import type { HandcraftNode, HandcraftTag } from "./types.ts";
 import { watch } from "./reactivity.ts";
-import { html } from "./h.ts";
+import html from "./html.ts";
 import { render } from "./render.ts";
 
 if (!globalThis.HTMLElement) {
@@ -37,27 +37,26 @@ export class HandcraftElement extends HTMLElement {
 }
 
 export class HandcraftElementWithAttributes extends HandcraftElement {
-  #state: Record<string, any> = watch<Record<string, any>>({});
+  state: Record<string, any> = watch<Record<string, any>>({});
 
-  attributeChangedCallback(k: string, o: string | null, n: string | null) {
-    if (o === n) return;
+  attributeChangedCallback(
+    key: string,
+    previous: string | null,
+    current: string | null,
+  ) {
+    if (previous === current) return;
 
-    if (Object.hasOwn(this, k)) {
-      let value;
-      const type = typeof this[k as keyof typeof this];
-
-      if (n == null) {
-        value = null;
-      } else if (type === "boolean") {
-        value = n === "";
-      } else if (type === "number") {
-        value = +n;
-      } else {
-        value = n;
+    if (key in this.state) {
+      switch (typeof this.state[key]) {
+        case "number":
+          this.state[key] = Number(current);
+          break;
+        case "boolean":
+          this.state[key] = current === "";
+          break;
+        default:
+          this.state[key] = current;
       }
-
-      // @ts-ignore{2322}
-      this[k as keyof typeof this] = value;
     }
   }
 
@@ -68,21 +67,6 @@ export class HandcraftElementWithAttributes extends HandcraftElement {
 
     for (const name of observedAttributes) {
       this.attributeChangedCallback(name, null, this.getAttribute(name));
-
-      this.#state[name] = this[name as keyof typeof this];
-
-      const descriptor = Object.getOwnPropertyDescriptor(this, name);
-
-      if (!descriptor || !descriptor.enumerable) continue;
-
-      Object.defineProperty(this, name, {
-        set: descriptor.set ?? ((val) => {
-          this.#state[name] = val;
-        }),
-        get: descriptor.get ?? (() => {
-          return this.#state[name];
-        }),
-      });
     }
 
     super.setup();

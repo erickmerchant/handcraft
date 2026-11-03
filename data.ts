@@ -2,8 +2,8 @@ import type {
   HandcraftAttrState,
   HandcraftNode,
   HandcraftValue,
-} from "./mod.ts";
-import { recordProxy } from "./mod.ts";
+} from "./types.ts";
+import { recordProxy } from "./utils.ts";
 import attr from "./attr.ts";
 
 export default recordProxy<

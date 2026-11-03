@@ -3,25 +3,25 @@ import type {
   HandcraftControlCallback,
   HandcraftNode,
   HandcraftState,
-} from "./mod.ts";
+} from "./types.ts";
 import {
   HandcraftAttrState,
   HandcraftNodeState,
   HandcraftShadowState,
   HandcraftTextState,
-} from "./mod.ts";
+} from "./types.ts";
+import html from "./html.ts";
+import { resolveValue } from "./utils.ts";
 import { definitions, HandcraftElementWithAttributes } from "./element.ts";
-import { html } from "./h.ts";
-import { resolveValue } from "./mod.ts";
 
-export function view(
+export default (
   callback: (
     ...args: any
   ) =>
     | Response
     | HandcraftNode<HandcraftNodeState>
     | Promise<Response | HandcraftNode<HandcraftNodeState>>,
-): () => Promise<Response | string> {
+): () => Promise<Response | string> => {
   return async (...args: any): Promise<Response | string> => {
     const response = await callback(...args);
 
@@ -31,7 +31,7 @@ export function view(
 
     return response;
   };
-}
+};
 
 function esc(
   strs: ReadonlyArray<string>,

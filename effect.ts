@@ -1,10 +1,10 @@
-import type { HandcraftNode } from "./mod.ts";
-import { HandcraftNoState } from "./mod.ts";
+import type { HandcraftNode } from "./types.ts";
+import { HandcraftNoState } from "./types.ts";
 import { mutate } from "./render.ts";
 
-export default function (
+export default (
   value: (...args: Array<any>) => void,
-): HandcraftNode<HandcraftNoState> {
+): HandcraftNode<HandcraftNoState> => {
   const node: HandcraftNode<HandcraftNoState> = (
     target: Element,
     current?: ChildNode | null,
@@ -17,4 +17,4 @@ export default function (
   node.state = new HandcraftNoState();
 
   return node;
-}
+};

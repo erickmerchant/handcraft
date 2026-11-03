@@ -1,9 +1,9 @@
-import type { HandcraftValue } from "./mod.ts";
-import { resolveValue } from "./mod.ts";
+import type { HandcraftValue } from "./types.ts";
+import { resolveValue } from "./utils.ts";
 
-export default function (
+export default (
   tokens: Record<string, HandcraftValue<boolean>>,
-): () => string {
+): () => string => {
   const result = new Set();
 
   return () => {
@@ -17,4 +17,4 @@ export default function (
 
     return [...result].join(" ");
   };
-}
+};

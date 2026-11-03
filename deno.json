@@ -1,6 +1,6 @@
 {
   "name": "@handcraft/lib",
-  "version": "5.2.0",
+  "version": "6.0.0",
   "license": "MIT",
   "exports": {
     ".": "./mod.ts",
@@ -12,14 +12,17 @@
     "./effect": "./effect.ts",
     "./element": "./element.ts",
     "./h": "./h.ts",
+    "./html": "./html.ts",
     "./on": "./on.ts",
     "./prop": "./prop.ts",
     "./reactivity": "./reactivity.ts",
     "./render": "./render.ts",
     "./shadow": "./shadow.ts",
     "./ssr": "./ssr.ts",
+    "./svg": "./svg.ts",
     "./text": "./text.ts",
     "./tokens": "./tokens.ts",
+    "./types": "./types.ts",
     "./when": "./when.ts"
   },
   "imports": {

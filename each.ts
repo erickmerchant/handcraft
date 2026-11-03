@@ -2,50 +2,52 @@ import type {
   HandcraftControlCallback,
   HandcraftNode,
   HandcraftNodeState,
-} from "./mod.ts";
-import { HandcraftFragmentState } from "./mod.ts";
+} from "./types.ts";
+import { HandcraftFragmentState } from "./types.ts";
 import { watch } from "./reactivity.ts";
 import { controlCallback } from "./render.ts";
 
 type EachIndex = () => number;
 
-type EachStore<T> = {
-  value: T | null;
-  index: number;
-};
-
-type EachCurrent<T> = {
-  store: EachStore<T>;
-  value: (() => T) & T;
-  index: EachIndex;
-};
-
-type EachFilterCurrent<T> = {
+type EachCurrent<T extends object> = {
   (): T;
 } & T;
 
-type EachMapper<T, N> = (
-  current: (() => T) & T,
+type EachStore<T extends object> = {
+  value: T;
+  index: number;
+};
+
+type EachEntry<T extends object> = {
+  store: EachStore<T>;
+  value: EachCurrent<T>;
+  index: EachIndex;
+};
+
+type EachCallback<T extends object, N, R> = (
+  current: EachCurrent<T>,
   index: EachIndex,
-) => HandcraftNode<HandcraftNodeState> | null;
+) => R;
 
-type EachFilterer<T> = (
-  current: EachFilterCurrent<T>,
-  index: EachIndex,
-) => boolean;
+export type EachAPI<T extends object, N> =
+  & HandcraftNode<HandcraftFragmentState>
+  & {
+    map(
+      cb: EachCallback<T, N, HandcraftNode<HandcraftNodeState> | null>,
+    ): EachAPI<T, N>;
+    filter(cb: EachCallback<T, N, boolean>): EachAPI<T, N>;
+    fallback(cb: HandcraftControlCallback): EachAPI<T, N>;
+  }
+  & Iterable<HandcraftControlCallback>;
 
-export type EachAPI<T, N> = HandcraftNode<HandcraftFragmentState> & {
-  map(cb: EachMapper<T, N>): EachAPI<T, N>;
-  filter(cb: EachFilterer<T>): EachAPI<T, N>;
-  fallback(cb: HandcraftControlCallback): EachAPI<T, N>;
-} & Iterable<HandcraftControlCallback>;
-
-export default function <T, N = Node>(list: Array<T>): EachAPI<T, N> {
-  let mapper: EachMapper<T, N>;
-  let filterer: EachFilterer<T> = () => true;
+export default <T extends object, N = Node>(
+  list: Array<T>,
+): EachAPI<T, N> => {
+  let mapper: EachCallback<T, N, HandcraftNode<HandcraftNodeState> | null>;
+  let filterer: EachCallback<T, N, boolean> = () => true;
   let fallback: HandcraftControlCallback = () => null;
-  let current: EachCurrent<T>;
-  const entries: Array<EachCurrent<T>> = [];
+  let current: EachEntry<T>;
+  const entries: Array<EachEntry<T>> = [];
   const show: HandcraftControlCallback = () => {
     return mapper(current.value, current.index);
   };
@@ -55,16 +57,7 @@ export default function <T, N = Node>(list: Array<T>): EachAPI<T, N> {
 
     for (const [index, value] of list.entries()) {
       if (
-        !filterer(
-          new Proxy(() => value, {
-            get(_, p) {
-              return value != null && typeof value === "object"
-                ? Reflect.get(value, p)
-                : undefined;
-            },
-          }) as EachFilterCurrent<T>,
-          () => index,
-        )
+        !filterer(valueProxy(() => value) as EachCurrent<T>, () => index)
       ) {
         continue;
       }
@@ -73,39 +66,17 @@ export default function <T, N = Node>(list: Array<T>): EachAPI<T, N> {
 
       if (!current) {
         const store: EachStore<T> = watch({
-          value: null,
+          value,
           index,
         });
 
         current = {
           store,
-          value: new Proxy(() => store.value, {
-            get(_, p) {
-              if (store.value != null && typeof store.value === "object") {
-                return Reflect.get(store.value, p);
-              }
-
-              return undefined;
-            },
-            set(_, p, newValue) {
-              if (store.value != null && typeof store.value === "object") {
-                return Reflect.set(store.value, p, newValue);
-              }
-
-              return false;
-            },
-            deleteProperty(_, p) {
-              if (store.value != null && typeof store.value === "object") {
-                return Reflect.deleteProperty(store.value, p);
-              }
-
-              return false;
-            },
-          }),
+          value: valueProxy(() => store.value),
           index() {
             return store.index;
           },
-        } as EachCurrent<T>;
+        } as EachEntry<T>;
 
         entries.push(current);
       }
@@ -132,13 +103,15 @@ export default function <T, N = Node>(list: Array<T>): EachAPI<T, N> {
 
   node.state = state;
 
-  node.map = (cb: EachMapper<T, N>) => {
+  node.map = (
+    cb: EachCallback<T, N, HandcraftNode<HandcraftNodeState> | null>,
+  ) => {
     mapper = cb;
 
     return node;
   };
 
-  node.filter = (cb: EachFilterer<T>) => {
+  node.filter = (cb: EachCallback<T, N, boolean>) => {
     filterer = cb;
 
     return node;
@@ -151,4 +124,18 @@ export default function <T, N = Node>(list: Array<T>): EachAPI<T, N> {
   };
 
   return node;
+};
+
+function valueProxy<T extends object>(getter: () => T) {
+  return new Proxy(getter, {
+    get(_, p) {
+      return Reflect.get(getter(), p);
+    },
+    set(_, p, newValue) {
+      return Reflect.set(getter(), p, newValue);
+    },
+    deleteProperty(_, p) {
+      return Reflect.deleteProperty(getter(), p);
+    },
+  });
 }

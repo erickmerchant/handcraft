@@ -1,200 +1,37 @@
-/**
- * ...
- */
-export function resolveValue<T>(value: T | (() => T)): T {
-  return typeof value === "function" ? (value as CallableFunction)() : value;
-}
+import aria from "./aria.ts";
+import attr from "./attr.ts";
+import data from "./data.ts";
+import $ from "./dollar.ts";
+import each from "./each.ts";
+import effect from "./effect.ts";
+import { HandcraftElement, HandcraftElementWithAttributes } from "./element.ts";
+import html from "./html.ts";
+import on from "./on.ts";
+import prop from "./prop.ts";
+import { run, watch } from "./reactivity.ts";
+import shadow from "./shadow.ts";
+import svg from "./svg.ts";
+import text from "./text.ts";
+import tokens from "./tokens.ts";
+import when from "./when.ts";
 
-/**
- * ...
- */
-export function recordProxy<T>(getter: (name: string) => T): Record<string, T> {
-  return new Proxy(
-    {},
-    {
-      get(_, name: string) {
-        return getter(name);
-      },
-    },
-  ) as Record<string, T>;
-}
-
-/**
- * ...
- */
-export type HandcraftValue<T> = T | (() => T);
-
-/**
- * ...
- */
-export type HandcraftNode<T = HandcraftState> =
-  & ((
-    target: Element,
-    current?: ChildNode | null,
-    end?: ChildNode | null,
-  ) => ChildNode | null)
-  & {
-    state: T;
-  };
-
-/**
- * ...
- */
-export type HandcraftState =
-  | HandcraftShadowState
-  | HandcraftNodeState
-  | HandcraftTextState
-  | HandcraftFragmentState
-  | HandcraftAttrState
-  | HandcraftNoState;
-
-/**
- * ...
- */
-export class HandcraftShadowState {
-  /**
-   * ...
-   */
-  options: Record<string, any>;
-
-  /**
-   * ...
-   */
-  nodes: Array<HandcraftNode<HandcraftState> | null>;
-
-  /**
-   * ...
-   */
-  constructor(
-    options: Record<string, any>,
-    nodes: Array<HandcraftNode<HandcraftState> | null>,
-  ) {
-    this.options = options;
-    this.nodes = nodes;
-  }
-}
-
-/**
- * ...
- */
-export class HandcraftNodeState {
-  /**
-   * ...
-   */
-  name: string;
-
-  /**
-   * ...
-   */
-  namespace: string;
-
-  /**
-   * ...
-   */
-  nodes: Array<HandcraftNode<HandcraftState> | null>;
-
-  /**
-   * ...
-   */
-  constructor(
-    name: string,
-    namespace: string,
-    nodes: Array<HandcraftNode<HandcraftState> | null>,
-  ) {
-    this.name = name;
-    this.namespace = namespace;
-    this.nodes = nodes;
-  }
-}
-
-/**
- * ...
- */
-export class HandcraftTextState {
-  /**
-   * ...
-   */
-  text: HandcraftValue<string>;
-
-  /**
-   * ...
-   */
-  constructor(text: HandcraftValue<string>) {
-    this.text = text;
-  }
-}
-
-/**
- * ...
- */
-export class HandcraftFragmentState {
-  /**
-   * ...
-   */
-  *[Symbol.iterator](): Generator<HandcraftControlCallback> {
-    yield* this.iterator();
-  }
-
-  /**
-   * ...
-   */
-  iterator: () => Generator<HandcraftControlCallback>;
-
-  /**
-   * ...
-   */
-  constructor(iterator: () => Generator<HandcraftControlCallback>) {
-    this.iterator = iterator;
-  }
-}
-
-/**
- * ...
- */
-export class HandcraftAttrState {
-  /**
-   * ...
-   */
-  name: string;
-
-  /**
-   * ...
-   */
-  value: HandcraftValue<any>;
-
-  /**
-   * ...
-   */
-  constructor(name: string, value: HandcraftValue<any>) {
-    this.name = name;
-    this.value = value;
-  }
-}
-
-/**
- * ...
- */
-export class HandcraftNoState {
-}
-
-/**
- * ...
- */
-export type HandcraftControlCallback = () =>
-  | HandcraftNode<HandcraftNodeState>
-  | null;
-
-/**
- * ...
- */
-export type HandcraftTagFactory = Record<
-  string,
-  HandcraftTag
->;
-
-/**
- * ...
- */
-export type HandcraftTag = (
-  ...nodes: Array<HandcraftNode<HandcraftState> | null>
-) => HandcraftNode<HandcraftNodeState>;
+export {
+  $,
+  aria,
+  attr,
+  data,
+  each,
+  effect,
+  HandcraftElement,
+  HandcraftElementWithAttributes,
+  html,
+  on,
+  prop,
+  run,
+  shadow,
+  svg,
+  text,
+  tokens,
+  watch,
+  when,
+};

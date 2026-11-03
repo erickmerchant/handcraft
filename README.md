@@ -13,14 +13,14 @@ deno add jsr:@handcraft/lib
 ```
 
 See the exported modules in `deno.json` for the full list of modules. Import
-`html` or `svg` from `@handcraft/lib/h` and then beyond that only the modules
-you need. It's fully tree-shakeable, and a goal of the project is for there to
-be no unused code in projects that use it.
+`html` from `@handcraft/lib/html` or `svg` from `@handcraft/lib/svg` and then
+beyond that only the modules you need. It's fully tree-shakeable, and a goal of
+the project is for there to be no unused code in projects that use it.
 
 For example, a minimal set of imports for server-side rendering would be:
 
 ```ts
-import { html } from "@handcraft/lib/h";
+import html from "@handcraft/lib/html";
 import attr from "@handcraft/lib/attr";
 import text from "@handcraft/lib/text";
 ```
@@ -34,7 +34,7 @@ attributes, properties, event handlers, effects, shadow roots, or control nodes
 for loops or conditionals.
 
 ```ts
-import { html } from "@handcraft/lib/h";
+import html from "@handcraft/lib/html";
 import attr from "@handcraft/lib/attr";
 import text from "@handcraft/lib/text";
 
@@ -53,11 +53,12 @@ rendered node reads a watched property, Handcraft reruns the relevant update
 when that property changes.
 
 ```ts
-import { html } from "@handcraft/lib/h";
+import html from "@handcraft/lib/html";
 import { watch } from "@handcraft/lib/reactivity";
 import attr from "@handcraft/lib/attr";
 import on from "@handcraft/lib/on";
 import prop from "@handcraft/lib/prop";
+import $ from "@handcraft/lib/dollar";
 
 const state = watch({ count: 0 });
 const counter = html.button(
@@ -75,7 +76,7 @@ Use `effect(callback)` when a side effect needs the element as its argument. It
 tracks watched values read by the callback and reruns when they change:
 
 ```ts
-import { html } from "@handcraft/lib/h";
+import html from "@handcraft/lib/html";
 import { watch } from "@handcraft/lib/reactivity";
 import effect from "@handcraft/lib/effect";
 
@@ -110,7 +111,7 @@ update in place. Use `.filter(callback)` to omit items and `.fallback(...)` to
 supply content when there are no visible items.
 
 ```ts
-import { html } from "@handcraft/lib/h";
+import html from "@handcraft/lib/html";
 import each from "@handcraft/lib/each";
 import text from "@handcraft/lib/text";
 import attr from "@handcraft/lib/attr";
@@ -135,7 +136,7 @@ falsy branch. The condition can read watched state, and thus will be reevaluated
 when state changes.
 
 ```ts
-import { html } from "@handcraft/lib/h";
+import html from "@handcraft/lib/html";
 import { watch } from "@handcraft/lib/reactivity";
 import text from "@handcraft/lib/text";
 import when from "@handcraft/lib/when";
@@ -160,9 +161,9 @@ view. Shadow roots will be serialized to declarative shadow DOM if used in
 server-side rendering.
 
 ```ts
-import type { HandcraftTag } from "@handcraft/lib";
+import type { HandcraftTag } from "@handcraft/lib/types";
 import { HandcraftElement } from "@handcraft/lib/element";
-import { html } from "@handcraft/lib/h";
+import html from "@handcraft/lib/html";
 import { watch } from "@handcraft/lib/reactivity";
 import text from "@handcraft/lib/text";
 

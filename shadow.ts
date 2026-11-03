@@ -3,17 +3,17 @@ import type {
   HandcraftNode,
   HandcraftNodeState,
   HandcraftTextState,
-} from "./mod.ts";
-import { HandcraftShadowState } from "./mod.ts";
+} from "./types.ts";
+import { HandcraftShadowState } from "./types.ts";
 
-export default function (
+export default (
   options: ShadowRootInit,
   ...nodes: Array<
     HandcraftNode<
       HandcraftNodeState | HandcraftFragmentState | HandcraftTextState
     > | null
   >
-): HandcraftNode<HandcraftShadowState> {
+): HandcraftNode<HandcraftShadowState> => {
   const node: HandcraftNode<HandcraftShadowState> = (
     target: Element,
     current?: ChildNode | null,
@@ -33,4 +33,4 @@ export default function (
   node.state = new HandcraftShadowState(options, nodes);
 
   return node;
-}
+};
