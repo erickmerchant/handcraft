@@ -4,17 +4,15 @@ import { resolveValue } from "./utils.ts";
 export default (
   tokens: Record<string, HandcraftValue<boolean>>,
 ): () => string => {
-  const result = new Set();
-
   return () => {
+    const result = [];
+
     for (const [key, value] of Object.entries(tokens)) {
       if (resolveValue(value)) {
-        result.add(key);
-      } else {
-        result.delete(key);
+        result.push(key);
       }
     }
 
-    return [...result].join(" ");
+    return result.join(" ");
   };
 };

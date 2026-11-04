@@ -1,12 +1,14 @@
 import { assertEquals } from "@std/assert";
 import { delay } from "@std/async";
-import { DOMParser } from "@b-fuze/deno-dom";
+import * as DOM from "@b-fuze/deno-dom";
 import { $, text } from "../mod.ts";
 
 Deno.test("dollar test", async () => {
-  const doc = new DOMParser().parseFromString("<body></body>", "text/html");
+  const doc = new DOM.DOMParser().parseFromString("<body></body>", "text/html");
 
   globalThis.document = doc as unknown as Document;
+  // @ts-ignore{2741}
+  globalThis.Element = DOM.Element as unknown as Element;
 
   const div = doc.createElement("div");
 

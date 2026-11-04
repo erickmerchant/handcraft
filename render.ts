@@ -8,11 +8,11 @@ import { run } from "./reactivity.ts";
 
 export function render(
   node: HandcraftNode<HandcraftState>,
-  target: Element,
+  target: Element | DocumentFragment,
 ) {
   const state = node.state;
 
-  if (state instanceof HandcraftNodeState) {
+  if (target instanceof Element && state instanceof HandcraftNodeState) {
     let current = target.firstChild;
 
     for (const node of state?.nodes ?? []) {

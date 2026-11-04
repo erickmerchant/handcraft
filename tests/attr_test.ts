@@ -1,10 +1,13 @@
 import { assertEquals } from "@std/assert";
 import { delay } from "@std/async";
-import { DOMParser } from "@b-fuze/deno-dom";
+import * as DOM from "@b-fuze/deno-dom";
 import { attr, watch } from "../mod.ts";
 
 Deno.test("string attr test", async () => {
-  const doc = new DOMParser().parseFromString("<body></body>", "text/html")!;
+  const doc = new DOM.DOMParser().parseFromString(
+    "<body></body>",
+    "text/html",
+  )!;
   const div = doc.createElement("div") as unknown as HTMLDivElement;
   const state = watch<{ className: string }>({ className: "test-2" });
   const node1 = attr.class("test-1");
@@ -31,7 +34,10 @@ Deno.test("string attr test", async () => {
 });
 
 Deno.test("bool attr test", async () => {
-  const doc = new DOMParser().parseFromString("<body></body>", "text/html")!;
+  const doc = new DOM.DOMParser().parseFromString(
+    "<body></body>",
+    "text/html",
+  )!;
   const input = doc.createElement("input") as unknown as HTMLInputElement;
   const state = watch<{ checked: boolean }>({ checked: false });
   const node1 = attr.checked(true);
