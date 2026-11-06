@@ -26,10 +26,11 @@
     "./when": "./when.ts"
   },
   "imports": {
-    "@b-fuze/deno-dom": "jsr:@b-fuze/deno-dom@^0.1.56",
+    "@happy-dom/global-registrator": "npm:@happy-dom/global-registrator@^21.0.4",
     "@std/assert": "jsr:@std/assert@^1.0.19",
     "@std/async": "jsr:@std/async@^1.5.1",
-    "@std/html": "jsr:@std/html@^1.0.7"
+    "@std/html": "jsr:@std/html@^1.0.7",
+    "happy-dom": "npm:happy-dom@^21.0.4"
   },
   "compilerOptions": {
     "lib": ["deno.ns", "dom", "dom.iterable", "es2025"]

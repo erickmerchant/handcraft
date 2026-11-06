@@ -1,8 +1,9 @@
+import "./hooks.ts";
 import { assertEquals } from "@std/assert";
 import { delay } from "@std/async";
 import { run, watch } from "../mod.ts";
 
-Deno.test("watch and run test", async () => {
+Deno.test("reactivity", async () => {
   const state = watch<{ count?: number }>({ count: 0 });
   let count: number | undefined = 0;
 

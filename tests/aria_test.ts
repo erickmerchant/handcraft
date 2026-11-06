@@ -1,14 +1,10 @@
+import "./hooks.ts";
 import { assertEquals } from "@std/assert";
 import { delay } from "@std/async";
-import * as DOM from "@b-fuze/deno-dom";
 import { aria, watch } from "../mod.ts";
 
-Deno.test("aria attr test", async () => {
-  const doc = new DOM.DOMParser().parseFromString(
-    "<body></body>",
-    "text/html",
-  )!;
-  const div = doc.createElement("div") as unknown as HTMLDivElement;
+Deno.test("aria", async () => {
+  const div = document.createElement("div");
   const state = watch<{ ariaLabel: string }>({ ariaLabel: "test-2" });
   const node1 = aria.label("test-1");
 

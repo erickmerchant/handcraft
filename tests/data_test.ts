@@ -1,14 +1,10 @@
+import "./hooks.ts";
 import { assertEquals } from "@std/assert";
 import { delay } from "@std/async";
-import * as DOM from "@b-fuze/deno-dom";
 import { data, watch } from "../mod.ts";
 
-Deno.test("data attr test", async () => {
-  const doc = new DOM.DOMParser().parseFromString(
-    "<body></body>",
-    "text/html",
-  )!;
-  const div = doc.createElement("div") as unknown as HTMLDivElement;
+Deno.test("data", async () => {
+  const div = document.createElement("div") as unknown as HTMLDivElement;
   const state = watch<{ dataFoo: string }>({ dataFoo: "test-2" });
   const node1 = data.foo("test-1");
 

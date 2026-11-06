@@ -1,7 +1,8 @@
+import "./hooks.ts";
 import { assertEquals } from "@std/assert";
 import { tokens } from "../mod.ts";
 
-Deno.test("tokens test", () => {
+Deno.test("tokens", () => {
   const state = {
     a: false,
     b: true,

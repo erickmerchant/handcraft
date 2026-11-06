@@ -1,19 +1,10 @@
+import "./hooks.ts";
 import { assertEquals } from "@std/assert";
 import { delay } from "@std/async";
-import * as DOM from "@b-fuze/deno-dom";
 import { text, watch } from "../mod.ts";
 
-Deno.test("text static test", async () => {
-  const doc = new DOM.DOMParser().parseFromString(
-    "<body></body>",
-    "text/html",
-  )!;
-
-  globalThis.document = doc as unknown as Document;
-  // @ts-ignore{2322}
-  globalThis.Node = DOM.Node;
-
-  const div = doc.createElement("div") as unknown as HTMLDivElement;
+Deno.test("text", async () => {
+  const div = document.createElement("div") as unknown as HTMLDivElement;
   const node1 = text("test-1");
 
   node1(div);
@@ -23,15 +14,8 @@ Deno.test("text static test", async () => {
   assertEquals("test-1", div.innerText);
 });
 
-Deno.test("text dynamic test", async () => {
-  const doc = new DOM.DOMParser().parseFromString(
-    "<body></body>",
-    "text/html",
-  )!;
-
-  globalThis.document = doc as unknown as Document;
-
-  const div = doc.createElement("div") as unknown as HTMLDivElement;
+Deno.test("text", async () => {
+  const div = document.createElement("div") as unknown as HTMLDivElement;
   const state = watch<{ innerText: string }>({ innerText: "test-2" });
 
   const node2 = text(() => state.innerText);

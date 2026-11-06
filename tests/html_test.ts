@@ -1,19 +1,10 @@
+import "./hooks.ts";
 import { assertEquals } from "@std/assert";
 import { delay } from "@std/async";
-import * as DOM from "@b-fuze/deno-dom";
 import { html, text } from "../mod.ts";
 
-Deno.test("html test", async () => {
-  const doc = new DOM.DOMParser().parseFromString(
-    "<body></body>",
-    "text/html",
-  )!;
-
-  globalThis.document = doc as unknown as Document;
-  // @ts-ignore{2741}
-  globalThis.Element = DOM.Element as unknown as Element;
-
-  const div = doc.createElement("div") as unknown as HTMLDivElement;
+Deno.test("html", async () => {
+  const div = document.createElement("div") as unknown as HTMLDivElement;
 
   const node = html.ul(
     html.li(text("1")),

@@ -1,14 +1,10 @@
+import "./hooks.ts";
 import { assertEquals } from "@std/assert";
 import { delay } from "@std/async";
-import * as DOM from "@b-fuze/deno-dom";
 import { attr, watch } from "../mod.ts";
 
-Deno.test("string attr test", async () => {
-  const doc = new DOM.DOMParser().parseFromString(
-    "<body></body>",
-    "text/html",
-  )!;
-  const div = doc.createElement("div") as unknown as HTMLDivElement;
+Deno.test("attr", async () => {
+  const div = document.createElement("div") as unknown as HTMLDivElement;
   const state = watch<{ className: string }>({ className: "test-2" });
   const node1 = attr.class("test-1");
 
@@ -16,7 +12,7 @@ Deno.test("string attr test", async () => {
 
   await delay(0);
 
-  assertEquals("test-1", div.className);
+  assertEquals("test-1", div.getAttribute("class"));
 
   const node2 = attr.class(() => state.className);
 
@@ -24,21 +20,17 @@ Deno.test("string attr test", async () => {
 
   await delay(0);
 
-  assertEquals("test-2", div.className);
+  assertEquals("test-2", div.getAttribute("class"));
 
   state.className = "test-3";
 
   await delay(0);
 
-  assertEquals("test-3", div.className);
+  assertEquals("test-3", div.getAttribute("class"));
 });
 
-Deno.test("bool attr test", async () => {
-  const doc = new DOM.DOMParser().parseFromString(
-    "<body></body>",
-    "text/html",
-  )!;
-  const input = doc.createElement("input") as unknown as HTMLInputElement;
+Deno.test("attr", async () => {
+  const input = document.createElement("input") as unknown as HTMLInputElement;
   const state = watch<{ checked: boolean }>({ checked: false });
   const node1 = attr.checked(true);
 
