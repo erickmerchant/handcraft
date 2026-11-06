@@ -6,14 +6,14 @@ import { each, html, text, watch } from "../mod.ts";
 Deno.test("each", async () => {
   const div = document.createElement("div") as unknown as HTMLDivElement;
   const state = watch(
-    [{ text: "one" }, { text: "two" }, { text: "three" }].map((model) =>
-      watch(model)
-    ),
+    [{ text: "one" }, { text: "two" }, { text: "three" }]
+      .map((model) => watch(model)),
   );
   const node = html.div(html.ul(
-    each(state).filter((model) => model.text !== "four").map((model, index) =>
-      html.li(text(() => `${index()} ${model.text}`))
-    ).fallback(() => html.li(text("-"))),
+    each(state)
+      .filter((model) => model.text !== "four")
+      .map((model, index) => html.li(text(() => `${index()} ${model.text}`)))
+      .fallback(() => html.li(text("-"))),
   ));
 
   node(div);
