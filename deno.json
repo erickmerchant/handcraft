@@ -1,6 +1,6 @@
 {
   "name": "@handcraft/lib",
-  "version": "6.0.0",
+  "version": "6.1.0",
   "license": "MIT",
   "exports": {
     ".": "./mod.ts",
@@ -24,6 +24,9 @@
     "./tokens": "./tokens.ts",
     "./types": "./types.ts",
     "./when": "./when.ts"
+  },
+  "tasks": {
+    "test": "deno test -A --clean --coverage"
   },
   "imports": {
     "@happy-dom/global-registrator": "npm:@happy-dom/global-registrator@^21.0.4",
