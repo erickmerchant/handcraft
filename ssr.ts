@@ -8,7 +8,6 @@ import {
   HandcraftAttrState,
   HandcraftFragmentState,
   HandcraftNodeState,
-  HandcraftNoState,
   HandcraftShadowState,
   HandcraftTextState,
 } from "./types.ts";
