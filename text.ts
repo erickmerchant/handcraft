@@ -10,19 +10,22 @@ export default (
     target: Element,
     current?: ChildNode | null,
   ): ChildNode | null => {
-    mutate(target, () => {
-      const create = !current ||
-        current?.nodeType !== Node.TEXT_NODE;
+    const create = !current ||
+      current?.nodeType !== Node.TEXT_NODE;
+
+    if (create) {
+      const newChild = document.createTextNode("");
+
+      insertOrReplace(target, newChild, current);
+
+      current = newChild;
+    }
+
+    mutate(current!, (el) => {
       const resolved = resolveValue(text);
 
-      if (create) {
-        const newChild = document.createTextNode(resolved);
-
-        insertOrReplace(target, newChild, current);
-
-        current = newChild;
-      } else if (current && current.nodeValue !== resolved) {
-        current.nodeValue = resolved;
+      if (el.nodeValue !== resolved) {
+        el.nodeValue = resolved;
       }
     });
 

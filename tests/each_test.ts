@@ -1,11 +1,11 @@
 import "./hooks.ts";
 import { assertEquals } from "@std/assert";
 import { delay } from "@std/async";
-import { each, html, text, watch } from "../mod.ts";
+import { attr, each, html, on, text, watch } from "../mod.ts";
 
 Deno.test("each", async () => {
   const div = document.createElement("div") as unknown as HTMLDivElement;
-  const state = watch(
+  const state = watch<Array<{ text: string }>>(
     [{ text: "one" }, { text: "two" }, { text: "three" }]
       .map((model) => watch(model)),
   );
@@ -58,6 +58,58 @@ Deno.test("each", async () => {
 
   assertEquals(
     "<div><ul><!-- <> --><li>-</li><!-- </> --></ul></div>",
+    div.innerHTML,
+  );
+});
+
+Deno.test("each", async () => {
+  const div = document.createElement("div") as unknown as HTMLDivElement;
+  const state = watch<Array<{ text?: string }>>(
+    [{ text: "-" }, { text: "-" }, { text: "-" }]
+      .map((model) => watch(model)),
+  );
+  const node = html.div(
+    html.ul(
+      each(state)
+        .map((model, index) =>
+          html.li(
+            text(() => `${model.text ?? "x"}`),
+            html.button(
+              attr.id(() => `double-${index()}`),
+              on.click(() => {
+                model.text = model.text?.repeat?.(2);
+              }),
+              text("double"),
+            ),
+            html.button(
+              attr.id(() => `clear-${index()}`),
+              on.click(() => {
+                delete model.text;
+              }),
+              text("clear"),
+            ),
+          )
+        ),
+    ),
+  );
+
+  node(div);
+
+  await delay(0);
+
+  assertEquals(
+    `<div><ul><!-- <> --><li>-<button id="double-0">double</button><button id="clear-0">clear</button></li><li>-<button id="double-1">double</button><button id="clear-1">clear</button></li><li>-<button id="double-2">double</button><button id="clear-2">clear</button></li><!-- </> --></ul></div>`,
+    div.innerHTML,
+  );
+
+  div.querySelector("#double-1")?.dispatchEvent(new Event("click"));
+
+  div.querySelector("#clear-2")?.dispatchEvent(new Event("click"));
+
+  await delay(0);
+
+  assertEquals(
+    `<div><ul><!-- <> --><li>-<button id="double-0">double</button><button id="clear-0">clear</button></li><li>--<button id="double-1">double</button><button id="clear-1">clear</button></li><li>x<button id="double-2">double</button><button id="clear-2">clear</button></li><!-- </> --></ul></div>`,
     div.innerHTML,
   );
 });
