@@ -5,8 +5,15 @@ import { attr, each, html, on, text, watch } from "../mod.ts";
 
 Deno.test("each", async () => {
   const div = document.createElement("div") as unknown as HTMLDivElement;
+
+  div.innerHTML = "<div><ul><!-- <> --><li>0 one</li><!-- </> --></ul></div>";
+
   const state = watch<Array<{ text: string }>>(
-    [{ text: "one" }, { text: "two" }, { text: "three" }]
+    [
+      { text: "one" },
+      { text: "two" },
+      { text: "three" },
+    ]
       .map((model) => watch(model)),
   );
   const node = html.div(html.ul(
@@ -16,7 +23,7 @@ Deno.test("each", async () => {
       .fallback(() => html.li(text("-"))),
   ));
 
-  node(div);
+  node(div, div.firstChild);
 
   await delay(0);
 

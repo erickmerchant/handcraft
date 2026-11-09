@@ -6,7 +6,7 @@ import { shadow, text } from "../mod.ts";
 Deno.test("shadow", async () => {
   const div = document.createElement("div") as unknown as HTMLDivElement;
 
-  const node = shadow({ mode: "open" }, text("hello from the shadow"));
+  const node = shadow({ mode: "open" }, text("hello from the shadow"), null);
 
   node(div);
 

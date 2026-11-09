@@ -6,7 +6,9 @@ import type {
 } from "./types.ts";
 import {
   HandcraftAttrState,
+  HandcraftFragmentState,
   HandcraftNodeState,
+  HandcraftNoState,
   HandcraftShadowState,
   HandcraftTextState,
 } from "./types.ts";
@@ -135,21 +137,30 @@ export function stringify(
 
       if (instanceNode && instanceNode.state instanceof HandcraftNodeState) {
         const instanceState = instanceNode.state;
+        const hasShadow = state.nodes.some((n) =>
+          n?.state instanceof HandcraftShadowState
+        );
+        const hasChildren = state.nodes.some((n) =>
+          n?.state instanceof HandcraftNodeState ||
+          n?.state instanceof HandcraftFragmentState ||
+          n?.state instanceof HandcraftTextState
+        );
 
         loopAttributes(instanceState.nodes ?? []);
 
-        let nodes;
+        const nodes = instanceState.nodes.filter((n) => {
+          if (hasShadow && n?.state instanceof HandcraftShadowState) {
+            return false;
+          }
 
-        if (state.nodes?.length) {
-          const instanceNodes = instanceState.nodes?.filter?.((node) =>
-            node?.state instanceof HandcraftShadowState ||
-            node?.state instanceof HandcraftAttrState
-          ) ?? [];
+          if (
+            hasChildren && (n?.state instanceof HandcraftNodeState ||
+              n?.state instanceof HandcraftFragmentState ||
+              n?.state instanceof HandcraftTextState)
+          ) return false;
 
-          nodes = instanceNodes.concat(state.nodes ?? []);
-        } else {
-          nodes = instanceState.nodes ?? [];
-        }
+          return true;
+        }).concat(state.nodes ?? []);
 
         state.nodes = nodes;
       }
