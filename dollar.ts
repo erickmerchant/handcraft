@@ -11,13 +11,11 @@ export default (
 (
   ...nodes: Array<HandcraftNode<HandcraftState> | null>
 ) => {
-  const node = (_target: Element, current?: ChildNode | null) => current;
-
-  node.state = new HandcraftNodeState("div", "", nodes);
+  const state = new HandcraftNodeState("", "", nodes);
 
   queueMicrotask(() => {
     for (const element of target.querySelectorAll(selector)) {
-      render(node as HandcraftNode<HandcraftNodeState>, element);
+      render({ state } as HandcraftNode<HandcraftNodeState>, element);
     }
   });
 };

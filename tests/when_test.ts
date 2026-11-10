@@ -6,7 +6,9 @@ import { html, text, watch, when } from "../mod.ts";
 Deno.test("when", async () => {
   const div = document.createElement("div") as unknown as HTMLDivElement;
   const state = watch<{ value: boolean }>({ value: false });
-  const node = html.div(
+  let node;
+
+  node = html.div(
     when(() => state.value)
       .show(() => html.div(text("+")))
       .fallback(() => html.div(text("-"))),
@@ -27,6 +29,31 @@ Deno.test("when", async () => {
 
   assertEquals(
     "<div><!-- <> --><div>+</div><!-- </> --></div>",
+    div.innerHTML,
+  );
+
+  node = html.div(
+    when(() => state.value)
+      .show(() => html.div(text("*"))),
+  );
+
+  state.value = false;
+
+  node(div, div.firstChild);
+
+  await delay(0);
+
+  assertEquals(
+    "<div><!-- <> --><!-- </> --></div>",
+    div.innerHTML,
+  );
+
+  state.value = true;
+
+  await delay(0);
+
+  assertEquals(
+    "<div><!-- <> --><div>*</div><!-- </> --></div>",
     div.innerHTML,
   );
 });

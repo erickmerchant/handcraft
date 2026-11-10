@@ -4,14 +4,19 @@ import { delay } from "@std/async";
 import type { HandcraftNode, HandcraftTag } from "../types.ts";
 
 Deno.test("html", async () => {
-  const { HandcraftElementWithAttributes, html, text, watch } = await import(
-    "../mod.ts?reload"
-  );
+  const { HandcraftElementWithAttributes, html, text, watch, attr } =
+    await import(
+      "../mod.ts?reload"
+    );
 
   class TestElement extends HandcraftElementWithAttributes {
-    static observedAttributes = ["num"];
+    static observedAttributes = ["num", "str", "bool"];
 
-    override state: { num: number } = watch({ num: 3 });
+    override state: { num: number; str: string; bool: boolean } = watch({
+      num: 3,
+      str: "three",
+      bool: false,
+    });
 
     override view(host: HandcraftTag): HandcraftNode {
       return host(
@@ -29,7 +34,9 @@ Deno.test("html", async () => {
 
   document.body.append(div);
 
-  const node = testElement();
+  let node;
+
+  node = testElement();
 
   node(div);
 
@@ -37,6 +44,17 @@ Deno.test("html", async () => {
 
   assertEquals(
     "<test-element><ul><li>0</li><li>1</li><li>2</li></ul></test-element>",
+    div.innerHTML,
+  );
+
+  node = testElement(attr.num(4), attr.str("four"), attr.bool(true));
+
+  node(div, div.firstChild);
+
+  await delay(0);
+
+  assertEquals(
+    `<test-element num="4" str="four" bool=""><ul><li>0</li><li>1</li><li>2</li></ul></test-element>`,
     div.innerHTML,
   );
 });
