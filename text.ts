@@ -21,7 +21,7 @@ export default (
       current = newChild;
     }
 
-    mutate(current!, (el) => {
+    mutate([current!], (el) => {
       const resolved = resolveValue(text);
 
       if (el.nodeValue !== resolved) {

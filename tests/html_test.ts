@@ -10,6 +10,7 @@ Deno.test("html", async () => {
     html.li(text("1")),
     html.li(text("2")),
     html.li(text("3")),
+    null,
   );
 
   node(div);

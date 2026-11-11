@@ -99,89 +99,92 @@ export function stringify(
     }
   };
 
-  if (state.name) {
-    loopAttributes(state.nodes ?? []);
+  loopAttributes(state.nodes);
 
-    if (state.name === "html") result += "<!doctype html>";
+  if (state.name === "html") result += "<!doctype html>";
 
-    result += esc`<${state.name}`;
+  result += esc`<${state.name}`;
 
-    const Definition = definitions.get(state.name);
+  const Definition = definitions.get(state.name);
 
-    if (Definition) {
-      const instance = new Definition();
+  if (Definition) {
+    const instance = new Definition();
 
-      instance.ssr = true;
+    instance.ssr = true;
 
-      const constructor = Object.getPrototypeOf(instance).constructor;
-      const observedAttributes: Array<string> =
-        constructor?.observedAttributes ??
-          [];
+    const constructor = Object.getPrototypeOf(instance).constructor;
+    const observedAttributes: Array<string> = constructor?.observedAttributes ??
+      [];
 
-      for (const name of observedAttributes) {
-        if (
-          attributes[name] != null &&
-          instance instanceof HandcraftElementWithAttributes
-        ) {
-          instance.attributeChangedCallback(
-            name,
-            null,
-            attributes[name],
-          );
+    for (const name of observedAttributes) {
+      if (
+        attributes[name] != null &&
+        instance instanceof HandcraftElementWithAttributes
+      ) {
+        instance.attributeChangedCallback(
+          name,
+          null,
+          attributes[name],
+        );
+      }
+    }
+
+    const tag = html[state.name];
+    const instanceNode = instance.view(tag);
+
+    if (instanceNode && instanceNode.state instanceof HandcraftNodeState) {
+      const instanceState = instanceNode.state;
+      const hasShadow = state.nodes.some((n) =>
+        n?.state instanceof HandcraftShadowState
+      );
+      const hasChildren = state.nodes.some((n) =>
+        n?.state instanceof HandcraftNodeState ||
+        n?.state instanceof HandcraftFragmentState ||
+        n?.state instanceof HandcraftTextState
+      );
+
+      loopAttributes(instanceState.nodes);
+
+      const nodes = instanceState.nodes.filter((n) => {
+        if (hasShadow && n?.state instanceof HandcraftShadowState) {
+          return false;
         }
-      }
 
-      const tag = html[state.name];
-      const instanceNode = instance.view(tag);
+        if (
+          hasChildren && (
+            [
+              HandcraftNodeState,
+              HandcraftFragmentState,
+              HandcraftTextState,
+            ]
+              .map((c) => c.prototype)
+              .includes(Object.getPrototypeOf(n?.state))
+          )
+        ) return false;
 
-      if (instanceNode && instanceNode.state instanceof HandcraftNodeState) {
-        const instanceState = instanceNode.state;
-        const hasShadow = state.nodes.some((n) =>
-          n?.state instanceof HandcraftShadowState
-        );
-        const hasChildren = state.nodes.some((n) =>
-          n?.state instanceof HandcraftNodeState ||
-          n?.state instanceof HandcraftFragmentState ||
-          n?.state instanceof HandcraftTextState
-        );
+        return true;
+      }).concat(state.nodes);
 
-        loopAttributes(instanceState.nodes ?? []);
-
-        const nodes = instanceState.nodes.filter((n) => {
-          if (hasShadow && n?.state instanceof HandcraftShadowState) {
-            return false;
-          }
-
-          if (
-            hasChildren && (n?.state instanceof HandcraftNodeState ||
-              n?.state instanceof HandcraftFragmentState ||
-              n?.state instanceof HandcraftTextState)
-          ) return false;
-
-          return true;
-        }).concat(state.nodes ?? []);
-
-        state.nodes = nodes;
-      }
+      state.nodes = nodes;
     }
+  }
 
-    for (const [key, value] of Object.entries(attributes)) {
-      if (value === "") {
-        result += esc` ${key}`;
-      } else {
-        result += esc` ${key}="${value}"`;
-      }
+  for (const [key, value] of Object.entries(attributes)) {
+    if (value === "") {
+      result += esc` ${key}`;
+    } else {
+      result += esc` ${key}="${value}"`;
     }
+  }
 
-    result += ">";
+  result += ">";
 
-    const children = nodes(state.nodes ?? [], escape);
+  const children = nodes(state.nodes, escape);
 
-    result += children;
+  result += children;
 
-    if (!voids.includes(state.name) || children) {
-      result += esc`</${state.name}>`;
-    }
+  if (!voids.includes(state.name) || children) {
+    result += esc`</${state.name}>`;
   }
 
   return result;
@@ -193,49 +196,45 @@ function nodes(
 ): string {
   let result = "";
 
-  try {
-    for (const node of nodes ?? []) {
-      if (node == null) continue;
+  for (const node of nodes) {
+    if (node == null) continue;
 
-      if (node.state instanceof HandcraftShadowState) {
-        const state = new HandcraftNodeState(
-          "template",
-          "http://www.w3.org/1999/xhtml",
-          node.state.nodes,
-        );
+    if (node.state instanceof HandcraftShadowState) {
+      const state = new HandcraftNodeState(
+        "template",
+        "http://www.w3.org/1999/xhtml",
+        node.state.nodes,
+      );
 
-        for (const [key, value] of Object.entries(node.state.options ?? {})) {
-          state.nodes!.push({
-            state: new HandcraftAttrState(`shadowroot${key}`, value),
-          } as HandcraftNode<HandcraftAttrState>);
-        }
-
-        result += stringify(
-          { state: state } as HandcraftNode<HandcraftNodeState>,
-          escape,
-        );
-      } else if (node.state instanceof HandcraftTextState) {
-        result += resolveValue(node.state.text) ?? "";
-      } else if (node.state instanceof HandcraftNodeState) {
-        result += stringify(node as HandcraftNode<HandcraftNodeState>, escape);
-      } else if (
-        Symbol.iterator in node.state
-      ) {
-        result += `<!-- <> -->`;
-
-        for (const item of node.state as Iterable<HandcraftControlCallback>) {
-          const c = item();
-
-          if (c == null) continue;
-
-          result += stringify(c as HandcraftNode<HandcraftNodeState>, escape);
-        }
-
-        result += `<!-- </> -->`;
+      for (const [key, value] of Object.entries(node.state.options)) {
+        state.nodes!.push({
+          state: new HandcraftAttrState(`shadowroot${key}`, value),
+        } as HandcraftNode<HandcraftAttrState>);
       }
+
+      result += stringify(
+        { state: state } as HandcraftNode<HandcraftNodeState>,
+        escape,
+      );
+    } else if (node.state instanceof HandcraftTextState) {
+      result += resolveValue(node.state.text);
+    } else if (node.state instanceof HandcraftNodeState) {
+      result += stringify(node as HandcraftNode<HandcraftNodeState>, escape);
+    } else if (
+      Symbol.iterator in node.state
+    ) {
+      result += `<!-- <> -->`;
+
+      for (const item of node.state as Iterable<HandcraftControlCallback>) {
+        const c = item();
+
+        if (c == null) continue;
+
+        result += stringify(c as HandcraftNode<HandcraftNodeState>, escape);
+      }
+
+      result += `<!-- </> -->`;
     }
-  } catch (_e) {
-    // console.error(e);
   }
 
   return result;

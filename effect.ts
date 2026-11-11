@@ -9,7 +9,7 @@ export default (
     target: Element,
     current?: ChildNode | null,
   ): ChildNode | null => {
-    mutate(target, value);
+    mutate([target], value);
 
     return current ?? null;
   };

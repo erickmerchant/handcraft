@@ -15,7 +15,7 @@ export function render(
   if (target instanceof Element && state instanceof HandcraftNodeState) {
     let current = target.firstChild;
 
-    for (const node of state?.nodes ?? []) {
+    for (const node of state.nodes) {
       if (!node) continue;
 
       current = node(
@@ -27,18 +27,18 @@ export function render(
 }
 
 export function mutate<T extends object>(
-  element: T,
+  element: Array<T>,
   callback: (
-    element: T,
+    ...element: Array<T>
   ) => void,
 ) {
-  const el = new WeakRef(element);
+  const el = element.map((e) => new WeakRef(e));
 
   run(() => {
-    const e = el.deref();
+    const e = el.map((e) => e.deref());
 
-    if (e) {
-      callback(e);
+    if (e.every((e) => !!e)) {
+      callback(...e);
     }
   });
 }
@@ -54,13 +54,8 @@ export function controlCallback(
     current?: ChildNode | null,
   ): ChildNode | null => {
     const [start, end] = getBounds(target, current, current?.nextSibling);
-    const weakBounds = [start, end].map((c) => new WeakRef(c));
 
-    mutate(target, () => {
-      const [start, end] = weakBounds.map((b) => b.deref());
-
-      if (!start || !end) return;
-
+    mutate([start, end], (start, end) => {
       let current: ChildNode | null = (start && start?.nextSibling !== end)
         ? start?.nextSibling
         : null;
@@ -117,24 +112,15 @@ function getBounds(
   ) {
     const start = currentChild;
 
-    let nesting = 1;
-    let next = start.nextSibling;
+    let next: ChildNode | null = start;
 
-    while (next) {
-      if (isCommentWithSpecificValue(next, START_COMMENT)) {
-        nesting += 1;
-      }
-
-      if (isCommentWithSpecificValue(next, END_COMMENT)) {
-        nesting -= 1;
-
-        if (nesting === 0) {
-          return [start, next] as [Comment, Comment];
-        }
-      }
-
+    do {
       next = next.nextSibling;
-    }
+
+      if (next && isCommentWithSpecificValue(next, END_COMMENT)) {
+        return [start, next] as [Comment, Comment];
+      }
+    } while (next);
   }
 
   return [

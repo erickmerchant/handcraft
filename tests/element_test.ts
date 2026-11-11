@@ -4,6 +4,56 @@ import { delay } from "@std/async";
 import type { HandcraftNode, HandcraftTag } from "../types.ts";
 
 Deno.test("html", async () => {
+  const { HandcraftElement } = await import(
+    "../mod.ts?reload"
+  );
+
+  class TestElement extends HandcraftElement {
+  }
+
+  const testElement = TestElement.define("test-element");
+  const div = document.createElement("div") as unknown as HTMLDivElement;
+
+  document.body.append(div);
+
+  const node = testElement();
+
+  node(div);
+
+  await delay(0);
+
+  assertEquals(
+    "<test-element></test-element>",
+    div.innerHTML,
+  );
+});
+
+Deno.test("html", async () => {
+  const { HandcraftElementWithAttributes } = await import(
+    "../mod.ts?reload"
+  );
+
+  class TestElement extends HandcraftElementWithAttributes {
+  }
+
+  const testElement = TestElement.define("test-element");
+  const div = document.createElement("div") as unknown as HTMLDivElement;
+
+  document.body.append(div);
+
+  const node = testElement();
+
+  node(div);
+
+  await delay(0);
+
+  assertEquals(
+    "<test-element></test-element>",
+    div.innerHTML,
+  );
+});
+
+Deno.test("html", async () => {
   const { HandcraftElementWithAttributes, html, text, watch, attr } =
     await import(
       "../mod.ts?reload"

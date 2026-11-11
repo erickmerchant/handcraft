@@ -18,6 +18,61 @@ Deno.test("each", async () => {
   );
   const node = html.div(html.ul(
     each(state)
+      .map((model, index) => html.li(text(() => `${index()} ${model.text}`))),
+  ));
+
+  node(div, div.firstChild);
+
+  await delay(0);
+
+  assertEquals(
+    "<div><ul><!-- <> --><li>0 one</li><li>1 two</li><li>2 three</li><!-- </> --></ul></div>",
+    div.innerHTML,
+  );
+
+  state.splice(0, 0, watch({ text: "zero" }));
+
+  await delay(0);
+
+  assertEquals(
+    "<div><ul><!-- <> --><li>0 zero</li><li>1 one</li><li>2 two</li><li>3 three</li><!-- </> --></ul></div>",
+    div.innerHTML,
+  );
+
+  state.splice(2, 2);
+
+  await delay(0);
+
+  assertEquals(
+    "<div><ul><!-- <> --><li>0 zero</li><li>1 one</li><!-- </> --></ul></div>",
+    div.innerHTML,
+  );
+
+  state.splice(0, 2);
+
+  await delay(0);
+
+  assertEquals(
+    "<div><ul><!-- <> --><!-- </> --></ul></div>",
+    div.innerHTML,
+  );
+});
+
+Deno.test("each", async () => {
+  const div = document.createElement("div") as unknown as HTMLDivElement;
+
+  div.innerHTML = "<div><ul><!-- <> --><li>0 one</li><!-- </> --></ul></div>";
+
+  const state = watch<Array<{ text: string }>>(
+    [
+      { text: "one" },
+      { text: "two" },
+      { text: "three" },
+    ]
+      .map((model) => watch(model)),
+  );
+  const node = html.div(html.ul(
+    each(state)
       .filter((model) => model.text !== "four")
       .map((model, index) => html.li(text(() => `${index()} ${model.text}`)))
       .fallback(() => html.li(text("-"))),

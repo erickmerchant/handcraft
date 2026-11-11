@@ -82,6 +82,39 @@ Deno.test("ssr", async () => {
 
 Deno.test("ssr", async () => {
   class TestElement extends HandcraftElementWithAttributes {
+    override state: { num: number } = watch({ num: 0 });
+
+    override view(host: HandcraftTag): HandcraftNode {
+      return host(html.div(text(() => `${this.state.num}`)));
+    }
+  }
+
+  const testElement = TestElement.define("test-element");
+  let v;
+
+  v = view(() => {
+    return html.div(testElement());
+  });
+
+  assertEquals(
+    `<div><test-element><div>0</div></test-element></div>`,
+    await v(),
+  );
+
+  v = view(() => {
+    return html.div(testElement(attr.num("12")));
+  });
+
+  await delay(0);
+
+  assertEquals(
+    `<div><test-element num="12"><div>0</div></test-element></div>`,
+    await v(),
+  );
+});
+
+Deno.test("ssr", async () => {
+  class TestElement extends HandcraftElementWithAttributes {
     static observedAttributes = ["num"];
 
     override state: { num: number } = watch({ num: 0 });

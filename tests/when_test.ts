@@ -57,3 +57,40 @@ Deno.test("when", async () => {
     div.innerHTML,
   );
 });
+
+Deno.test("when", async () => {
+  const div = document.createElement("div") as unknown as HTMLDivElement;
+
+  div.innerHTML =
+    `<div><!-- <> --><div><!-- <> --><div>&amp;</div><!-- </> --></div><!-- </> --></div>`;
+
+  const node = html.div(
+    when(() => true)
+      .show(() =>
+        html.div(
+          when(() => true)
+            .show(() => html.div(text("&"))),
+        )
+      ),
+  );
+
+  node(div, div.firstChild);
+
+  await delay(0);
+
+  assertEquals(
+    "<div><!-- <> --><div><!-- <> --><div>&amp;</div><!-- </> --></div><!-- </> --></div>",
+    div.innerHTML,
+  );
+
+  div.innerHTML = `<div>prerendered nonsense</div>`;
+
+  node(div, div.firstChild);
+
+  await delay(0);
+
+  assertEquals(
+    "<div><!-- <> --><div><!-- <> --><div>&amp;</div><!-- </> --></div><!-- </> --></div>",
+    div.innerHTML,
+  );
+});

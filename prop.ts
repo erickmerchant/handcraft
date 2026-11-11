@@ -14,7 +14,7 @@ export default recordProxy<
     current?: ChildNode | null,
   ): ChildNode | null => {
     mutate<Element>(
-      target,
+      [target],
       (element) => {
         const v = resolveValue(value);
 
