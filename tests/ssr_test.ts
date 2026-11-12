@@ -13,7 +13,7 @@ import {
 } from "../mod.ts";
 import type { HandcraftNode, HandcraftTag } from "../types.ts";
 
-Deno.test("ssr", async () => {
+Deno.test("ssr - response", async () => {
   const v = view(() => {
     return new Response("testing");
   });
@@ -22,31 +22,27 @@ Deno.test("ssr", async () => {
   assert(typeof res === "object" && res != null && res instanceof Response);
 });
 
-Deno.test("ssr", async () => {
+Deno.test("ssr - string", async () => {
   const v = view(() => {
-    return html.html(html.body());
+    return html.html(
+      html.body(
+        html.div(
+          attr.class("test"),
+          html.span(text("1 2 3")),
+          html.input(attr.checked(true)),
+          null,
+        ),
+      ),
+    );
   });
 
-  assertEquals(`<!doctype html><html><body></body></html>`, await v());
+  assertEquals(
+    `<!doctype html><html><body><div class="test"><span>1 2 3</span><input checked></div></body></html>`,
+    await v(),
+  );
 });
 
-Deno.test("ssr", async () => {
-  const v = view(() => {
-    return html.div(attr.class("test"), html.span(text("1 2 3"), null));
-  });
-
-  assertEquals(`<div class="test"><span>1 2 3</span></div>`, await v());
-});
-
-Deno.test("ssr", async () => {
-  const v = view(() => {
-    return html.input(attr.checked(true));
-  });
-
-  assertEquals(`<input checked>`, await v());
-});
-
-Deno.test("ssr", async () => {
+Deno.test("ssr - shadow", async () => {
   const v = view(() => {
     return html.div(shadow({ mode: "open" }, html.span(text("1 2 3"), null)));
   });
@@ -57,7 +53,7 @@ Deno.test("ssr", async () => {
   );
 });
 
-Deno.test("ssr", async () => {
+Deno.test("ssr - each", async () => {
   const v = view(() => {
     return html.div(html.ul(
       each([
@@ -80,7 +76,7 @@ Deno.test("ssr", async () => {
   );
 });
 
-Deno.test("ssr", async () => {
+Deno.test("ssr - element", async () => {
   class TestElement extends HandcraftElementWithAttributes {
     override state: { num: number } = watch({ num: 0 });
 
@@ -113,7 +109,7 @@ Deno.test("ssr", async () => {
   );
 });
 
-Deno.test("ssr", async () => {
+Deno.test("ssr - element + observed", async () => {
   class TestElement extends HandcraftElementWithAttributes {
     static observedAttributes = ["num"];
 
@@ -159,7 +155,7 @@ Deno.test("ssr", async () => {
   );
 });
 
-Deno.test("ssr", async () => {
+Deno.test("ssr - element + shadow", async () => {
   class TestElement extends HandcraftElementWithAttributes {
     static observedAttributes = ["num"];
 

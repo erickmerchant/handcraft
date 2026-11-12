@@ -3,7 +3,7 @@ import { assertEquals } from "@std/assert";
 import { delay } from "@std/async";
 import { attr, watch } from "../mod.ts";
 
-Deno.test("attr", async () => {
+Deno.test("attr - string", async () => {
   const div = document.createElement("div") as unknown as HTMLDivElement;
   const state = watch<{ className: string }>({ className: "test-2" });
   const node1 = attr.class("test-1");
@@ -29,7 +29,7 @@ Deno.test("attr", async () => {
   assertEquals("test-3", div.getAttribute("class"));
 });
 
-Deno.test("attr", async () => {
+Deno.test("attr - boolean", async () => {
   const input = document.createElement("input") as unknown as HTMLInputElement;
   const state = watch<{ checked: boolean }>({ checked: false });
   const node1 = attr.checked(true);

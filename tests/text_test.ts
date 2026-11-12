@@ -3,7 +3,7 @@ import { assertEquals } from "@std/assert";
 import { delay } from "@std/async";
 import { text, watch } from "../mod.ts";
 
-Deno.test("text", async () => {
+Deno.test("text - static", async () => {
   const div = document.createElement("div") as unknown as HTMLDivElement;
   const node1 = text("test-1");
 
@@ -14,7 +14,7 @@ Deno.test("text", async () => {
   assertEquals("test-1", div.innerText);
 });
 
-Deno.test("text", async () => {
+Deno.test("text - dynamic", async () => {
   const div = document.createElement("div") as unknown as HTMLDivElement;
   const state = watch<{ innerText: string }>({ innerText: "test-2" });
 

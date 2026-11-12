@@ -3,7 +3,7 @@ import { assertEquals } from "@std/assert";
 import { delay } from "@std/async";
 import { attr, each, html, on, text, watch } from "../mod.ts";
 
-Deno.test("each", async () => {
+Deno.test("each - map", async () => {
   const div = document.createElement("div") as unknown as HTMLDivElement;
 
   div.innerHTML = "<div><ul><!-- <> --><li>0 one</li><!-- </> --></ul></div>";
@@ -58,7 +58,7 @@ Deno.test("each", async () => {
   );
 });
 
-Deno.test("each", async () => {
+Deno.test("each - filter / fallback", async () => {
   const div = document.createElement("div") as unknown as HTMLDivElement;
 
   div.innerHTML = "<div><ul><!-- <> --><li>0 one</li><!-- </> --></ul></div>";
@@ -124,7 +124,7 @@ Deno.test("each", async () => {
   );
 });
 
-Deno.test("each", async () => {
+Deno.test("each - model", async () => {
   const div = document.createElement("div") as unknown as HTMLDivElement;
   const state = watch<Array<{ text?: string }>>(
     [{ text: "-" }, { text: "-" }, { text: "-" }]

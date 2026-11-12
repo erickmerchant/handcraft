@@ -3,7 +3,7 @@ import { assertEquals } from "@std/assert";
 import { delay } from "@std/async";
 import { html, text, watch, when } from "../mod.ts";
 
-Deno.test("when", async () => {
+Deno.test("when - show / fallback", async () => {
   const div = document.createElement("div") as unknown as HTMLDivElement;
   const state = watch<{ value: boolean }>({ value: false });
   let node;
@@ -58,7 +58,7 @@ Deno.test("when", async () => {
   );
 });
 
-Deno.test("when", async () => {
+Deno.test("when - nested", async () => {
   const div = document.createElement("div") as unknown as HTMLDivElement;
 
   div.innerHTML =
